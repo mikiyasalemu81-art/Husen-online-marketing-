@@ -1,0 +1,19 @@
+{
+  "name": "husen-online-marketing",
+  "version": "1.0.0",
+  "description": "Mobile-first e-commerce storefront for Husen Online Marketing in Adama, Ethiopia",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js",
+    "dev": "node serve.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "adama",
+    "ethiopia",
+    "chapa",
+    "telebirr"
+  ],
+  "author": "mikiyas",
+  "license": "ISC"
+}

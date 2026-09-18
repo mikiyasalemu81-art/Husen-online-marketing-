@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/payment-success",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/public/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}

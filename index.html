@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Husen Online Marketing — Adama, Ethiopia</title>
-  <meta name="description" content="Shop quality household goods, kitchenware, health & beauty products with fast local delivery across Adama, Ethiopia. Easy Telebirr, CBE via Chapa & Cash on Delivery.">
+  <meta name="description" content="Shop quality household goods, kitchenware, health & beauty products with fast local delivery across Adama, Ethiopia. Easy Telebirr, CBE via Chapa, Cash on Delivery & Manual Transfer.">
   
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -147,6 +147,18 @@
         </div>
       </div>
 
+      <!-- Pinned Real-Time Search Bar (sticky top-0 z-30 under header) -->
+      <div class="store-search-bar-wrap" id="searchBarWrap">
+        <div class="search-input-inner">
+          <svg class="search-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="search" id="productSearchInput" class="search-input" placeholder="Search products in Adama (e.g. Blender, Vest)..." autocomplete="off" aria-label="Search products">
+          <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search query" style="display:none;">✕</button>
+        </div>
+      </div>
+
       <!-- Category Filter Chips -->
       <nav class="category-nav" aria-label="Product Categories">
         <div class="category-scroll-list" id="categoryChipContainer">
@@ -163,7 +175,7 @@
           <span id="heroBadgeText">Adama Fast Local Delivery</span>
         </div>
         <h1 class="hero-headline" id="heroHeadline">Household & Lifestyle Essentials</h1>
-        <p class="hero-subtext" id="heroSubtext">Delivering to all neighborhoods in Adama with Telebirr / CBE via Chapa and Cash on Delivery.</p>
+        <p class="hero-subtext" id="heroSubtext">Delivering to all neighborhoods in Adama with Telebirr / CBE via Chapa, Cash on Delivery, or Manual Transfer.</p>
         
         <div class="hero-stats">
           <div class="stat-pill">
@@ -182,7 +194,7 @@
       </div>
     </section>
 
-    <!-- Product Catalog Section -->
+    <!-- Product Catalog Section (2-Column Mobile Grid) -->
     <main class="catalog-section">
       <div class="section-title-row">
         <div>
@@ -192,9 +204,17 @@
         <span class="product-count-chip" id="productCountChip">4 Items</span>
       </div>
 
-      <!-- Catalog Grid -->
+      <!-- Catalog Grid: Responsive 2-column mobile grid -->
       <div class="product-grid" id="productGrid">
         <!-- Rendered via app.js -->
+      </div>
+
+      <!-- Empty State View (When search or filters yield 0 results) -->
+      <div class="empty-results-box" id="searchEmptyState" style="display:none;">
+        <div class="empty-icon">🔍</div>
+        <h3 id="emptyTitle">No matching products found</h3>
+        <p id="emptySubtext">Try adjusting your search terms or view all categories.</p>
+        <button type="button" class="btn-reset-filters" id="btnResetSearch">Clear Search & Filters</button>
       </div>
     </main>
 
@@ -204,7 +224,7 @@
         <div class="trust-icon-wrap">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="1" y="3" width="15" height="13"/>
-            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 8"/>
             <circle cx="5.5" cy="18.5" r="2.5"/>
             <circle cx="18.5" cy="18.5" r="2.5"/>
           </svg>
@@ -223,7 +243,7 @@
         </div>
         <div>
           <h3 id="trustSecureTitle">Safe Payment Options</h3>
-          <p id="trustSecureDesc">Instant digital payment (Telebirr & CBE via Chapa) or Cash on Delivery.</p>
+          <p id="trustSecureDesc">Instant digital payment (Telebirr & CBE via Chapa), Direct Transfer, or Cash on Delivery.</p>
         </div>
       </div>
 
@@ -240,10 +260,12 @@
       </div>
     </section>
 
-    <!-- Footer: Cleaned up without old language text button -->
+    <!-- Footer -->
     <footer class="app-footer">
       <div class="footer-brand">
-        <img src="public/images/logo.png" alt="Husen Logo" class="footer-logo">
+        <div class="footer-logo-clean">
+          <img src="public/images/logo.png" alt="Husen Logo" class="footer-logo">
+        </div>
         <div>
           <span class="footer-brand-name">HUSEN ONLINE MARKETING</span>
           <p class="footer-location">Adama, Oromia, Ethiopia • 0923245529</p>
@@ -254,7 +276,7 @@
         <button type="button" class="footer-link-btn" id="openAdminBtn">🔐 Shop Admin Portal</button>
       </div>
 
-      <p class="footer-copy">© 2026 Husen Online Marketing. Integrated with Chapa & AfroMessage SMS Gateway.</p>
+      <p class="footer-copy">© 2026 Husen Online Marketing. Integrated with Chapa & SMS Gateway.</p>
     </footer>
 
   </div><!-- /app-shell -->
@@ -323,7 +345,7 @@
 
         <div class="tg-trust-mini">
           <span>🛵 Delivery across all Adama neighborhoods</span>
-          <span>💳 Telebirr / CBE via Chapa or Cash on Delivery</span>
+          <span>💳 Telebirr / CBE via Chapa, Transfer, or Cash on Delivery</span>
         </div>
       </div>
     </div>
@@ -426,14 +448,14 @@
                 <label for="customerPhoneInput" class="field-label" id="labelPhone">Phone Number *</label>
                 <div class="phone-input-prefix-wrap">
                   <span class="phone-prefix">+251</span>
-                  <input type="tel" id="customerPhoneInput" class="form-input phone-input" placeholder="09... or 07..." required autocomplete="tel">
+                  <input type="tel" id="customerPhoneInput" class="form-input phone-input" placeholder="912 345 678 or 712 345 678" maxlength="11" required autocomplete="tel">
                 </div>
-                <small class="field-helper" id="phoneHelperText">Required for courier dispatch and payment confirmation</small>
-                <small class="field-error" id="phoneErrorMsg" style="display:none;">Please enter a valid Ethiopian phone number (e.g. 0912345678)</small>
+                <small class="field-helper" id="phoneHelperText">Enter 9 digits starting with 9 or 7. Format: +251 9... / 7...</small>
+                <small class="field-error" id="phoneErrorMsg" style="display:none;">Please enter a valid 9-digit Ethiopian phone number starting with 9 or 7</small>
               </div>
 
               <div class="input-field-wrap">
-                <label for="customerLandmarkInput" class="field-label" id="labelLandmark">Delivery Location / Landmark in Adama *</label>
+                <label for="customerLandmarkInput" class="field-label" id="labelLandmark">Delivery Landmark in Adama *</label>
                 <input type="text" id="customerLandmarkInput" class="form-input" placeholder="e.g., Posta Bet, Adama" required>
                 
                 <div class="quick-neighborhood-chips">
@@ -467,7 +489,7 @@
           <div class="confirmed-customer-pill" id="confirmedCustomerPill">
             <div class="customer-pill-left">
               <strong id="pillCustomerName">Abebe Kebede</strong>
-              <small id="pillCustomerDetails">0923456789 • Posta Bet, Adama</small>
+              <small id="pillCustomerDetails">+251912345678 • Posta Bet, Adama</small>
             </div>
             <button type="button" class="btn-edit-details" id="btnBackToStep1">Edit</button>
           </div>
@@ -477,7 +499,7 @@
           </label>
 
           <div class="payment-method-options">
-            <!-- Option A: Digital Payment (Telebirr / CBE via Chapa) -->
+            <!-- Option 1: Automated Chapa (Telebirr & CBE) -->
             <label class="payment-card selected" for="payChapa">
               <input type="radio" name="paymentOption" id="payChapa" value="chapa" checked>
               <div class="pay-card-left">
@@ -486,10 +508,10 @@
                 </div>
                 <div>
                   <div class="pay-title-badge-row">
-                    <strong class="pay-name" id="chapaName">Digital Payment (Telebirr / CBE)</strong>
-                    <span class="badge-chapa-secure">Chapa Gateway</span>
+                    <strong class="pay-name" id="chapaName">Automated Chapa (Telebirr & CBE)</strong>
+                    <span class="badge-chapa-secure">Instant Gateway</span>
                   </div>
-                  <p class="pay-desc" id="chapaDesc">Instant online payment using your Telebirr account or Commercial Bank of Ethiopia (CBE).</p>
+                  <p class="pay-desc" id="chapaDesc">Instant online checkout using your Telebirr account or Commercial Bank of Ethiopia (CBE).</p>
                   <div class="chapa-logos-row">
                     <span class="mini-logo-pill telebirr-pill">telebirr</span>
                     <span class="mini-logo-pill cbe-pill">CBE</span>
@@ -500,7 +522,7 @@
               <div class="radio-indicator"></div>
             </label>
 
-            <!-- Option B: Cash on Delivery -->
+            <!-- Option 2: Cash on Delivery -->
             <label class="payment-card" for="payCod">
               <input type="radio" name="paymentOption" id="payCod" value="cod">
               <div class="pay-card-left">
@@ -514,16 +536,87 @@
               </div>
               <div class="radio-indicator"></div>
             </label>
+
+            <!-- Option 3: Manual Direct Transfer (CBE / Telebirr) -->
+            <label class="payment-card" for="payManual">
+              <input type="radio" name="paymentOption" id="payManual" value="manual">
+              <div class="pay-card-left">
+                <div class="pay-logo-badge manual-badge">
+                  <span>🏦</span>
+                </div>
+                <div>
+                  <div class="pay-title-badge-row">
+                    <strong class="pay-name" id="manualName">Manual Direct Transfer (CBE / Telebirr)</strong>
+                    <span class="badge-transfer-pill">Direct Transfer</span>
+                  </div>
+                  <p class="pay-desc" id="manualDesc">Transfer directly from your banking app or Telebirr account using the account numbers below.</p>
+                </div>
+              </div>
+              <div class="radio-indicator"></div>
+            </label>
+          </div>
+
+          <!-- Dynamic Manual Transfer Details Box (Shown when payManual is selected) -->
+          <div class="manual-transfer-details-box" id="manualTransferDetailsBox" style="display:none;">
+            <p class="manual-transfer-prompt">Transfer total amount (<strong id="manualTotalNotice">0 ETB</strong>) to either account below:</p>
+            
+            <div class="bank-accounts-grid">
+              <!-- CBE Account Card -->
+              <div class="account-card cbe-account-card">
+                <div class="account-card-header">
+                  <span class="bank-tag cbe-tag">CBE Bank</span>
+                  <button type="button" class="btn-copy-num" id="btnCopyCbe" data-copy="1000123456789">
+                    <span class="copy-icon">📋</span>
+                    <span class="copy-text">Copy</span>
+                  </button>
+                </div>
+                <div class="account-number-row">
+                  <span class="account-num-display" id="cbeAccountDisplay">1000123456789</span>
+                </div>
+                <span class="account-holder" id="cbeNameDisplay">Husen Online Store</span>
+              </div>
+
+              <!-- Telebirr Account Card -->
+              <div class="account-card telebirr-account-card">
+                <div class="account-card-header">
+                  <span class="bank-tag telebirr-tag">Telebirr</span>
+                  <button type="button" class="btn-copy-num" id="btnCopyTelebirr" data-copy="0923245529">
+                    <span class="copy-icon">📋</span>
+                    <span class="copy-text">Copy</span>
+                  </button>
+                </div>
+                <div class="account-number-row">
+                  <span class="account-num-display" id="telebirrPhoneDisplay">0923245529</span>
+                </div>
+                <span class="account-holder" id="telebirrNameDisplay">Husen Market</span>
+              </div>
+            </div>
+
+            <div class="manual-transfer-choice-row">
+              <span class="choice-label">I will transfer using:</span>
+              <label class="transfer-sub-radio">
+                <input type="radio" name="manualSubMethod" value="Manual CBE" checked>
+                <span>Commercial Bank of Ethiopia (CBE)</span>
+              </label>
+              <label class="transfer-sub-radio">
+                <input type="radio" name="manualSubMethod" value="Manual Telebirr">
+                <span>Telebirr</span>
+              </label>
+            </div>
           </div>
 
           <div class="payment-instruction-box" id="paymentInstructionBox">
             <div id="chapaInstruction" style="display:flex; align-items:center; gap:8px;">
               <span>🔒</span>
-              <small>Clicking Pay will connect to <strong>Chapa</strong> to authenticate your Telebirr or CBE transfer safely.</small>
+              <small>Clicking Pay will connect to <strong>Chapa</strong> to authenticate your Telebirr or CBE payment safely.</small>
             </div>
             <div id="codInstruction" style="display:none; align-items:center; gap:8px;">
               <span>🛵</span>
-              <small>Your order will be finalized immediately and dispatched to our Adama delivery rider.</small>
+              <small>Your order will be finalized immediately as "Pending - Cash on Delivery" and dispatched.</small>
+            </div>
+            <div id="manualInstruction" style="display:none; align-items:center; gap:8px;">
+              <span>📲</span>
+              <small>Your order will be logged as "Pending - Manual Transfer Verification" and dispatched upon receipt verification.</small>
             </div>
           </div>
 
@@ -564,9 +657,9 @@
       <div class="sms-notification-box">
         <div class="sms-icon-badge">💬</div>
         <div class="sms-text-content">
-          <strong id="smsNoticeHeading">Automated SMS Dispatched to Shop Owner</strong>
+          <strong id="smsNoticeHeading">Automated SMS Dispatched to Test Recipient</strong>
           <p id="smsNoticeBody">
-            Order alert automatically dispatched to the shop owner (<strong>0923245529</strong>) via AfroMessage SMS gateway for immediate packing & courier coordination.
+            Order alert automatically dispatched to <strong>0907173634</strong> (+251907173634) via SMS Gateway for immediate order processing & courier coordination.
           </p>
         </div>
       </div>
@@ -585,7 +678,7 @@
           <span class="detail-value" id="successLocationVal">-</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label" id="successPaymentLabel">Payment Status:</span>
+          <span class="detail-label" id="successPaymentLabel">Payment Method:</span>
           <span class="detail-value" id="successPaymentVal">-</span>
         </div>
         <div class="detail-row highlight">
@@ -607,26 +700,28 @@
     </div>
   </div>
 
-  <!-- ================= 5. SHOP ADMIN PORTAL MODAL (With Full Product CRUD) ================= -->
+  <!-- ================= 5. SHOP ADMIN PORTAL MODAL (With Full Product CRUD & Multi-Photo) ================= -->
   <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true">
     <div class="admin-modal" role="dialog" aria-labelledby="adminTitle">
       <div class="admin-header">
         <div>
           <h2 class="admin-title" id="adminTitle">Husen Store Admin Portal</h2>
-          <p class="admin-subtitle">Live store inventory, product CRUD & SMS dispatch logs</p>
+          <p class="admin-subtitle">Live store inventory, multi-photo product CRUD, settings & orders</p>
         </div>
-        <button type="button" class="sheet-close-btn" id="closeAdminBtn" aria-label="Close Admin">✕</button>
+        <div class="admin-header-actions" style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="btn-admin-logout" id="adminLogoutBtn" style="display:none;">Log Out</button>
+          <button type="button" class="sheet-close-btn" id="closeAdminBtn" aria-label="Close Admin">✕</button>
+        </div>
       </div>
 
       <!-- Admin Login View -->
       <div class="admin-auth-view" id="adminAuthView">
         <div class="admin-login-box">
-          <p>Please enter owner passcode to manage store products & orders:</p>
+          <p>Please enter owner password to manage store products & orders:</p>
           <div class="admin-pin-row">
-            <input type="password" id="adminPinInput" class="form-input" placeholder="Enter PIN (Demo: 1234)">
+            <input type="password" id="adminPinInput" class="form-input" placeholder="Enter password" autocomplete="current-password">
             <button type="button" class="btn-primary" id="adminLoginBtn">Unlock</button>
           </div>
-          <small class="admin-demo-hint">Demo PIN: <strong>1234</strong></small>
         </div>
       </div>
 
@@ -642,14 +737,15 @@
             <strong class="metric-value" id="adminOrderCount">0</strong>
           </div>
           <div class="metric-card">
-            <span class="metric-label">Products Active</span>
+            <span class="metric-label">Products in Catalog</span>
             <strong class="metric-value" id="adminProductsCount" style="color: #10b981;">4</strong>
           </div>
         </div>
 
         <div class="admin-tabs">
-          <button type="button" class="admin-tab active" data-tab="products" id="adminTabProducts">Products Manager (<span id="adminProductsBadge">4</span>)</button>
-          <button type="button" class="admin-tab" data-tab="orders" id="adminTabOrders">Incoming Orders (<span id="adminOrdersBadge">0</span>)</button>
+          <button type="button" class="admin-tab active" data-tab="products" id="adminTabProducts">Products (<span id="adminProductsBadge">4</span>)</button>
+          <button type="button" class="admin-tab" data-tab="orders" id="adminTabOrders">Orders (<span id="adminOrdersBadge">0</span>)</button>
+          <button type="button" class="admin-tab" data-tab="settings" id="adminTabSettings">Payment Accounts</button>
         </div>
 
         <!-- Tab 1: Product CRUD Management -->
@@ -657,7 +753,7 @@
           <div class="admin-pane-header">
             <div>
               <span class="admin-pane-title">Store Products</span>
-              <p class="admin-tab-desc">Add, edit, toggle stock, or delete storefront items:</p>
+              <p class="admin-tab-desc">Add, edit, upload device photos, toggle stock, or delete items:</p>
             </div>
             <!-- + Add New Product Button -->
             <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
@@ -676,11 +772,49 @@
             <!-- Rendered via JS -->
           </div>
         </div>
+
+        <!-- Tab 3: Payment Accounts Settings -->
+        <div class="admin-tab-pane" id="adminPaneSettings" style="display:none;">
+          <div class="admin-pane-header">
+            <div>
+              <span class="admin-pane-title">Manual Transfer Accounts</span>
+              <p class="admin-tab-desc">Update CBE and Telebirr account details displayed to customers:</p>
+            </div>
+          </div>
+
+          <form id="paymentSettingsForm" class="settings-form">
+            <div class="settings-card">
+              <h4 class="settings-card-title">Commercial Bank of Ethiopia (CBE)</h4>
+              <div class="input-field-wrap">
+                <label for="settingCbeAccount" class="field-label">CBE Account Number</label>
+                <input type="text" id="settingCbeAccount" class="form-input" value="1000123456789" required>
+              </div>
+              <div class="input-field-wrap">
+                <label for="settingCbeName" class="field-label">CBE Account Holder Name</label>
+                <input type="text" id="settingCbeName" class="form-input" value="Husen Online Store" required>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <h4 class="settings-card-title">Telebirr Account</h4>
+              <div class="input-field-wrap">
+                <label for="settingTelebirrPhone" class="field-label">Telebirr Phone Number</label>
+                <input type="text" id="settingTelebirrPhone" class="form-input" value="0923245529" required>
+              </div>
+              <div class="input-field-wrap">
+                <label for="settingTelebirrName" class="field-label">Telebirr Account Name</label>
+                <input type="text" id="settingTelebirrName" class="form-input" value="Husen Market" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="btnSaveSettings">Save Payment Accounts</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ================= 6. PRODUCT ADD / EDIT MODAL (CRUD SYSTEM) ================= -->
+  <!-- ================= 6. PRODUCT ADD / EDIT MODAL (With Multi-Photo Device Uploader) ================= -->
   <div class="editor-backdrop" id="productEditorBackdrop" aria-hidden="true">
     <div class="editor-modal" role="dialog" aria-labelledby="editorModalTitle">
       <div class="editor-header">
@@ -721,29 +855,34 @@
           <textarea id="editorProdDesc" class="form-input editor-textarea" rows="3" placeholder="Briefly describe key features, warranty, and contents..." required></textarea>
         </div>
 
-        <!-- Multi-Image Manager -->
+        <!-- Device Multi-Photo Uploader Section -->
         <div class="editor-image-manager">
           <div class="manager-header">
             <div>
-              <label class="field-label">Product Photos (Multiple Angles Auto-Rotate)</label>
-              <small class="field-helper">Add 1, 2, 3 or more image URLs (ambient 5s crossfade):</small>
+              <label class="field-label">Product Photos (Upload from Device)</label>
+              <small class="field-helper">Pick 1, 2, 3 or more photos. Manage thumbnails with delete ("✕") badges:</small>
             </div>
-            <button type="button" class="btn-add-img-row" id="btnAddImageRow">+ Add Photo URL</button>
+            
+            <!-- Hidden Multi-file input -->
+            <input type="file" id="editorFileInput" multiple accept="image/*" style="display:none;">
+            <button type="button" class="btn-device-upload" id="btnDeviceUpload">
+              <span>📁 Upload Photo from Device</span>
+            </button>
           </div>
 
-          <div class="image-inputs-list" id="imageInputsList">
-            <!-- Dynamic Image Rows -->
+          <!-- Thumbnails Grid with Delete Badges -->
+          <div class="editor-thumbnails-grid" id="editorThumbnailsGrid">
+            <!-- Dynamic Preview Thumbnails with '✕' buttons -->
           </div>
 
-          <!-- Quick presets shortcut -->
+          <!-- Quick Preset Buttons (Optional Fast Fill) -->
           <div class="quick-img-presets">
-            <span class="preset-label">Quick asset presets:</span>
-            <button type="button" class="btn-preset-img" data-preset="public/images/storage1.jpg">Storage Set</button>
-            <button type="button" class="btn-preset-img" data-preset="public/images/blender1.jpg">Blender 1</button>
-            <button type="button" class="btn-preset-img" data-preset="public/images/blender2.jpg">Blender 2</button>
-            <button type="button" class="btn-preset-img" data-preset="public/images/vest1.jpg">Vest Front</button>
-            <button type="button" class="btn-preset-img" data-preset="public/images/vest2.jpg">Vest Back</button>
-            <button type="button" class="btn-preset-img" data-preset="public/images/melanix.jpg">Melanix</button>
+            <span class="preset-label">Or quick sample presets:</span>
+            <button type="button" class="btn-preset-img" data-preset="public/images/storage1.jpg">+ Storage</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/blender1.jpg">+ Blender 1</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/blender2.jpg">+ Blender 2</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/vest1.jpg">+ Vest</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/melanix.jpg">+ Melanix</button>
           </div>
         </div>
 
@@ -751,7 +890,7 @@
         <div class="editor-switch-row">
           <div>
             <strong style="font-size: 0.85rem; color: var(--text-main);">Available In Stock</strong>
-            <p style="font-size: 0.72rem; color: var(--text-muted);">Toggle off to grey out and disable purchase</p>
+            <p style="font-size: 0.72rem; color: var(--text-muted);">When turned off, item is completely hidden from the storefront</p>
           </div>
           <label class="switch">
             <input type="checkbox" id="editorProdInStock" checked>

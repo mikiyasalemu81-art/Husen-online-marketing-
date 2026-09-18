@@ -1,0 +1,121 @@
+[
+  {
+    "id": "prod-1",
+    "category": "kitchen",
+    "price": 1450,
+    "inStock": true,
+    "images": [
+      "public/images/storage1.jpg"
+    ],
+    "name": {
+      "am": "የብርጭቆ ዕቃ መያዣ (4 ፍሬ)",
+      "om": "Qodaa Fuullee Nyaataa (Cimdi 4)",
+      "en": "Glass Storage Container Set (4-piece)"
+    },
+    "spec": {
+      "am": "እርስ በርስ የሚገጣጠሙ፣ አየር የማያስገቡ ክሊፕ-መቆለፊያ ክዳን ያላቸው ጥራት ያላቸው የብርጭቆ ዕቃዎች።",
+      "om": "Qulqullina olaanaa, qilleensa kan hin galchine, cufaa jabaa kan qabu.",
+      "en": "Nesting, clip-lock lids, airtight premium glass containers."
+    },
+    "fullDesc": {
+      "am": "4 የተለያየ መጠን ያላቸው የብርጭቆ ዕቃዎች። አየር የማያስገባ ክሊፕ ክዳን ያላቸው ሲሆን በማቀዝቀዣ፣ ማይክሮዌቭ እና በእቃ ማጠቢያ ውስጥ በደህና መጠቀም ይቻላል።",
+      "om": "Qodaa fuullee gosa 4 kan wal keessa galuu danda'an. Cufaa jabaa qilleensa ittisu kan qaban, firiijii fi maaykirooweevii keessatti fayyadamuuf kan ta'an.",
+      "en": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe."
+    },
+    "badge": {
+      "am": "ኦሪጅናል",
+      "om": "Qulqullina",
+      "en": "Original"
+    }
+  },
+  {
+    "id": "prod-2",
+    "category": "health",
+    "price": 1200,
+    "inStock": true,
+    "images": [
+      "public/images/vest1.jpg",
+      "public/images/vest2.jpg"
+    ],
+    "name": {
+      "am": "የጀርባ አቋም ማስተካከያ ቬስት",
+      "om": "Vestii Dugdaa Sirreessu",
+      "en": "Posture Corrector Compression Vest"
+    },
+    "spec": {
+      "am": "የጀርባ አጥንትን እና ትከሻን የሚያስተካክል፣ የሚለጠጥና ምቹ የድጋፍ ቬስት።",
+      "om": "Dugda fi ceekuuf deeggarsa kan kennu, mijataa fi sirreeffamuu kan danda'u.",
+      "en": "Adjustable back support, breathable compression vest."
+    },
+    "fullDesc": {
+      "am": "ለትከሻና ለጀርባ ህመም ፈጣን እፎይታ የሚሰጥ። በልብስ ስር የማይታወቅ፣ የሚለጠጥና እንደ ሰውነት መጠን የሚስተካከል የጀርባ አቋም ማስተካከያ።",
+      "om": "Dhukkubbi dugdaa fi ceekuu salphisuuf kan gargaaru. Uffata jalatti kan hin mul'anne, salphaatti kan sirreeffamu fi hargansuuf mijataa ta'e.",
+      "en": "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief."
+    },
+    "badge": {
+      "am": "ተወዳጅ",
+      "om": "Filatamaa",
+      "en": "Best Seller"
+    }
+  },
+  {
+    "id": "prod-3",
+    "category": "kitchen",
+    "secondaryCategory": "home",
+    "price": 2850,
+    "inStock": true,
+    "images": [
+      "public/images/blender1.jpg",
+      "public/images/blender2.jpg"
+    ],
+    "name": {
+      "am": "ሳቺ 2-በ-1 ፈጪ እና መፍጫ",
+      "om": "Saachhi 2-in-1 Blenders (Makiinaa Harcaatuu)",
+      "en": "Saachhi 2-in-1 Blender"
+    },
+    "spec": {
+      "am": "350W ኃይለኛ ሞተር፣ ሁለት ጃር እና ተጨማሪ መፍጫ ያለው ጥራት ያለው ማደባለቂያ።",
+      "om": "Motora humna 350W qabu, qodaa lama fi meeshaa daakuu wajjin.",
+      "en": "350W motor, two jars plus grinder attachment."
+    },
+    "fullDesc": {
+      "am": "የሳቺ ኦሪጅናል 2-በ-1 ፈጪ። ፍራፍሬዎችን፣ ጁሶችን እና አትክልቶችን በቀላሉ የሚፈጭ ትልቅ ጃር እንዲሁም ቡና፣ ቅመማቅመም እና ደረቅ ነገሮችን የሚፈጭ ተጨማሪ ማያያዣ አለው።",
+      "om": "Saachhi 2-in-1 kan buna, mi'eessituu fi muduraa daakuuf gargaaru. Motora 350W jabaa, qodaa lama fi haaduu sibiila hin danda'amne qaba.",
+      "en": "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices."
+    },
+    "badge": {
+      "am": "ኃይለኛ",
+      "om": "Cimaa",
+      "en": "350W Power"
+    }
+  },
+  {
+    "id": "prod-4",
+    "category": "beauty",
+    "price": 950,
+    "inStock": true,
+    "images": [
+      "public/images/melanix.jpg"
+    ],
+    "name": {
+      "am": "ሜላኒክስ የፀጉር ቅባት",
+      "om": "Qoricha Rifeensaa Melanix",
+      "en": "Melanix Anti-Gray Hair Lotion"
+    },
+    "spec": {
+      "am": "ከተፈጥሮ ንጥረነገሮች የተዘጋጀ፣ ሽበትን የሚከላከልና ተፈጥሮአዊ የፀጉር ቀለምን የሚመልስ ቅባት።",
+      "om": "Qoricha uumamaa rifeensa arrii ittisuu fi bifa uumamaa deebisu.",
+      "en": "All-natural botanical formula restores youthful natural hair."
+    },
+    "fullDesc": {
+      "am": "ሜላኒክስ የጸጉርን ተፈጥሯዊ ሜላኒን በማነቃቃት የነጣ ፀጉርን ደረጃ በደረጃ ወደ ቀደመው ጥቁር ቀለም ይመልሳል። ምንም ዓይነት ጎጂ ኬሚካል የሌለው።",
+      "om": "Melanix rifeensa arrii gara bifa uumamaatti deebisuuf kan gargaaru. Kemikaala miidhaa qabu kan hin qabne, dhiiraafis dubartootaafis kan ta'u.",
+      "en": "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women."
+    },
+    "badge": {
+      "am": "ተፈጥሯዊ",
+      "om": "Uumamaa",
+      "en": "Natural"
+    }
+  }
+]

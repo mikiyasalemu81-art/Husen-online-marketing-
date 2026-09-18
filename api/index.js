@@ -1,8 +1,118 @@
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
 
 const SMS_API_KEY = process.env.SMS_API_KEY || 'RLVE915IEZOJLRO847T4PL8OVCZIOT4RLUCALL63';
 const CHAPA_SECRET_KEY = process.env.CHAPA_SECRET_KEY || 'CHASECK_TEST-sample';
-const OWNER_PHONE = process.env.OWNER_PHONE || '0923245529';
+const OWNER_PHONE = process.env.OWNER_PHONE || '0907173634';
+const CLOUD_NAME = process.env.CLOUD_NAME || 'trkihe9m';
+const UPLOAD_PRESET = process.env.UPLOAD_PRESET || 'Husenonlinemarketing';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'husenonlinemarketing1234';
+
+// Default initial products
+const DEFAULT_PRODUCTS = [
+  {
+    id: "prod-1",
+    category: "kitchen",
+    price: 1450,
+    inStock: true,
+    images: ["public/images/storage1.jpg"],
+    name: {
+      am: "የብርጭቆ ዕቃ መያዣ (4 ፍሬ)",
+      om: "Qodaa Fuullee Nyaataa (Cimdi 4)",
+      en: "Glass Storage Container Set (4-piece)"
+    },
+    spec: {
+      am: "እርስ በርስ የሚገጣጠሙ፣ አየር የማያስገቡ ክሊፕ-መቆለፊያ ክዳን ያላቸው ጥራት ያላቸው የብርጭቆ ዕቃዎች።",
+      om: "Qulqullina olaanaa, qilleensa kan hin galchine, cufaa jabaa kan qabu.",
+      en: "Nesting, clip-lock lids, airtight premium glass containers."
+    },
+    fullDesc: {
+      am: "4 የተለያየ መጠን ያላቸው የብርጭቆ ዕቃዎች። አየር የማያስገባ ክሊፕ ክዳን ያላቸው ሲሆን በማቀዝቀዣ፣ ማይክሮዌቭ እና በእቃ ማጠቢያ ውስጥ በደህና መጠቀም ይቻላል።",
+      om: "Qodaa fuullee gosa 4 kan wal keessa galuu danda'an. Cufaa jabaa qilleensa ittisu kan qaban, firiijii fi maaykirooweevii keessatti fayyadamuuf kan ta'an.",
+      en: "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe."
+    },
+    badge: { am: "ኦሪጅናል", om: "Qulqullina", en: "Original" }
+  },
+  {
+    id: "prod-2",
+    category: "health",
+    price: 1200,
+    inStock: true,
+    images: ["public/images/vest1.jpg", "public/images/vest2.jpg"],
+    name: {
+      am: "የጀርባ አቋም ማስተካከያ ቬስት",
+      om: "Vestii Dugdaa Sirreessu",
+      en: "Posture Corrector Compression Vest"
+    },
+    spec: {
+      am: "የጀርባ አጥንትን እና ትከሻን የሚያስተካክል፣ የሚለጠጥና ምቹ የድጋፍ ቬስት።",
+      om: "Dugda fi ceekuuf deeggarsa kan kennu, mijataa fi sirreeffamuu kan danda'u.",
+      en: "Adjustable back support, breathable compression vest."
+    },
+    fullDesc: {
+      am: "ለትከሻና ለጀርባ ህመም ፈጣን እፎይታ የሚሰጥ። በልብስ ስር የማይታወቅ፣ የሚለጠጥና እንደ ሰውነት መጠን የሚስተካከል የጀርባ አቋም ማስተካከያ።",
+      om: "Dhukkubbi dugdaa fi ceekuu salphisuuf kan gargaaru. Uffata jalatti kan hin mul'anne, salphaatti kan sirreeffamu fi hargansuuf mijataa ta'e.",
+      en: "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief."
+    },
+    badge: { am: "ተወዳጅ", om: "Filatamaa", en: "Best Seller" }
+  },
+  {
+    id: "prod-3",
+    category: "kitchen",
+    secondaryCategory: "home",
+    price: 2850,
+    inStock: true,
+    images: ["public/images/blender1.jpg", "public/images/blender2.jpg"],
+    name: {
+      am: "ሳቺ 2-በ-1 ፈጪ እና መፍጫ",
+      om: "Saachhi 2-in-1 Blenders (Makiinaa Harcaatuu)",
+      en: "Saachhi 2-in-1 Blender"
+    },
+    spec: {
+      am: "350W ኃይለኛ ሞተር፣ ሁለት ጃር እና ተጨማሪ መፍጫ ያለው ጥራት ያለው ማደባለቂያ።",
+      om: "Motora humna 350W qabu, qodaa lama fi meeshaa daakuu wajjin.",
+      en: "350W motor, two jars plus grinder attachment."
+    },
+    fullDesc: {
+      am: "የሳቺ ኦሪጅናል 2-በ-1 ፈጪ። ፍራፍሬዎችን፣ ጁሶችን እና አትክልቶችን በቀላሉ የሚፈጭ ትልቅ ጃር እንዲሁም ቡና፣ ቅመማቅመም እና ደረቅ ነገሮችን የሚፈጭ ተጨማሪ ማያያዣ አለው።",
+      om: "Saachhi 2-in-1 kan buna, mi'eessituu fi muduraa daakuuf gargaaru. Motora 350W jabaa, qodaa lama fi haaduu sibiila hin danda'amne qaba.",
+      en: "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices."
+    },
+    badge: { am: "ኃይለኛ", om: "Cimaa", en: "350W Power" }
+  },
+  {
+    id: "prod-4",
+    category: "beauty",
+    price: 950,
+    inStock: true,
+    images: ["public/images/melanix.jpg"],
+    name: {
+      am: "ሜላኒክስ የፀጉር ቅባት",
+      om: "Qoricha Rifeensaa Melanix",
+      en: "Melanix Anti-Gray Hair Lotion"
+    },
+    spec: {
+      am: "ከተፈጥሮ ንጥረነገሮች የተዘጋጀ፣ ሽበትን የሚከላከልና ተፈጥሮአዊ የፀጉር ቀለምን የሚመልስ ቅባት።",
+      om: "Qoricha uumamaa rifeensa arrii ittisuu fi bifa uumamaa deebisu.",
+      en: "All-natural botanical formula restores youthful natural hair."
+    },
+    fullDesc: {
+      am: "ሜላኒክስ የጸጉርን ተፈጥሯዊ ሜላኒን በማነቃቃት የነጣ ፀጉርን ደረጃ በደረጃ ወደ ቀደመው ጥቁር ቀለም ይመልሳል። ምንም ዓይነት ጎጂ ኬሚካል የሌለው።",
+      om: "Melanix rifeensa arrii gara bifa uumamaatti deebisuuf kan gargaaru. Kemikaala miidhaa qabu kan hin qabne, dhiiraafis dubartootaafis kan ta'u.",
+      en: "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women."
+    },
+    badge: { am: "ተፈጥሯዊ", om: "Uumamaa", en: "Natural" }
+  }
+];
+
+let memoryProducts = [...DEFAULT_PRODUCTS];
+let memorySettings = {
+  cbeAccount: "1000123456789",
+  cbeAccountName: "Husen Online Store",
+  telebirrPhone: "0923245529",
+  telebirrAccountName: "Husen Market"
+};
 
 // Persistent in-memory storage during lambda lifetime
 const orders = [
@@ -10,18 +120,17 @@ const orders = [
     id: "HOM-AD-8104",
     date: "Today, 10:15 AM",
     customer: "Desta Alemu",
-    phone: "0911234567",
+    phone: "+251911234567",
     location: "Silasi, Adama",
     address: "Near Silasi Church, House #402",
-    method: "Cash on Delivery",
+    method: "COD",
     total: 1450,
-    itemsSummary: "Glass Storage Container Set (x1)",
+    itemsSummary: "Glass Storage Container Set (Qty: 1)",
     status: "Delivered",
     smsSent: true
   }
 ];
 
-// Helper to parse request body safely in Vercel Serverless functions
 function getRequestBody(req) {
   return new Promise((resolve) => {
     if (req.body) {
@@ -47,34 +156,55 @@ function getRequestBody(req) {
   });
 }
 
-// Send automated SMS notification to shop owner
-async function sendOwnerSms(order) {
-  const paymentText = order.method.includes('Cash') ? 'Cash on Delivery' : 'Chapa Paid';
+function formatEthiopianPhone(phone) {
+  if (!phone) return '+251900000000';
+  let digits = phone.toString().replace(/[^0-9]/g, '');
+  if (digits.startsWith('251')) {
+    digits = digits.substring(3);
+  } else if (digits.startsWith('0')) {
+    digits = digits.substring(1);
+  }
+  return '+251' + digits;
+}
+
+// Send automated SMS notification strictly adhering to specification
+async function sendOrderSms(order) {
+  const formattedCustomerPhone = formatEthiopianPhone(order.phone);
   const locationText = order.address ? `${order.location}, ${order.address}` : order.location;
   
+  let paymentMethod = 'COD';
+  const methodUpper = (order.method || '').toUpperCase();
+  if (methodUpper.includes('CHAPA') || methodUpper.includes('TELEBIRR & CBE (VIA CHAPA)')) {
+    paymentMethod = 'Chapa';
+  } else if (methodUpper.includes('MANUAL CBE') || methodUpper.includes('CBE TRANSFER')) {
+    paymentMethod = 'Manual CBE';
+  } else if (methodUpper.includes('MANUAL TELEBIRR') || methodUpper.includes('TELEBIRR TRANSFER')) {
+    paymentMethod = 'Manual Telebirr';
+  } else if (methodUpper.includes('MANUAL')) {
+    paymentMethod = 'Manual CBE';
+  } else {
+    paymentMethod = 'COD';
+  }
+
   const smsBody = 
 `New Order Received!
-Item: ${order.itemsSummary}
+Item: ${order.itemsSummary || 'Household Essentials'}
 Total: ${order.total} ETB
 Customer: ${order.customer}
-Phone: ${order.phone}
+Phone: ${formattedCustomerPhone}
 Location: ${locationText}
-Payment: ${paymentText}`;
+Payment Method: ${paymentMethod}`;
 
-  console.log('\n================== SMS TO OWNER (0923245529) ==================');
-  console.log(smsBody);
-  console.log('=================================================================\n');
+  const recipientFormatted = formatEthiopianPhone(OWNER_PHONE);
 
-  let cleanPhone = OWNER_PHONE.replace(/[^0-9]/g, '');
-  if (cleanPhone.startsWith('09') || cleanPhone.startsWith('07')) {
-    cleanPhone = '+251' + cleanPhone.substring(1);
-  } else if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('251')) {
-    cleanPhone = '+251' + cleanPhone;
-  }
+  console.log('\n================== DISPATCHING SMS NOTIFICATION ==================');
+  console.log(`To: ${recipientFormatted} (Owner Phone: ${OWNER_PHONE})`);
+  console.log('Payload Content:\n' + smsBody);
+  console.log('==================================================================\n');
 
   try {
     const payload = JSON.stringify({
-      to: cleanPhone,
+      to: recipientFormatted,
       message: smsBody,
       from: 'HUSEN'
     });
@@ -104,13 +234,13 @@ Payment: ${paymentText}`;
         let respData = '';
         res.on('data', chunk => respData += chunk);
         res.on('end', () => {
-          console.log(`[SMS GATEWAY] Response (${res.statusCode}):`, respData.substring(0, 120));
+          console.log(`[SMS GATEWAY] Response (${res.statusCode}):`, respData.substring(0, 140));
           resolve({ success: res.statusCode >= 200 && res.statusCode < 300, response: respData });
         });
       });
 
       req.on('error', (err) => {
-        console.warn('[SMS NOTICE] Network dispatch notice:', err.message);
+        console.warn('[SMS GATEWAY NOTICE] Network error:', err.message);
         resolve({ success: false, error: err.message });
       });
 
@@ -128,7 +258,6 @@ Payment: ${paymentText}`;
   }
 }
 
-// Chapa initialize
 function callChapaInitialize(chapaData) {
   return new Promise((resolve, reject) => {
     if (!CHAPA_SECRET_KEY || CHAPA_SECRET_KEY.includes('sample') || CHAPA_SECRET_KEY.includes('TEST-sample')) {
@@ -190,7 +319,6 @@ function callChapaInitialize(chapaData) {
   });
 }
 
-// Chapa verify
 function callChapaVerify(txRef) {
   return new Promise((resolve) => {
     if (!CHAPA_SECRET_KEY || CHAPA_SECRET_KEY.includes('sample')) {
@@ -226,23 +354,109 @@ function callChapaVerify(txRef) {
   });
 }
 
-// Vercel Serverless Function Handler
-module.exports = async (req, res) => {
-  // CORS Headers
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    res.statusCode = 204;
-    return res.end();
+    res.status(204).end();
+    return;
   }
 
-  const url = new URL(req.url, `https://${req.headers.host || 'husen-online-marketing.vercel.app'}`);
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
 
-  // 1. COD Order Placement
-  if (req.method === 'POST' && (pathname === '/api/orders/cod' || pathname.endsWith('/orders/cod'))) {
+  // --- API ROUTE: Products CRUD ---
+  if (pathname === '/api/products') {
+    if (req.method === 'GET') {
+      return res.status(200).json({ success: true, products: memoryProducts });
+    }
+
+    if (req.method === 'POST') {
+      try {
+        const newProd = await getRequestBody(req);
+        const id = newProd.id || ('prod-' + Date.now());
+        const product = {
+          id: id,
+          category: newProd.category || 'home',
+          secondaryCategory: newProd.secondaryCategory || '',
+          price: Number(newProd.price),
+          inStock: newProd.inStock !== false,
+          images: Array.isArray(newProd.images) && newProd.images.length > 0 ? newProd.images : ['public/images/storage1.jpg'],
+          name: typeof newProd.name === 'object' ? newProd.name : { en: newProd.name, am: newProd.name, om: newProd.name },
+          spec: typeof newProd.spec === 'object' ? newProd.spec : { en: newProd.spec || '', am: newProd.spec || '', om: newProd.spec || '' },
+          fullDesc: typeof newProd.fullDesc === 'object' ? newProd.fullDesc : { en: newProd.fullDesc || '', am: newProd.fullDesc || '', om: newProd.fullDesc || '' },
+          badge: newProd.badge || { en: 'New', am: 'አዲስ', om: 'Haaraa' }
+        };
+        memoryProducts.unshift(product);
+        return res.status(201).json({ success: true, product });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    }
+  }
+
+  if (pathname.startsWith('/api/products/')) {
+    const prodId = pathname.replace('/api/products/', '');
+
+    if (req.method === 'PUT') {
+      const updateData = await getRequestBody(req);
+      const idx = memoryProducts.findIndex(p => p.id === prodId);
+      if (idx === -1) {
+        return res.status(404).json({ success: false, error: 'Product not found' });
+      }
+      memoryProducts[idx] = { ...memoryProducts[idx], ...updateData, id: prodId };
+      return res.status(200).json({ success: true, product: memoryProducts[idx] });
+    }
+
+    if (req.method === 'DELETE') {
+      const idx = memoryProducts.findIndex(p => p.id === prodId);
+      if (idx === -1) {
+        return res.status(404).json({ success: false, error: 'Product not found' });
+      }
+      memoryProducts.splice(idx, 1);
+      return res.status(200).json({ success: true, message: 'Product deleted' });
+    }
+  }
+
+  // --- API ROUTE: Settings ---
+  if (pathname === '/api/settings') {
+    if (req.method === 'GET') {
+      return res.status(200).json({ success: true, settings: memorySettings });
+    }
+    if (req.method === 'POST') {
+      const newSettings = await getRequestBody(req);
+      memorySettings = { ...memorySettings, ...newSettings };
+      return res.status(200).json({ success: true, settings: memorySettings });
+    }
+  }
+
+  // --- API ROUTE: Config ---
+  if (pathname === '/api/config' && req.method === 'GET') {
+    return res.status(200).json({
+      cloudName: CLOUD_NAME,
+      uploadPreset: UPLOAD_PRESET,
+      ownerPhone: OWNER_PHONE
+    });
+  }
+
+  // --- API ROUTE: Admin Verify Login Password ---
+  if (pathname === '/api/admin/verify' && req.method === 'POST') {
+    try {
+      const body = await getRequestBody(req);
+      if (body.password === ADMIN_PASSWORD) {
+        return res.status(200).json({ success: true });
+      } else {
+        return res.status(401).json({ success: false, error: 'Incorrect password' });
+      }
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // --- API ROUTE: Cash on Delivery ---
+  if (req.method === 'POST' && pathname === '/api/orders/cod') {
     try {
       const orderData = await getRequestBody(req);
       const ref = 'HOM-AD-' + Math.floor(1000 + Math.random() * 9000);
@@ -252,10 +466,10 @@ module.exports = async (req, res) => {
         id: ref,
         date: `Today, ${dateStr}`,
         customer: orderData.customer,
-        phone: orderData.phone,
+        phone: formatEthiopianPhone(orderData.phone),
         location: orderData.location,
         address: orderData.address || '',
-        method: 'Cash on Delivery',
+        method: 'COD',
         total: orderData.total,
         itemsSummary: orderData.itemsSummary,
         status: 'Pending - Cash on Delivery',
@@ -263,20 +477,47 @@ module.exports = async (req, res) => {
       };
 
       orders.unshift(newOrder);
-      await sendOwnerSms(newOrder);
+      await sendOrderSms(newOrder);
 
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ success: true, order: newOrder }));
+      return res.status(200).json({ success: true, order: newOrder });
     } catch (err) {
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ success: false, error: err.message }));
+      return res.status(400).json({ success: false, error: err.message });
     }
   }
 
-  // 2. Chapa Initialize
-  if (req.method === 'POST' && (pathname === '/api/chapa/initialize' || pathname.endsWith('/chapa/initialize'))) {
+  // --- API ROUTE: Manual Direct Transfer ---
+  if (req.method === 'POST' && pathname === '/api/orders/manual') {
+    try {
+      const orderData = await getRequestBody(req);
+      const ref = 'HOM-MN-' + Math.floor(1000 + Math.random() * 9000);
+      const dateStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const methodLabel = orderData.method && orderData.method.includes('Telebirr') ? 'Manual Telebirr' : 'Manual CBE';
+
+      const newOrder = {
+        id: ref,
+        date: `Today, ${dateStr}`,
+        customer: orderData.customer,
+        phone: formatEthiopianPhone(orderData.phone),
+        location: orderData.location,
+        address: orderData.address || '',
+        method: methodLabel,
+        total: orderData.total,
+        itemsSummary: orderData.itemsSummary,
+        status: 'Pending - Manual Transfer Verification',
+        smsSent: true
+      };
+
+      orders.unshift(newOrder);
+      await sendOrderSms(newOrder);
+
+      return res.status(200).json({ success: true, order: newOrder });
+    } catch (err) {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+  }
+
+  // --- API ROUTE: Chapa Initialize ---
+  if (req.method === 'POST' && pathname === '/api/chapa/initialize') {
     try {
       const reqData = await getRequestBody(req);
       const tx_ref = reqData.tx_ref || ('HOM-tx-' + Date.now());
@@ -289,10 +530,10 @@ module.exports = async (req, res) => {
         id: tx_ref,
         date: `Today, ${dateStr}`,
         customer: reqData.first_name,
-        phone: reqData.phone_number,
+        phone: formatEthiopianPhone(reqData.phone_number),
         location: reqData.location || 'Adama',
         address: reqData.address || '',
-        method: 'Telebirr / CBE (via Chapa)',
+        method: 'Chapa',
         total: reqData.amount,
         itemsSummary: reqData.itemsSummary || 'Household Essentials',
         status: 'Pending - Chapa Payment',
@@ -316,58 +557,46 @@ module.exports = async (req, res) => {
       };
 
       const chapaRes = await callChapaInitialize(chapaPayload);
-
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({
+      return res.status(200).json({
         status: "success",
         checkout_url: chapaRes.data.checkout_url,
         tx_ref: tx_ref
-      }));
+      });
     } catch (err) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(JSON.stringify({ status: "error", message: err.message }));
+      return res.status(500).json({ status: "error", message: err.message });
     }
   }
 
-  // 3. Chapa Verify
-  if (req.method === 'GET' && pathname.includes('/chapa/verify/')) {
-    const txRef = pathname.split('/chapa/verify/')[1];
+  // --- API ROUTE: Chapa Verify ---
+  if (req.method === 'GET' && pathname.startsWith('/api/chapa/verify/')) {
+    const txRef = pathname.replace('/api/chapa/verify/', '');
     await callChapaVerify(txRef);
     const order = orders.find(o => o.id === txRef);
     if (order && !order.smsSent) {
       order.status = 'Paid - Chapa';
       order.smsSent = true;
-      await sendOwnerSms(order);
+      await sendOrderSms(order);
     }
-
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ status: "success", order: order || null }));
+    return res.status(200).json({ status: "success", order: order || null });
   }
 
-  // 4. List Orders (Admin)
-  if (req.method === 'GET' && (pathname === '/api/orders' || pathname.endsWith('/orders'))) {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ orders }));
+  // --- API ROUTE: List Orders ---
+  if (req.method === 'GET' && pathname === '/api/orders') {
+    return res.status(200).json({ orders });
   }
 
-  // 5. Payment Success Redirect
-  if (req.method === 'GET' && (pathname === '/payment-success' || pathname.endsWith('/payment-success'))) {
+  // --- PAYMENT SUCCESS REDIRECT ---
+  if (pathname === '/payment-success') {
     const tx_ref = url.searchParams.get('tx_ref');
     const order = orders.find(o => o.id === tx_ref);
     if (order && !order.smsSent) {
       order.status = 'Paid - Chapa';
       order.smsSent = true;
-      await sendOwnerSms(order);
+      await sendOrderSms(order);
     }
     res.writeHead(302, { 'Location': `/?payment=success&tx_ref=${encodeURIComponent(tx_ref || '')}` });
     return res.end();
   }
 
-  res.statusCode = 404;
-  res.setHeader('Content-Type', 'application/json');
-  return res.end(JSON.stringify({ error: 'Endpoint not found' }));
+  res.status(404).send('Not Found');
 };

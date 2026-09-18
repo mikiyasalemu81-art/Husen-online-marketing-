@@ -237,19 +237,25 @@ Payment Method: ${paymentMethod}`;
         let respData = '';
         res.on('data', chunk => respData += chunk);
         res.on('end', () => {
-          console.log(`[SMS GATEWAY] Response (${res.statusCode}):`, respData.substring(0, 140));
-          resolve({ success: res.statusCode >= 200 && res.statusCode < 300, response: respData });
+          console.log(`\n[SMS GATEWAY FULL RESPONSE] (Status ${res.statusCode}):\n${respData}\n`);
+          const isSuccess = res.statusCode >= 200 && res.statusCode < 300;
+          if (!isSuccess) {
+            console.error(`[SMS ALERT ERROR] Dispatch failed with HTTP ${res.statusCode} for ${recipientFormatted}:`, respData);
+          } else {
+            console.log(`[SMS ALERT SUCCESS] SMS delivered successfully to ${recipientFormatted}.`);
+          }
+          resolve({ success: isSuccess, statusCode: res.statusCode, response: respData });
         });
       });
 
       req.on('error', (err) => {
-        console.warn('[SMS GATEWAY NOTICE] Network dispatch notice:', err.message);
+        console.error('[SMS ALERT ERROR] Network error during dispatch:', err.message);
         resolve({ success: false, error: err.message });
       });
 
       req.on('timeout', () => {
         req.destroy();
-        console.warn('[SMS GATEWAY NOTICE] Request timed out, proceeding.');
+        console.error('[SMS ALERT ERROR] SMS gateway request timed out after 5s.');
         resolve({ success: false, error: 'Timeout' });
       });
 
@@ -257,7 +263,7 @@ Payment Method: ${paymentMethod}`;
       req.end();
     });
   } catch (err) {
-    console.warn('[SMS ERROR]', err);
+    console.error('[SMS ALERT ERROR] Unexpected exception during dispatch:', err);
     return { success: false, error: err.message };
   }
 }
@@ -267,18 +273,17 @@ Payment Method: ${paymentMethod}`;
 // ==========================================================================
 function callChapaInitialize(chapaData) {
   return new Promise((resolve, reject) => {
-    // If testing without a live Chapa secret key or in demo mode
-    if (!CHAPA_SECRET_KEY || CHAPA_SECRET_KEY.includes('sample') || CHAPA_SECRET_KEY.includes('TEST-sample')) {
-      console.log('[CHAPA INFO] Development mode active for Chapa transaction.');
-      return resolve({
-        status: "success",
-        data: {
-          checkout_url: `/payment-success?tx_ref=${chapaData.tx_ref}&mode=chapa_mock&amount=${chapaData.amount}`
-        }
-      });
+    const payload = JSON.stringify(chapaData);
+    console.log('\n================== CHAPA INITIALIZE REQUEST ==================');
+    console.log('Endpoint: https://api.chapa.co/v1/transaction/initialize');
+    console.log('tx_ref:', chapaData.tx_ref, '| amount:', chapaData.amount, 'ETB | customer:', chapaData.first_name);
+    console.log('==============================================================\n');
+
+    // If development placeholder key is used and no network call can succeed
+    if (!CHAPA_SECRET_KEY || CHAPA_SECRET_KEY === 'CHASECK_TEST-sample') {
+      console.log('[CHAPA INFO] Sample development key detected. Calling API with fallback support.');
     }
 
-    const payload = JSON.stringify(chapaData);
     const options = {
       hostname: 'api.chapa.co',
       port: 443,
@@ -289,41 +294,66 @@ function callChapaInitialize(chapaData) {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload)
       },
-      timeout: 8000
+      timeout: 10000
     };
 
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
+        console.log(`\n[CHAPA INITIALIZE FULL RESPONSE] (Status ${res.statusCode}):\n${data}\n`);
         try {
           const parsed = JSON.parse(data);
-          if (res.statusCode >= 200 && res.statusCode < 300 && parsed.status === 'success') {
+          if (res.statusCode >= 200 && res.statusCode < 300 && parsed.status === 'success' && parsed.data && parsed.data.checkout_url) {
+            console.log('[CHAPA SUCCESS] Hosted checkout URL obtained:', parsed.data.checkout_url);
             resolve(parsed);
           } else {
-            console.warn('[CHAPA API NOTICE] API returned:', parsed);
-            // Fallback for demo/test mode
-            resolve({
-              status: "success",
-              data: {
-                checkout_url: `/payment-success?tx_ref=${chapaData.tx_ref}&mode=chapa_mock&amount=${chapaData.amount}`
-              }
-            });
+            console.warn('[CHAPA NOTICE] Chapa returned non-success response:', parsed);
+            if (parsed.data && parsed.data.checkout_url) {
+              resolve(parsed);
+            } else if (CHAPA_SECRET_KEY && !CHAPA_SECRET_KEY.includes('sample')) {
+              console.error('[CHAPA ERROR] Live initialization rejected by Chapa:', parsed);
+              resolve({
+                status: "error",
+                message: parsed.message || 'Chapa initialization failed',
+                details: parsed
+              });
+            } else {
+              // Development fallback for sample test keys
+              console.log('[CHAPA FALLBACK] Returning mock checkout URL for development testing.');
+              resolve({
+                status: "success",
+                data: {
+                  checkout_url: `/payment-success?tx_ref=${chapaData.tx_ref}&mode=chapa_mock&amount=${chapaData.amount}`
+                }
+              });
+            }
           }
         } catch (e) {
-          reject(e);
+          console.error('[CHAPA PARSE ERROR]', e.message, data);
+          resolve({
+            status: "error",
+            message: "Failed to parse Chapa response: " + e.message
+          });
         }
       });
     });
 
     req.on('error', (err) => {
-      console.warn('[CHAPA NETWORK NOTICE]', err.message);
-      resolve({
-        status: "success",
-        data: {
-          checkout_url: `/payment-success?tx_ref=${chapaData.tx_ref}&mode=chapa_mock&amount=${chapaData.amount}`
-        }
-      });
+      console.error('[CHAPA NETWORK ERROR]', err.message);
+      if (CHAPA_SECRET_KEY && !CHAPA_SECRET_KEY.includes('sample')) {
+        resolve({
+          status: "error",
+          message: 'Chapa network error: ' + err.message
+        });
+      } else {
+        resolve({
+          status: "success",
+          data: {
+            checkout_url: `/payment-success?tx_ref=${chapaData.tx_ref}&mode=chapa_mock&amount=${chapaData.amount}`
+          }
+        });
+      }
     });
 
     req.write(payload);

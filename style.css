@@ -2268,6 +2268,33 @@ img {
   color: #ffffff;
 }
 
+.btn-admin-refresh {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.btn-admin-refresh:hover {
+  background-color: #059669;
+  color: #ffffff;
+}
+
+.admin-dashboard-view {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(92vh - 70px);
+  padding: 12px 14px 30px 14px;
+}
+
 .admin-metrics-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2345,73 +2372,133 @@ img {
 .admin-orders-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.admin-prod-item {
+/* Compact Horizontal Product Row */
+.admin-prod-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--bg-page);
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  gap: 8px;
-}
-
-.admin-prod-info {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  flex: 1;
-  min-width: 0;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  transition: all var(--transition-fast);
 }
 
-.admin-prod-img {
-  width: 44px;
-  height: 44px;
+.admin-prod-card:hover {
+  border-color: rgba(32, 26, 23, 0.15);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Left: Small square image thumbnail (w-14 h-14 / 56px, rounded, cover) */
+.admin-prod-thumb {
+  width: 56px;
+  height: 56px;
   border-radius: var(--radius-sm);
   object-fit: cover;
-  background-color: #ffffff;
   flex-shrink: 0;
+  background-color: #f3eee9;
+  border: 1px solid var(--border-subtle);
 }
 
-.admin-prod-name {
-  font-size: 0.8rem;
+/* Middle: Product name, ETB price, category tag, stock indicator */
+.admin-prod-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-prod-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-prod-title {
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px;
+  max-width: 145px;
 }
 
-.admin-prod-price {
-  font-size: 0.72rem;
-  color: var(--text-muted);
+.admin-stock-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+.admin-stock-badge.in {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+.admin-stock-badge.out {
+  background: rgba(224, 46, 36, 0.12);
+  color: #e02e24;
 }
 
-.admin-prod-actions {
+.admin-prod-meta {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.btn-icon-action {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-full);
+.meta-price {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--primary-red);
+}
+
+.meta-cat {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--bg-page);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.meta-photos {
+  font-size: 0.68rem;
+  color: var(--text-light);
+}
+
+/* Right: In-stock toggle switch, Edit button, Delete button */
+.admin-prod-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-admin-action {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  font-size: 0.85rem;
-  color: var(--text-main);
   transition: all var(--transition-fast);
 }
 
-.btn-icon-action:hover {
+.btn-admin-action:hover {
   background-color: #ede7e1;
 }
 
@@ -2420,9 +2507,10 @@ img {
   color: var(--primary-red);
 }
 
-.btn-delete-prod:hover {
+.btn-del-prod:hover {
   border-color: #dc2626;
   color: #dc2626;
+  background-color: #fee2e2;
 }
 
 .switch-label {

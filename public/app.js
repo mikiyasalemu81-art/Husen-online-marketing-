@@ -613,6 +613,7 @@
     openAdminBtn: document.getElementById('openAdminBtn'),
     closeAdminBtn: document.getElementById('closeAdminBtn'),
     adminLogoutBtn: document.getElementById('adminLogoutBtn'),
+    adminRefreshBtn: document.getElementById('adminRefreshBtn'),
     adminAuthView: document.getElementById('adminAuthView'),
     adminPinInput: document.getElementById('adminPinInput'),
     adminLoginBtn: document.getElementById('adminLoginBtn'),
@@ -1652,9 +1653,15 @@
         });
 
         const data = await res.json();
+
         if (data.status === 'success' && data.checkout_url) {
-          // Redirect to verified Chapa checkout page
-          window.location.href = data.checkout_url;
+          showToast('Opening Chapa Payment Screen...', '🔒');
+          if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openLink === 'function') {
+            window.Telegram.WebApp.openLink(data.checkout_url);
+          } else {
+            window.location.href = data.checkout_url;
+          }
+          // Do NOT mark order completed locally on client. Kept in Pending state until verified.
         } else {
           throw new Error(data.message || 'Chapa initialization failed');
         }
@@ -1688,30 +1695,24 @@
   // Check URL params for Chapa return success
   function checkUrlPaymentCallback() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment') === 'success') {
-      const txRef = urlParams.get('tx_ref') || 'HOM-tx-SUCCESS';
-      fetch(`/api/chapa/verify/${txRef}`).then(r => r.json()).then(data => {
-        const order = data.order || {
-          id: txRef,
-          customer: "Chapa Customer",
-          phone: "+251912345678",
-          location: "Adama",
-          method: "Paid - Chapa",
-          total: 2850,
-          status: "Paid - Chapa Payment Verified"
-        };
-        showOrderSuccess(order);
-      }).catch(() => {
-        showOrderSuccess({
-          id: txRef,
-          customer: "Customer",
-          phone: "+251900000000",
-          location: "Adama",
-          method: "Paid - Chapa",
-          total: 0,
-          status: "Paid - Chapa Verified"
+    const txRef = urlParams.get('tx_ref');
+    const isPaymentCallback = urlParams.get('payment') === 'success' || urlParams.get('status') === 'success' || window.location.pathname.includes('payment-success');
+
+    if (txRef && isPaymentCallback) {
+      showToast('Verifying payment with Chapa...', '⏳');
+      fetch(`/api/chapa/verify/${txRef}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.order && data.order.status && data.order.status.includes('Paid')) {
+            showOrderSuccess(data.order);
+            showToast('Chapa Payment Confirmed! SMS Dispatched. ✓');
+          } else {
+            showToast('Chapa payment was not completed or pending.', '⚠️');
+          }
+        })
+        .catch(err => {
+          console.error('[CHAPA VERIFY ERROR]', err);
         });
-      });
       // Clean URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -1740,11 +1741,16 @@
     }
 
     // Check Persistent Admin Login State (Stay Logged In)
-    if (localStorage.getItem('hom_admin_logged_in') === 'true') {
+    const isAdminAuthed = (getStorage('local', 'husen_admin_auth') === 'true' || 
+                           getStorage('local', 'hom_admin_logged_in') === 'true' ||
+                           localStorage.getItem('husen_admin_auth') === 'true' ||
+                           localStorage.getItem('hom_admin_logged_in') === 'true');
+    if (isAdminAuthed) {
       state.adminUnlocked = true;
       if (dom.adminAuthView) dom.adminAuthView.style.display = 'none';
       if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'block';
       if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'inline-flex';
+      if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'inline-flex';
       renderAdminProducts();
       fetchAdminOrders();
       updateAccountDisplays();
@@ -1773,10 +1779,17 @@
 
       if (authenticated) {
         state.adminUnlocked = true;
-        localStorage.setItem('hom_admin_logged_in', 'true');
+        setStorage('local', 'husen_admin_auth', 'true');
+        setStorage('local', 'hom_admin_logged_in', 'true');
+        try {
+          localStorage.setItem('husen_admin_auth', 'true');
+          localStorage.setItem('hom_admin_logged_in', 'true');
+        } catch (e) {}
+
         if (dom.adminAuthView) dom.adminAuthView.style.display = 'none';
         if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'block';
         if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'inline-flex';
+        if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'inline-flex';
         if (dom.adminPinInput) dom.adminPinInput.value = '';
         renderAdminProducts();
         fetchAdminOrders();
@@ -1799,14 +1812,36 @@
       });
     }
 
+    // Admin Refresh Data Button
+    if (dom.adminRefreshBtn) {
+      dom.adminRefreshBtn.addEventListener('click', async () => {
+        dom.adminRefreshBtn.disabled = true;
+        showToast('Refreshing inventory and orders...', '🔄');
+        await Promise.all([
+          syncProductsFromBackend(true),
+          syncSettingsFromBackend(),
+          fetchAdminOrders()
+        ]);
+        renderAdminProducts();
+        dom.adminRefreshBtn.disabled = false;
+        showToast('Data synced from cloud! ✓');
+      });
+    }
+
     // Admin Explicit Log Out Button
     if (dom.adminLogoutBtn) {
       dom.adminLogoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('hom_admin_logged_in');
+        removeStorage('local', 'husen_admin_auth');
+        removeStorage('local', 'hom_admin_logged_in');
+        try {
+          localStorage.removeItem('husen_admin_auth');
+          localStorage.removeItem('hom_admin_logged_in');
+        } catch (e) {}
         state.adminUnlocked = false;
         if (dom.adminAuthView) dom.adminAuthView.style.display = 'block';
         if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'none';
         if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'none';
+        if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'none';
         if (dom.adminPinInput) dom.adminPinInput.value = '';
         showToast('Logged out of Admin Portal');
       });
@@ -2299,6 +2334,16 @@
     // Sync cloud state from backend
     syncProductsFromBackend();
     syncSettingsFromBackend();
+
+    // Real-Time Global Cloud Sync: Polling every 8 seconds
+    setInterval(() => {
+      syncProductsFromBackend();
+    }, 8000);
+
+    // Refresh instantly when user tabs back or focuses app
+    window.addEventListener('focus', () => {
+      syncProductsFromBackend(true);
+    });
   }
 
   // Bootstrap when DOM is ready

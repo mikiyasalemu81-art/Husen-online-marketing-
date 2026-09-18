@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Husen Online Marketing — Adama, Ethiopia</title>
+  <meta name="description" content="Shop quality household goods, kitchenware, health & beauty products with fast local delivery across Adama, Ethiopia. Easy Telebirr, CBE via Chapa & Cash on Delivery.">
+  
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Modern Google Fonts for Latin and Ethiopic characters -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Full-Screen Language Gate (First Load) -->
+  <div id="languageGate" class="language-gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+    <div class="gate-card">
+      <div class="gate-logo-wrap">
+        <img src="public/images/logo.png" alt="Husen Online Marketing Logo" class="gate-logo">
+      </div>
+      <div class="gate-brand-title">
+        <span class="gate-brand-name">HUSEN</span>
+        <span class="gate-brand-sub">ONLINE MARKETING</span>
+      </div>
+      <p id="gateTitle" class="gate-prompt">እንኳን ደህና መጡ! ቋንቋ ይምረጡ<br><span class="gate-prompt-sub">Baga nagaan dhuftan! Afaan filadhaa • Welcome! Choose your language</span></p>
+      
+      <div class="gate-buttons">
+        <button type="button" class="gate-lang-btn" data-lang="am">
+          <span class="gate-btn-flag">🇪🇹</span>
+          <span class="gate-btn-text">
+            <strong>አማርኛ</strong>
+            <small>Amharic</small>
+          </span>
+          <span class="gate-btn-arrow">→</span>
+        </button>
+
+        <button type="button" class="gate-lang-btn" data-lang="om">
+          <span class="gate-btn-flag">🌳</span>
+          <span class="gate-btn-text">
+            <strong>Afaan Oromoo</strong>
+            <small>Oromo</small>
+          </span>
+          <span class="gate-btn-arrow">→</span>
+        </button>
+
+        <button type="button" class="gate-lang-btn" data-lang="en">
+          <span class="gate-btn-flag">🌐</span>
+          <span class="gate-btn-text">
+            <strong>English</strong>
+            <small>Global</small>
+          </span>
+          <span class="gate-btn-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="gate-location-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+        <span>Adama, Ethiopia • አዳማ</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Storefront Viewport Container -->
+  <div class="app-shell" id="appShell">
+
+    <!-- Sticky Top Bar -->
+    <header class="sticky-header" id="stickyHeader">
+      <div class="header-main-row">
+        <!-- Brand Logo & Name: Pure white circular background with smooth rounded corners -->
+        <a href="#home" class="brand-link" id="brandHomeLink" aria-label="Husen Online Marketing Home">
+          <div class="brand-logo-clean">
+            <img src="public/images/logo.png" alt="Husen Logo" class="header-logo-img">
+          </div>
+          <div class="brand-title-wrap">
+            <span class="brand-name-bold">HUSEN</span>
+            <span class="brand-name-sub">ONLINE MARKETING</span>
+          </div>
+        </a>
+
+        <!-- Header Actions: Language Dropdown, Telegram, TikTok, Phone, Cart -->
+        <div class="header-actions">
+          
+          <!-- Header Language Switcher Dropdown Wrapper -->
+          <div class="lang-dropdown-wrapper">
+            <button type="button" class="header-icon-btn lang-btn" id="headerLangBtn" aria-label="Switch Language" title="Switch Language / ቋንቋ ቀይር">
+              <span class="lang-icon">🌐</span>
+            </button>
+
+            <!-- Language Dropdown Menu -->
+            <div class="lang-dropdown-menu" id="headerLangDropdown" aria-hidden="true">
+              <button type="button" class="lang-dropdown-item" data-lang="en">
+                <span class="item-flag">🌐</span>
+                <span class="item-label">English</span>
+                <span class="item-check" id="checkEn">✓</span>
+              </button>
+              <button type="button" class="lang-dropdown-item" data-lang="am">
+                <span class="item-flag">🇪🇹</span>
+                <span class="item-label">አማርኛ</span>
+                <span class="item-check" id="checkAm">✓</span>
+              </button>
+              <button type="button" class="lang-dropdown-item" data-lang="om">
+                <span class="item-flag">🌳</span>
+                <span class="item-label">Afaan Oromoo</span>
+                <span class="item-check" id="checkOm">✓</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Telegram Direct Link to Owner: https://t.me/+251923245529 -->
+          <a href="https://t.me/+251923245529" target="_blank" rel="noopener" class="header-icon-btn telegram-btn" aria-label="Chat with Owner on Telegram" title="Chat on Telegram: +251923245529">
+            <svg viewBox="0 0 24 24" class="header-svg" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/>
+            </svg>
+          </a>
+
+          <!-- TikTok Link to @husen_online_market -->
+          <a href="https://www.tiktok.com/@husen_online_market" target="_blank" rel="noopener" class="header-icon-btn tiktok-btn" aria-label="TikTok @husen_online_market" title="TikTok @husen_online_market">
+            <svg viewBox="0 0 24 24" class="header-svg" fill="currentColor">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.4a6.33 6.33 0 0 0-.85-.06A6.34 6.34 0 0 0 3 15.68a6.34 6.34 0 0 0 10.82 4.48 6.27 6.27 0 0 0 1.86-4.48V8.75a8.28 8.28 0 0 0 4.91 1.63v-3.46a4.85 4.85 0 0 1-1-.23z"/>
+            </svg>
+          </a>
+
+          <!-- Phone direct call 0923245529 -->
+          <a href="tel:0923245529" class="header-icon-btn call-btn" aria-label="Call 0923245529" title="Call Husen: 0923245529">
+            <svg viewBox="0 0 24 24" class="header-svg" fill="currentColor">
+              <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+            </svg>
+          </a>
+
+          <!-- Live Cart Button -->
+          <button type="button" class="header-icon-btn cart-btn" id="openCartBtn" aria-label="Open Shopping Cart">
+            <svg viewBox="0 0 24 24" class="header-svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            <span class="cart-badge" id="cartCountBadge">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter Chips -->
+      <nav class="category-nav" aria-label="Product Categories">
+        <div class="category-scroll-list" id="categoryChipContainer">
+          <!-- Populated dynamically based on language -->
+        </div>
+      </nav>
+    </header>
+
+    <!-- Hero / Store Greeting Banner -->
+    <section class="store-hero" id="home">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse-dot"></span>
+          <span id="heroBadgeText">Adama Fast Local Delivery</span>
+        </div>
+        <h1 class="hero-headline" id="heroHeadline">Household & Lifestyle Essentials</h1>
+        <p class="hero-subtext" id="heroSubtext">Delivering to all neighborhoods in Adama with Telebirr / CBE via Chapa and Cash on Delivery.</p>
+        
+        <div class="hero-stats">
+          <div class="stat-pill">
+            <span class="stat-icon">⚡</span>
+            <span id="statDelivery">Same Day in Adama</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-icon">🛡️</span>
+            <span id="statQuality">100% Guaranteed</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-icon">💳</span>
+            <span id="statTelebirr">Chapa (Telebirr & CBE)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Catalog Section -->
+    <main class="catalog-section">
+      <div class="section-title-row">
+        <div>
+          <h2 class="section-title" id="catalogTitle">Featured Products</h2>
+          <p class="section-subtitle" id="catalogSubtitle">Tap any item to open Telegram Mini App view or order instantly</p>
+        </div>
+        <span class="product-count-chip" id="productCountChip">4 Items</span>
+      </div>
+
+      <!-- Catalog Grid -->
+      <div class="product-grid" id="productGrid">
+        <!-- Rendered via app.js -->
+      </div>
+    </main>
+
+    <!-- Trust Badges & Local Delivery Guarantee -->
+    <section class="trust-section">
+      <div class="trust-card">
+        <div class="trust-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="3" width="15" height="13"/>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+        </div>
+        <div>
+          <h3 id="trustDeliveryTitle">Direct Neighborhood Delivery</h3>
+          <p id="trustDeliveryDesc">Gendahara, Silasi, Atanatara, Peacock, Boli, Matwamisp & beyond in Adama.</p>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 id="trustSecureTitle">Safe Payment Options</h3>
+          <p id="trustSecureDesc">Instant digital payment (Telebirr & CBE via Chapa) or Cash on Delivery.</p>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-icon-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 id="trustContactTitle">Need Help? Contact Husen</h3>
+          <p>Direct Call: <a href="tel:0923245529" class="phone-highlight">0923245529</a> | Telegram: <a href="https://t.me/+251923245529" target="_blank" rel="noopener">@Husen</a> | TikTok: <a href="https://www.tiktok.com/@husen_online_market" target="_blank" rel="noopener">@husen_online_market</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer: Cleaned up without old language text button -->
+    <footer class="app-footer">
+      <div class="footer-brand">
+        <img src="public/images/logo.png" alt="Husen Logo" class="footer-logo">
+        <div>
+          <span class="footer-brand-name">HUSEN ONLINE MARKETING</span>
+          <p class="footer-location">Adama, Oromia, Ethiopia • 0923245529</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <button type="button" class="footer-link-btn" id="openAdminBtn">🔐 Shop Admin Portal</button>
+      </div>
+
+      <p class="footer-copy">© 2026 Husen Online Marketing. Integrated with Chapa & AfroMessage SMS Gateway.</p>
+    </footer>
+
+  </div><!-- /app-shell -->
+
+  <!-- ================= 1. TELEGRAM MINI APP PRODUCT DETAIL FULL-SCREEN VIEW ================= -->
+  <div class="tg-app-view" id="tgProductView" aria-hidden="true">
+    <div class="tg-header-bar">
+      <button type="button" class="tg-nav-btn" id="closeTgViewBtn" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div class="tg-header-title">
+        <span class="tg-app-title">Husen Online Marketing</span>
+        <span class="tg-app-badge" id="tgVerifiedBadge">✓ Official Store</span>
+      </div>
+      <button type="button" class="tg-nav-btn" id="tgHeaderCartBtn" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Scrollable Detail Body -->
+    <div class="tg-body-scroll" id="tgBodyScroll">
+      <div class="tg-hero-image-wrap" id="tgHeroImageWrap">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div class="tg-product-meta">
+        <div class="tg-title-price-row">
+          <h1 class="tg-product-title" id="tgProductTitle">Product Name</h1>
+          <div class="tg-unit-price-badge" id="tgUnitPrice">0 ETB</div>
+        </div>
+        
+        <div class="tg-stock-location-row">
+          <span class="tg-stock-pill" id="tgStockPill">✓ In Stock</span>
+          <span class="tg-location-pill">📍 Adama Local Delivery</span>
+        </div>
+
+        <div class="tg-desc-box">
+          <h3 class="tg-desc-heading" id="tgDescHeading">Product Overview</h3>
+          <p class="tg-product-desc" id="tgProductDesc">Description...</p>
+        </div>
+
+        <!-- Quantity Stepper & Dynamic Total Calculation -->
+        <div class="tg-selector-card">
+          <div class="tg-stepper-left">
+            <span class="tg-stepper-label" id="tgQuantityLabel">Select Quantity</span>
+            <div class="tg-stepper-wrap">
+              <button type="button" class="tg-step-btn" id="tgQtyMinus" aria-label="Decrease">−</button>
+              <span class="tg-step-num" id="tgQtyDisplay">1</span>
+              <button type="button" class="tg-step-btn" id="tgQtyPlus" aria-label="Increase">+</button>
+            </div>
+          </div>
+
+          <div class="tg-dynamic-total-box">
+            <span class="tg-total-label" id="tgTotalLabel">Total Amount:</span>
+            <strong class="tg-total-calc" id="tgDynamicTotalCalc">0 ETB</strong>
+            <small class="tg-total-breakdown" id="tgTotalBreakdown">(0 ETB × 1)</small>
+          </div>
+        </div>
+
+        <div class="tg-trust-mini">
+          <span>🛵 Delivery across all Adama neighborhoods</span>
+          <span>💳 Telebirr / CBE via Chapa or Cash on Delivery</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fixed Bottom Action Bar -->
+    <div class="tg-bottom-action-bar">
+      <button type="button" class="tg-btn-cart" id="tgAddToCartBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span id="tgBtnCartText">Add to Cart</span>
+      </button>
+
+      <button type="button" class="tg-btn-buy" id="tgBuyNowBtn">
+        <span id="tgBtnBuyText">Buy Now</span>
+        <span class="tg-btn-price" id="tgBtnBuyPrice">0 ETB</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 2. SHOPPING CART DRAWER ================= -->
+  <div class="cart-backdrop" id="cartBackdrop" aria-hidden="true">
+    <div class="cart-drawer" id="cartDrawer" role="dialog" aria-labelledby="cartDrawerTitle">
+      <div class="cart-header">
+        <div class="cart-header-title-wrap">
+          <h2 class="cart-title" id="cartDrawerTitle">Your Shopping Cart</h2>
+          <span class="cart-header-count" id="cartHeaderCount">(0 items)</span>
+        </div>
+        <button type="button" class="sheet-close-btn" id="closeCartBtn" aria-label="Close Cart">✕</button>
+      </div>
+
+      <div class="cart-adama-banner">
+        <span class="banner-icon">🛵</span>
+        <span id="cartAdamaBannerText">Free & fast doorstep delivery within Adama City</span>
+      </div>
+
+      <div class="cart-items-list" id="cartItemsContainer">
+        <!-- Rendered via JS -->
+      </div>
+
+      <div class="cart-footer">
+        <div class="cart-subtotal-row">
+          <span id="cartSubtotalLabel">Subtotal</span>
+          <span class="cart-subtotal-val" id="cartSubtotalVal">0 ETB</span>
+        </div>
+        <div class="cart-delivery-row">
+          <span id="cartDeliveryLabel">Adama Local Delivery</span>
+          <span class="free-pill" id="cartDeliveryPill">FREE</span>
+        </div>
+        <div class="cart-total-row">
+          <span id="cartTotalLabel">Grand Total</span>
+          <span class="cart-grand-total" id="cartGrandTotalVal">0 ETB</span>
+        </div>
+
+        <button type="button" class="btn-primary btn-checkout-trigger" id="proceedToCheckoutBtn">
+          <span id="btnCheckoutText">Proceed to Checkout</span>
+          <span class="btn-checkout-price" id="btnCheckoutPrice">0 ETB</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 3. 2-STEP CHECKOUT MODAL ================= -->
+  <div class="modal-backdrop" id="checkoutBackdrop" aria-hidden="true">
+    <div class="checkout-modal" id="checkoutModal" role="dialog" aria-labelledby="checkoutModalTitle">
+      
+      <div class="modal-header">
+        <div>
+          <div class="checkout-step-pills">
+            <span class="step-pill active" id="pillStep1">1. Customer Info</span>
+            <span class="step-arrow">→</span>
+            <span class="step-pill" id="pillStep2">2. Payment Method</span>
+          </div>
+          <h2 class="modal-title" id="checkoutModalTitle">Customer Details</h2>
+          <p class="modal-subtitle" id="checkoutModalSubtitle">Fast local delivery in Adama</p>
+        </div>
+        <button type="button" class="sheet-close-btn" id="closeCheckoutBtn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="checkout-order-summary">
+          <div class="summary-header">
+            <span class="summary-label" id="checkoutItemsHeader">Order Items</span>
+            <span class="summary-total" id="checkoutSummaryTotal">0 ETB</span>
+          </div>
+          <div class="summary-pills-list" id="checkoutSummaryItemsList"></div>
+        </div>
+
+        <!-- STEP 1: CUSTOMER INFORMATION -->
+        <div id="checkoutStep1" class="checkout-step-pane active">
+          <form id="customerInfoForm" novalidate>
+            <div class="input-stack">
+              <div class="input-field-wrap">
+                <label for="customerNameInput" class="field-label" id="labelFullName">Full Name *</label>
+                <input type="text" id="customerNameInput" class="form-input" placeholder="e.g. Abebe Kebede / Caaltuu Tolasaa" required autocomplete="name">
+                <small class="field-error" id="nameErrorMsg" style="display:none;">Please enter your full name</small>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="customerPhoneInput" class="field-label" id="labelPhone">Phone Number *</label>
+                <div class="phone-input-prefix-wrap">
+                  <span class="phone-prefix">+251</span>
+                  <input type="tel" id="customerPhoneInput" class="form-input phone-input" placeholder="09... or 07..." required autocomplete="tel">
+                </div>
+                <small class="field-helper" id="phoneHelperText">Required for courier dispatch and payment confirmation</small>
+                <small class="field-error" id="phoneErrorMsg" style="display:none;">Please enter a valid Ethiopian phone number (e.g. 0912345678)</small>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="customerLandmarkInput" class="field-label" id="labelLandmark">Delivery Location / Landmark in Adama *</label>
+                <input type="text" id="customerLandmarkInput" class="form-input" placeholder="e.g., Posta Bet, Adama" required>
+                
+                <div class="quick-neighborhood-chips">
+                  <span class="chip-label">Quick select:</span>
+                  <button type="button" class="quick-hood-btn" data-hood="Posta Bet, Adama">Posta Bet</button>
+                  <button type="button" class="quick-hood-btn" data-hood="Gendahara, Adama">Gendahara</button>
+                  <button type="button" class="quick-hood-btn" data-hood="Silasi, Adama">Silasi</button>
+                  <button type="button" class="quick-hood-btn" data-hood="Atanatara, Adama">Atanatara</button>
+                  <button type="button" class="quick-hood-btn" data-hood="Peacock, Adama">Peacock</button>
+                  <button type="button" class="quick-hood-btn" data-hood="Boli, Adama">Boli</button>
+                  <button type="button" class="quick-hood-btn" data-hood="Matwamisp, Adama">Matwamisp</button>
+                </div>
+                <small class="field-error" id="landmarkErrorMsg" style="display:none;">Please specify your delivery location or landmark in Adama</small>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="customerAddressInput" class="field-label" id="labelAddress">Specific Address or House / Floor No. <span class="optional-tag">(Optional)</span></label>
+                <input type="text" id="customerAddressInput" class="form-input" placeholder="e.g., House No. 204, 2nd Floor, next to Bank">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary btn-step-action" id="btnContinueToPayment">
+              <span id="btnContinueText">Continue to Payment</span>
+              <span>→</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- STEP 2: PAYMENT METHOD SELECTION -->
+        <div id="checkoutStep2" class="checkout-step-pane" style="display:none;">
+          <div class="confirmed-customer-pill" id="confirmedCustomerPill">
+            <div class="customer-pill-left">
+              <strong id="pillCustomerName">Abebe Kebede</strong>
+              <small id="pillCustomerDetails">0923456789 • Posta Bet, Adama</small>
+            </div>
+            <button type="button" class="btn-edit-details" id="btnBackToStep1">Edit</button>
+          </div>
+
+          <label class="form-section-title" id="labelChoosePayment">
+            <span>Select Payment Option:</span>
+          </label>
+
+          <div class="payment-method-options">
+            <!-- Option A: Digital Payment (Telebirr / CBE via Chapa) -->
+            <label class="payment-card selected" for="payChapa">
+              <input type="radio" name="paymentOption" id="payChapa" value="chapa" checked>
+              <div class="pay-card-left">
+                <div class="pay-logo-badge chapa-badge">
+                  <span class="chapa-icon-text">⚡</span>
+                </div>
+                <div>
+                  <div class="pay-title-badge-row">
+                    <strong class="pay-name" id="chapaName">Digital Payment (Telebirr / CBE)</strong>
+                    <span class="badge-chapa-secure">Chapa Gateway</span>
+                  </div>
+                  <p class="pay-desc" id="chapaDesc">Instant online payment using your Telebirr account or Commercial Bank of Ethiopia (CBE).</p>
+                  <div class="chapa-logos-row">
+                    <span class="mini-logo-pill telebirr-pill">telebirr</span>
+                    <span class="mini-logo-pill cbe-pill">CBE</span>
+                    <span class="mini-logo-pill bank-pill">Awash & Cards</span>
+                  </div>
+                </div>
+              </div>
+              <div class="radio-indicator"></div>
+            </label>
+
+            <!-- Option B: Cash on Delivery -->
+            <label class="payment-card" for="payCod">
+              <input type="radio" name="paymentOption" id="payCod" value="cod">
+              <div class="pay-card-left">
+                <div class="pay-logo-badge cod-badge">
+                  <span>💵</span>
+                </div>
+                <div>
+                  <strong class="pay-name" id="codName">Cash on Delivery</strong>
+                  <p class="pay-desc" id="codDesc">Pay cash directly to our delivery rider when the package arrives at your doorstep in Adama.</p>
+                </div>
+              </div>
+              <div class="radio-indicator"></div>
+            </label>
+          </div>
+
+          <div class="payment-instruction-box" id="paymentInstructionBox">
+            <div id="chapaInstruction" style="display:flex; align-items:center; gap:8px;">
+              <span>🔒</span>
+              <small>Clicking Pay will connect to <strong>Chapa</strong> to authenticate your Telebirr or CBE transfer safely.</small>
+            </div>
+            <div id="codInstruction" style="display:none; align-items:center; gap:8px;">
+              <span>🛵</span>
+              <small>Your order will be finalized immediately and dispatched to our Adama delivery rider.</small>
+            </div>
+          </div>
+
+          <div class="step-buttons-row">
+            <button type="button" class="btn-secondary" id="btnBackStep">
+              <span>← Back</span>
+            </button>
+            <button type="button" class="btn-primary" id="btnFinalizePayment">
+              <span id="btnFinalizeText">Proceed with Chapa</span>
+              <span id="finalizeAmountVal">0 ETB</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 4. ORDER CONFIRMATION / SUCCESS SCREEN ================= -->
+  <div class="success-backdrop" id="successBackdrop" aria-hidden="true">
+    <div class="success-card" role="dialog" aria-labelledby="successTitle">
+      <div class="success-badge-animation">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" class="check-svg" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <h2 class="success-title" id="successTitle">Order Confirmed!</h2>
+      <p class="success-subtitle" id="successSubtitle">Thank you for shopping with Husen Online Marketing</p>
+
+      <div class="order-ref-pill">
+        <span id="successOrderRefLabel">Order Reference:</span>
+        <strong id="successOrderRefNumber">HOM-AD-8942</strong>
+      </div>
+
+      <div class="sms-notification-box">
+        <div class="sms-icon-badge">💬</div>
+        <div class="sms-text-content">
+          <strong id="smsNoticeHeading">Automated SMS Dispatched to Shop Owner</strong>
+          <p id="smsNoticeBody">
+            Order alert automatically dispatched to the shop owner (<strong>0923245529</strong>) via AfroMessage SMS gateway for immediate packing & courier coordination.
+          </p>
+        </div>
+      </div>
+
+      <div class="success-details-card">
+        <div class="detail-row">
+          <span class="detail-label" id="successCustomerLabel">Customer:</span>
+          <span class="detail-value" id="successCustomerVal">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label" id="successPhoneLabel">Phone:</span>
+          <span class="detail-value" id="successPhoneVal">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label" id="successLocationLabel">Delivery Location:</span>
+          <span class="detail-value" id="successLocationVal">-</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label" id="successPaymentLabel">Payment Status:</span>
+          <span class="detail-value" id="successPaymentVal">-</span>
+        </div>
+        <div class="detail-row highlight">
+          <span class="detail-label" id="successAmountLabel">Total Amount:</span>
+          <span class="detail-value" id="successAmountVal">0 ETB</span>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <a href="tel:0923245529" class="btn-action-outline">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+          <span id="btnCallShopText">Call Husen (0923245529)</span>
+        </a>
+
+        <button type="button" class="btn-primary" id="continueShoppingBtn">
+          <span id="btnContinueShoppingText">Continue Shopping</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 5. SHOP ADMIN PORTAL MODAL (With Full Product CRUD) ================= -->
+  <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true">
+    <div class="admin-modal" role="dialog" aria-labelledby="adminTitle">
+      <div class="admin-header">
+        <div>
+          <h2 class="admin-title" id="adminTitle">Husen Store Admin Portal</h2>
+          <p class="admin-subtitle">Live store inventory, product CRUD & SMS dispatch logs</p>
+        </div>
+        <button type="button" class="sheet-close-btn" id="closeAdminBtn" aria-label="Close Admin">✕</button>
+      </div>
+
+      <!-- Admin Login View -->
+      <div class="admin-auth-view" id="adminAuthView">
+        <div class="admin-login-box">
+          <p>Please enter owner passcode to manage store products & orders:</p>
+          <div class="admin-pin-row">
+            <input type="password" id="adminPinInput" class="form-input" placeholder="Enter PIN (Demo: 1234)">
+            <button type="button" class="btn-primary" id="adminLoginBtn">Unlock</button>
+          </div>
+          <small class="admin-demo-hint">Demo PIN: <strong>1234</strong></small>
+        </div>
+      </div>
+
+      <!-- Admin Dashboard View -->
+      <div class="admin-dashboard-view" id="adminDashboardView" style="display:none;">
+        <div class="admin-metrics-row">
+          <div class="metric-card">
+            <span class="metric-label">Today's Revenue</span>
+            <strong class="metric-value" id="adminTotalRevenue">0 ETB</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Total Orders</span>
+            <strong class="metric-value" id="adminOrderCount">0</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Products Active</span>
+            <strong class="metric-value" id="adminProductsCount" style="color: #10b981;">4</strong>
+          </div>
+        </div>
+
+        <div class="admin-tabs">
+          <button type="button" class="admin-tab active" data-tab="products" id="adminTabProducts">Products Manager (<span id="adminProductsBadge">4</span>)</button>
+          <button type="button" class="admin-tab" data-tab="orders" id="adminTabOrders">Incoming Orders (<span id="adminOrdersBadge">0</span>)</button>
+        </div>
+
+        <!-- Tab 1: Product CRUD Management -->
+        <div class="admin-tab-pane active" id="adminPaneProducts">
+          <div class="admin-pane-header">
+            <div>
+              <span class="admin-pane-title">Store Products</span>
+              <p class="admin-tab-desc">Add, edit, toggle stock, or delete storefront items:</p>
+            </div>
+            <!-- + Add New Product Button -->
+            <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
+              <span>+ Add New Product</span>
+            </button>
+          </div>
+
+          <div class="admin-product-list" id="adminProductList">
+            <!-- Rendered via JS with Edit, Delete, Stock Toggle -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Orders List -->
+        <div class="admin-tab-pane" id="adminPaneOrders" style="display:none;">
+          <div class="admin-orders-list" id="adminOrdersList">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 6. PRODUCT ADD / EDIT MODAL (CRUD SYSTEM) ================= -->
+  <div class="editor-backdrop" id="productEditorBackdrop" aria-hidden="true">
+    <div class="editor-modal" role="dialog" aria-labelledby="editorModalTitle">
+      <div class="editor-header">
+        <h3 class="editor-title" id="editorModalTitle">Add New Product</h3>
+        <button type="button" class="sheet-close-btn" id="closeEditorBtn" aria-label="Close Editor">✕</button>
+      </div>
+
+      <form id="productEditorForm" class="editor-body" novalidate>
+        <input type="hidden" id="editProductId" value="">
+
+        <!-- Product Name -->
+        <div class="input-field-wrap">
+          <label for="editorProdName" class="field-label">Product Name *</label>
+          <input type="text" id="editorProdName" class="form-input" placeholder="e.g. Electric Kettle 2.0L Stainless" required>
+        </div>
+
+        <!-- Category & Price Row -->
+        <div class="editor-row-2">
+          <div class="input-field-wrap">
+            <label for="editorProdCategory" class="field-label">Category *</label>
+            <select id="editorProdCategory" class="form-input" required>
+              <option value="kitchen">Kitchen (ማብሰያ)</option>
+              <option value="home">Home (የቤት)</option>
+              <option value="beauty">Beauty (ውበት)</option>
+              <option value="health">Health (ጤና)</option>
+            </select>
+          </div>
+
+          <div class="input-field-wrap">
+            <label for="editorProdPrice" class="field-label">Price in ETB *</label>
+            <input type="number" id="editorProdPrice" class="form-input" placeholder="e.g. 1500" min="1" step="10" required>
+          </div>
+        </div>
+
+        <!-- Short Description -->
+        <div class="input-field-wrap">
+          <label for="editorProdDesc" class="field-label">Short Description / Specs *</label>
+          <textarea id="editorProdDesc" class="form-input editor-textarea" rows="3" placeholder="Briefly describe key features, warranty, and contents..." required></textarea>
+        </div>
+
+        <!-- Multi-Image Manager -->
+        <div class="editor-image-manager">
+          <div class="manager-header">
+            <div>
+              <label class="field-label">Product Photos (Multiple Angles Auto-Rotate)</label>
+              <small class="field-helper">Add 1, 2, 3 or more image URLs (ambient 5s crossfade):</small>
+            </div>
+            <button type="button" class="btn-add-img-row" id="btnAddImageRow">+ Add Photo URL</button>
+          </div>
+
+          <div class="image-inputs-list" id="imageInputsList">
+            <!-- Dynamic Image Rows -->
+          </div>
+
+          <!-- Quick presets shortcut -->
+          <div class="quick-img-presets">
+            <span class="preset-label">Quick asset presets:</span>
+            <button type="button" class="btn-preset-img" data-preset="public/images/storage1.jpg">Storage Set</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/blender1.jpg">Blender 1</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/blender2.jpg">Blender 2</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/vest1.jpg">Vest Front</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/vest2.jpg">Vest Back</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/melanix.jpg">Melanix</button>
+          </div>
+        </div>
+
+        <!-- In-Stock Switch -->
+        <div class="editor-switch-row">
+          <div>
+            <strong style="font-size: 0.85rem; color: var(--text-main);">Available In Stock</strong>
+            <p style="font-size: 0.72rem; color: var(--text-muted);">Toggle off to grey out and disable purchase</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="editorProdInStock" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Editor Action Buttons -->
+        <div class="editor-actions-row">
+          <button type="button" class="btn-secondary" id="cancelEditorBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="saveProductBtn">
+            <span id="saveProductBtnText">Publish Product</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

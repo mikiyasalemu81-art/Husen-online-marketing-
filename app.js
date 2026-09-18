@@ -348,15 +348,68 @@
     }
   ];
 
+  // Safe Storage & Modal Helpers
+  function getStorage(type, key, fallback = null) {
+    try {
+      if (typeof window === 'undefined') return fallback;
+      const store = type === 'session' ? window.sessionStorage : window.localStorage;
+      return store ? store.getItem(key) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function setStorage(type, key, value) {
+    try {
+      if (typeof window === 'undefined') return;
+      const store = type === 'session' ? window.sessionStorage : window.localStorage;
+      if (store) store.setItem(key, value);
+    } catch (e) {}
+  }
+
+  function removeStorage(type, key) {
+    try {
+      if (typeof window === 'undefined') return;
+      const store = type === 'session' ? window.sessionStorage : window.localStorage;
+      if (store) store.removeItem(key);
+    } catch (e) {}
+  }
+
+  function openElement(el) {
+    if (!el) return;
+    el.classList.add('active', 'open');
+    el.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeElement(el) {
+    if (!el) return;
+    el.classList.remove('active', 'open');
+    el.setAttribute('aria-hidden', 'true');
+  }
+
   // ==========================================================================
   // 3. APPLICATION STATE
   // ==========================================================================
   const state = {
-    lang: sessionStorage.getItem('hom_lang') || 'en',
+    lang: getStorage('session', 'hom_lang') || 'en',
     activeCategory: 'all',
     searchQuery: '',
-    products: JSON.parse(localStorage.getItem('hom_products')) || INITIAL_PRODUCTS,
-    cart: JSON.parse(localStorage.getItem('hom_cart')) || [],
+    products: (() => {
+      try {
+        const stored = getStorage('local', 'hom_products');
+        return stored ? JSON.parse(stored) : INITIAL_PRODUCTS;
+      } catch (e) {
+        return INITIAL_PRODUCTS;
+      }
+    })(),
+    cart: (() => {
+      try {
+        const stored = getStorage('local', 'hom_cart');
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    })(),
     settings: {
       cbeAccount: "1000123456789",
       cbeAccountName: "Husen Online Store",
@@ -687,35 +740,46 @@
   // 6. LANGUAGE SYSTEM & HEADER DROPDOWN
   // ==========================================================================
   function initLanguageSystem() {
-    const savedLang = sessionStorage.getItem('hom_lang');
+    const savedLang = getStorage('session', 'hom_lang');
     if (!savedLang) {
-      if (dom.languageGate) dom.languageGate.classList.remove('hidden');
+      if (dom.languageGate) {
+        dom.languageGate.classList.remove('hidden');
+        dom.languageGate.style.display = 'flex';
+      }
     } else {
       state.lang = savedLang;
-      if (dom.languageGate) dom.languageGate.classList.add('hidden');
+      if (dom.languageGate) {
+        dom.languageGate.classList.add('hidden');
+        dom.languageGate.style.display = 'none';
+      }
     }
 
     document.querySelectorAll('.gate-lang-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const selected = btn.getAttribute('data-lang');
         setLanguage(selected);
-        if (dom.languageGate) dom.languageGate.classList.add('hidden');
+        if (dom.languageGate) {
+          dom.languageGate.classList.add('hidden');
+          dom.languageGate.style.display = 'none';
+        }
       });
     });
 
     if (dom.headerLangBtn) {
       dom.headerLangBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isHidden = dom.headerLangDropdown.getAttribute('aria-hidden') !== 'false';
-        dom.headerLangDropdown.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
-        dom.headerLangDropdown.classList.toggle('open', isHidden);
+        if (dom.headerLangDropdown) {
+          const isHidden = dom.headerLangDropdown.getAttribute('aria-hidden') !== 'false';
+          dom.headerLangDropdown.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
+          dom.headerLangDropdown.classList.toggle('open', isHidden);
+          dom.headerLangDropdown.classList.toggle('active', isHidden);
+        }
       });
     }
 
     document.addEventListener('click', (e) => {
       if (dom.headerLangDropdown && !dom.headerLangDropdown.contains(e.target) && e.target !== dom.headerLangBtn) {
-        dom.headerLangDropdown.setAttribute('aria-hidden', 'true');
-        dom.headerLangDropdown.classList.remove('open');
+        closeElement(dom.headerLangDropdown);
       }
     });
 
@@ -723,10 +787,7 @@
       item.addEventListener('click', () => {
         const selected = item.getAttribute('data-lang');
         setLanguage(selected);
-        if (dom.headerLangDropdown) {
-          dom.headerLangDropdown.setAttribute('aria-hidden', 'true');
-          dom.headerLangDropdown.classList.remove('open');
-        }
+        closeElement(dom.headerLangDropdown);
       });
     });
 
@@ -736,7 +797,7 @@
   function setLanguage(newLang) {
     if (!I18N[newLang]) return;
     state.lang = newLang;
-    sessionStorage.setItem('hom_lang', newLang);
+    setStorage('session', 'hom_lang', newLang);
     applyLanguage();
   }
 
@@ -1105,18 +1166,12 @@
 
     updateTgTotals();
 
-    if (dom.tgProductView) {
-      dom.tgProductView.classList.add('open');
-      dom.tgProductView.setAttribute('aria-hidden', 'false');
-    }
+    openElement(dom.tgProductView);
   }
 
   function closeTelegramProductView() {
     if (tgCrossfadeTimer) clearInterval(tgCrossfadeTimer);
-    if (dom.tgProductView) {
-      dom.tgProductView.classList.remove('open');
-      dom.tgProductView.setAttribute('aria-hidden', 'true');
-    }
+    closeElement(dom.tgProductView);
   }
 
   function updateTgTotals() {
@@ -1227,17 +1282,11 @@
   }
 
   function openCart() {
-    if (dom.cartBackdrop) {
-      dom.cartBackdrop.classList.add('open');
-      dom.cartBackdrop.setAttribute('aria-hidden', 'false');
-    }
+    openElement(dom.cartBackdrop);
   }
 
   function closeCart() {
-    if (dom.cartBackdrop) {
-      dom.cartBackdrop.classList.remove('open');
-      dom.cartBackdrop.setAttribute('aria-hidden', 'true');
-    }
+    closeElement(dom.cartBackdrop);
   }
 
   // ==========================================================================
@@ -1273,17 +1322,11 @@
 
     setCheckoutStep(1);
 
-    if (dom.checkoutBackdrop) {
-      dom.checkoutBackdrop.classList.add('open');
-      dom.checkoutBackdrop.setAttribute('aria-hidden', 'false');
-    }
+    openElement(dom.checkoutBackdrop);
   }
 
   function closeCheckout() {
-    if (dom.checkoutBackdrop) {
-      dom.checkoutBackdrop.classList.remove('open');
-      dom.checkoutBackdrop.setAttribute('aria-hidden', 'true');
-    }
+    closeElement(dom.checkoutBackdrop);
   }
 
   function setCheckoutStep(step) {
@@ -1639,10 +1682,7 @@
     if (dom.successPaymentVal) dom.successPaymentVal.textContent = order.status || order.method;
     if (dom.successAmountVal) dom.successAmountVal.textContent = formatETB(order.total);
 
-    if (dom.successBackdrop) {
-      dom.successBackdrop.classList.add('open');
-      dom.successBackdrop.setAttribute('aria-hidden', 'false');
-    }
+    openElement(dom.successBackdrop);
   }
 
   // Check URL params for Chapa return success
@@ -1683,19 +1723,19 @@
   function initAdminPortal() {
     if (dom.openAdminBtn) {
       dom.openAdminBtn.addEventListener('click', () => {
-        if (dom.adminBackdrop) {
-          dom.adminBackdrop.classList.add('open');
-          dom.adminBackdrop.setAttribute('aria-hidden', 'false');
-        }
+        openElement(dom.adminBackdrop);
       });
     }
 
     if (dom.closeAdminBtn) {
       dom.closeAdminBtn.addEventListener('click', () => {
-        if (dom.adminBackdrop) {
-          dom.adminBackdrop.classList.remove('open');
-          dom.adminBackdrop.setAttribute('aria-hidden', 'true');
-        }
+        closeElement(dom.adminBackdrop);
+      });
+    }
+
+    if (dom.adminBackdrop) {
+      dom.adminBackdrop.addEventListener('click', (e) => {
+        if (e.target === dom.adminBackdrop) closeElement(dom.adminBackdrop);
       });
     }
 
@@ -1898,6 +1938,11 @@
 
     if (dom.closeEditorBtn) dom.closeEditorBtn.addEventListener('click', closeProductEditor);
     if (dom.cancelEditorBtn) dom.cancelEditorBtn.addEventListener('click', closeProductEditor);
+    if (dom.productEditorBackdrop) {
+      dom.productEditorBackdrop.addEventListener('click', (e) => {
+        if (e.target === dom.productEditorBackdrop) closeProductEditor();
+      });
+    }
   }
 
   function renderAdminProducts() {
@@ -2018,17 +2063,11 @@
 
     renderEditorThumbnails();
 
-    if (dom.productEditorBackdrop) {
-      dom.productEditorBackdrop.classList.add('open');
-      dom.productEditorBackdrop.setAttribute('aria-hidden', 'false');
-    }
+    openElement(dom.productEditorBackdrop);
   }
 
   function closeProductEditor() {
-    if (dom.productEditorBackdrop) {
-      dom.productEditorBackdrop.classList.remove('open');
-      dom.productEditorBackdrop.setAttribute('aria-hidden', 'true');
-    }
+    closeElement(dom.productEditorBackdrop);
   }
 
   function renderEditorThumbnails() {
@@ -2250,10 +2289,7 @@
     // Success screen continue shopping
     if (dom.continueShoppingBtn) {
       dom.continueShoppingBtn.addEventListener('click', () => {
-        if (dom.successBackdrop) {
-          dom.successBackdrop.classList.remove('open');
-          dom.successBackdrop.setAttribute('aria-hidden', 'true');
-        }
+        closeElement(dom.successBackdrop);
       });
     }
 

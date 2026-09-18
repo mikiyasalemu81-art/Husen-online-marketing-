@@ -120,7 +120,6 @@ img {
     margin: 20px auto;
     min-height: calc(100vh - 40px);
     border-radius: 28px;
-    overflow: hidden;
     border: 1px solid rgba(32, 26, 23, 0.06);
   }
 }
@@ -309,7 +308,8 @@ img {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.lang-dropdown-menu.active {
+.lang-dropdown-menu.active,
+.lang-dropdown-menu.open {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
@@ -759,7 +759,8 @@ img {
   visibility: hidden;
 }
 
-.tg-app-view.active {
+.tg-app-view.active,
+.tg-app-view.open {
   transform: translateY(0);
   visibility: visible;
 }
@@ -770,7 +771,8 @@ img {
     left: 50%;
     transform: translate(-50%, 100%);
   }
-  .tg-app-view.active {
+  .tg-app-view.active,
+  .tg-app-view.open {
     transform: translate(-50%, 0);
   }
 }
@@ -1321,6 +1323,7 @@ img {
   -webkit-backdrop-filter: blur(8px);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity var(--transition-smooth), visibility var(--transition-smooth);
   display: flex;
   align-items: flex-end;
@@ -1328,18 +1331,27 @@ img {
 }
 
 .sheet-backdrop.active,
+.sheet-backdrop.open,
 .cart-backdrop.active,
+.cart-backdrop.open,
 .modal-backdrop.active,
+.modal-backdrop.open,
 .success-backdrop.active,
+.success-backdrop.open,
 .admin-backdrop.active,
-.editor-backdrop.active {
+.admin-backdrop.open,
+.editor-backdrop.active,
+.editor-backdrop.open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .cart-drawer,
 .checkout-modal,
-.admin-modal {
+.admin-modal,
+.editor-modal,
+.sheet-modal {
   width: 100%;
   max-width: 520px;
   max-height: 94vh;
@@ -1354,8 +1366,17 @@ img {
 }
 
 .cart-backdrop.active .cart-drawer,
+.cart-backdrop.open .cart-drawer,
 .modal-backdrop.active .checkout-modal,
-.admin-backdrop.active .admin-modal {
+.modal-backdrop.open .checkout-modal,
+.admin-backdrop.active .admin-modal,
+.admin-backdrop.open .admin-modal,
+.editor-backdrop.active .editor-modal,
+.editor-backdrop.open .editor-modal,
+.editor-backdrop.active .admin-modal,
+.editor-backdrop.open .admin-modal,
+.sheet-backdrop.active .sheet-modal,
+.sheet-backdrop.open .sheet-modal {
   transform: translateY(0);
 }
 
@@ -1963,6 +1984,7 @@ img {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  display: none !important;
 }
 
 .gate-card {

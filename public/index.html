@@ -374,7 +374,10 @@
           <h2 class="cart-title" id="cartDrawerTitle">Your Shopping Cart</h2>
           <span class="cart-header-count" id="cartHeaderCount">(0 items)</span>
         </div>
-        <button type="button" class="sheet-close-btn" id="closeCartBtn" aria-label="Close Cart">✕</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="btn-clear-cart" id="clearCartBtn" title="Clear all items from cart" style="display:none;">Clear All</button>
+          <button type="button" class="sheet-close-btn" id="closeCartBtn" aria-label="Close Cart">✕</button>
+        </div>
       </div>
 
       <div class="cart-adama-banner">
@@ -635,6 +638,118 @@
     </div>
   </div>
 
+  <!-- ================= 3B. CHAPA HOSTED PAYMENT MODAL (AUTHENTIC PIN POPUP) ================= -->
+  <div class="modal-backdrop chapa-backdrop" id="chapaModalBackdrop" aria-hidden="true" style="z-index: 100;">
+    <div class="chapa-hosted-modal" role="dialog" aria-labelledby="chapaModalTitle">
+      <div class="chapa-modal-header">
+        <div class="chapa-brand-row">
+          <div class="chapa-logo-pill">
+            <span class="chapa-logo-bolt">⚡</span>
+            <span class="chapa-logo-text">chapa</span>
+          </div>
+          <span class="chapa-ssl-badge">🔒 256-Bit SSL Encrypted</span>
+        </div>
+        <button type="button" class="sheet-close-btn chapa-close-btn" id="closeChapaModalBtn" aria-label="Cancel Chapa Payment">✕</button>
+      </div>
+
+      <div class="chapa-modal-body">
+        <div class="chapa-order-overview">
+          <span class="chapa-merchant-label">PAYING TO: <strong>HUSEN ONLINE MARKETING</strong></span>
+          <div class="chapa-amount-display">
+            <span class="chapa-amount-currency">ETB</span>
+            <strong class="chapa-amount-val" id="chapaModalAmount">0.00</strong>
+          </div>
+          <div class="chapa-tx-row">
+            <span>Order Reference:</span>
+            <code id="chapaModalTxRef">HOM-tx-000000</code>
+          </div>
+        </div>
+
+        <div class="chapa-method-selector">
+          <button type="button" class="chapa-method-tab active" data-method="telebirr" id="chapaTabTelebirr">
+            <span class="method-icon">🟢</span>
+            <span>Telebirr</span>
+          </button>
+          <button type="button" class="chapa-method-tab" data-method="cbe" id="chapaTabCbe">
+            <span class="method-icon">🏦</span>
+            <span>CBE Birr</span>
+          </button>
+          <button type="button" class="chapa-method-tab" data-method="card" id="chapaTabCard">
+            <span class="method-icon">💳</span>
+            <span>Bank Card</span>
+          </button>
+        </div>
+
+        <!-- Telebirr Form -->
+        <div class="chapa-method-form" id="chapaFormTelebirr">
+          <div class="form-group">
+            <label class="form-label" for="chapaTelebirrPhone">Telebirr Registered Mobile Number</label>
+            <div class="phone-input-wrap">
+              <span class="phone-prefix">+251</span>
+              <input type="tel" id="chapaTelebirrPhone" class="form-input" placeholder="912 345 678" maxlength="9">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="chapaTelebirrPin">Telebirr 6-Digit Payment PIN / Password</label>
+            <div class="pin-input-wrap">
+              <input type="password" id="chapaTelebirrPin" class="form-input" placeholder="Enter 6-digit PIN" maxlength="6" autocomplete="off">
+              <button type="button" class="btn-toggle-pin" id="toggleTelebirrPin" aria-label="Toggle PIN Visibility">👁️</button>
+            </div>
+            <small class="form-hint">Enter your Telebirr PIN to authorize payment securely.</small>
+          </div>
+        </div>
+
+        <!-- CBE Birr Form -->
+        <div class="chapa-method-form" id="chapaFormCbe" style="display:none;">
+          <div class="form-group">
+            <label class="form-label" for="chapaCbeAccount">CBE Account or Mobile Number</label>
+            <input type="text" id="chapaCbeAccount" class="form-input" placeholder="1000... or 09...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="chapaCbePin">CBE Mobile Banking PIN / Password</label>
+            <div class="pin-input-wrap">
+              <input type="password" id="chapaCbePin" class="form-input" placeholder="Enter CBE Mobile PIN" maxlength="6" autocomplete="off">
+              <button type="button" class="btn-toggle-pin" id="toggleCbePin" aria-label="Toggle PIN Visibility">👁️</button>
+            </div>
+            <small class="form-hint">Commercial Bank of Ethiopia direct gateway debit.</small>
+          </div>
+        </div>
+
+        <!-- Card Form -->
+        <div class="chapa-method-form" id="chapaFormCard" style="display:none;">
+          <div class="form-group">
+            <label class="form-label" for="chapaCardNum">Card Number</label>
+            <input type="text" id="chapaCardNum" class="form-input" placeholder="4111 2222 3333 4444" maxlength="19">
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="chapaCardExpiry">Expiry Date</label>
+              <input type="text" id="chapaCardExpiry" class="form-input" placeholder="MM/YY" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="chapaCardCvv">CVV</label>
+              <input type="password" id="chapaCardCvv" class="form-input" placeholder="123" maxlength="4">
+            </div>
+          </div>
+        </div>
+
+        <div class="chapa-status-box" id="chapaProcessingStatus" style="display:none;">
+          <div class="spinner-chapa"></div>
+          <span id="chapaStatusMsg">Connecting to secure gateway...</span>
+        </div>
+
+        <button type="button" class="btn-chapa-submit" id="btnChapaAuthorizePay">
+          <span>Authorize & Pay</span>
+          <strong id="chapaBtnPayAmount">0 ETB</strong>
+        </button>
+
+        <p class="chapa-security-footer">
+          <span>🛡️ Verified by Chapa Technologies Ethiopia • PCI-DSS Level 1</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= 4. ORDER CONFIRMATION / SUCCESS SCREEN ================= -->
   <div class="success-backdrop" id="successBackdrop" aria-hidden="true">
     <div class="success-card" role="dialog" aria-labelledby="successTitle">
@@ -708,7 +823,8 @@
           <h2 class="admin-title" id="adminTitle">Husen Store Admin Portal</h2>
           <p class="admin-subtitle">Live store inventory, multi-photo product CRUD, settings & orders</p>
         </div>
-        <div class="admin-header-actions" style="display:flex; align-items:center; gap:8px;">
+        <div class="admin-header-actions" style="display:flex; align-items:center; gap:6px;">
+          <button type="button" class="btn-admin-sms" id="btnTestSms" style="display:none;" title="Send Test SMS to 0907173634">📱 Test SMS</button>
           <button type="button" class="btn-admin-refresh" id="adminRefreshBtn" style="display:none;" title="Refresh Data from Cloud">🔄 Refresh Data</button>
           <button type="button" class="btn-admin-logout" id="adminLogoutBtn" style="display:none;">Log Out</button>
           <button type="button" class="sheet-close-btn" id="closeAdminBtn" aria-label="Close Admin">✕</button>
@@ -760,6 +876,16 @@
             <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
               <span>+ Add New Product</span>
             </button>
+          </div>
+
+          <!-- Admin Product Quick Search & Stock Filters -->
+          <div class="admin-product-filter-bar">
+            <input type="search" id="adminProdSearchInput" class="form-input admin-search-input" placeholder="🔍 Search catalog products...">
+            <div class="admin-filter-chips-row">
+              <button type="button" class="admin-filter-chip active" data-stock-filter="all">All</button>
+              <button type="button" class="admin-filter-chip" data-stock-filter="in">✓ In Stock</button>
+              <button type="button" class="admin-filter-chip" data-stock-filter="out">✕ Out of Stock</button>
+            </div>
           </div>
 
           <div class="admin-product-list" id="adminProductList">

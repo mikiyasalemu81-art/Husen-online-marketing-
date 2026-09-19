@@ -491,6 +491,26 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // --- API ROUTE: Test SMS Dispatch to 0907173634 ---
+  if (pathname === '/api/admin/test-sms' && req.method === 'POST') {
+    const testOrder = {
+      id: 'HOM-TEST-' + Math.floor(1000 + Math.random() * 9000),
+      itemsSummary: 'Husen Online Store Test Alert',
+      total: 1450,
+      customer: 'Husen Owner',
+      phone: OWNER_PHONE,
+      location: 'Adama Center',
+      method: 'Test SMS'
+    };
+    const smsResult = await sendOrderSms(testOrder);
+    return res.status(200).json({
+      success: smsResult.success,
+      recipient: OWNER_PHONE,
+      statusCode: smsResult.statusCode,
+      response: smsResult.response
+    });
+  }
+
   // --- API ROUTE: Cash on Delivery ---
   if (req.method === 'POST' && pathname === '/api/orders/cod') {
     try {

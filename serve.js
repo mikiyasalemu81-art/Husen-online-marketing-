@@ -615,6 +615,28 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // --- API ROUTE: Test SMS Dispatch to 0907173634 ---
+  if (req.method === 'POST' && pathname === '/api/admin/test-sms') {
+    const testOrder = {
+      id: 'HOM-TEST-' + Math.floor(1000 + Math.random() * 9000),
+      itemsSummary: 'Husen Online Store Test Alert',
+      total: 1450,
+      customer: 'Husen Owner',
+      phone: OWNER_PHONE,
+      location: 'Adama Center',
+      method: 'Test SMS'
+    };
+    const smsResult = await sendOrderSms(testOrder);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      success: smsResult.success,
+      recipient: OWNER_PHONE,
+      statusCode: smsResult.statusCode,
+      response: smsResult.response
+    }));
+    return;
+  }
+
   // --- API ROUTE: Cash on Delivery Order Placement ---
   if (req.method === 'POST' && pathname === '/api/orders/cod') {
     try {

@@ -44,6 +44,8 @@ console.log('[CONFIG] CLOUD_NAME (Cloudinary):', CLOUD_NAME);
 console.log('[CONFIG] UPLOAD_PRESET (Cloudinary):', UPLOAD_PRESET);
 console.log('[CONFIG] OWNER_CHAT_PHONE (Telegram / Direct Call):', OWNER_CHAT_PHONE);
 
+const { getStoreData, saveStoreData } = require('./api/cloudStorage.js');
+
 // ==========================================================================
 // 2. PERSISTENT STORAGE: PRODUCTS & SETTINGS
 // ==========================================================================
@@ -439,8 +441,10 @@ const server = http.createServer(async (req, res) => {
   // --- API ROUTE: Products CRUD ---
   if (pathname === '/api/products') {
     if (req.method === 'GET') {
+      const store = await getStoreData();
+      productsCache = store.products;
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, products: productsCache }));
+      res.end(JSON.stringify({ success: true, products: store.products, updatedAt: store.updatedAt }));
       return;
     }
 
@@ -479,11 +483,22 @@ const server = http.createServer(async (req, res) => {
           badge: newProd.badge || { en: 'New', am: 'አዲስ', om: 'Haaraa' }
         };
 
-        productsCache.unshift(product);
+        const store = await getStoreData(false);
+        const existingIdx = store.products.findIndex(p => p.id === id);
+        let updatedList;
+        if (existingIdx !== -1) {
+          updatedList = [...store.products];
+          updatedList[existingIdx] = product;
+        } else {
+          updatedList = [product, ...store.products];
+        }
+
+        productsCache = updatedList;
         saveProducts(productsCache);
+        const saved = await saveStoreData({ products: updatedList });
 
         res.writeHead(201, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, product }));
+        res.end(JSON.stringify({ success: true, product, products: saved.products, updatedAt: saved.updatedAt }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
@@ -499,14 +514,15 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'PUT') {
       try {
         const updateData = await readRequestBody(req);
-        const idx = productsCache.findIndex(p => p.id === prodId);
+        const store = await getStoreData(false);
+        const idx = store.products.findIndex(p => p.id === prodId);
         if (idx === -1) {
           res.writeHead(404, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Product not found' }));
           return;
         }
 
-        const existing = productsCache[idx];
+        const existing = store.products[idx];
         const updated = {
           ...existing,
           ...updateData,
@@ -527,11 +543,15 @@ const server = http.createServer(async (req, res) => {
           updated.fullDesc = { ...existing.fullDesc, en: updateData.fullDesc, am: updateData.fullDesc, om: updateData.fullDesc };
         }
 
-        productsCache[idx] = updated;
+        const updatedList = [...store.products];
+        updatedList[idx] = updated;
+
+        productsCache = updatedList;
         saveProducts(productsCache);
+        const saved = await saveStoreData({ products: updatedList });
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, product: updated }));
+        res.end(JSON.stringify({ success: true, product: updated, products: saved.products, updatedAt: saved.updatedAt }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
@@ -540,18 +560,26 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'DELETE') {
-      const idx = productsCache.findIndex(p => p.id === prodId);
-      if (idx === -1) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: 'Product not found' }));
-        return;
+      try {
+        const store = await getStoreData(false);
+        const idx = store.products.findIndex(p => p.id === prodId);
+        if (idx === -1) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'Product not found' }));
+          return;
+        }
+
+        const updatedList = store.products.filter(p => p.id !== prodId);
+        productsCache = updatedList;
+        saveProducts(productsCache);
+        const saved = await saveStoreData({ products: updatedList });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Product deleted', products: saved.products, updatedAt: saved.updatedAt }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
       }
-
-      productsCache.splice(idx, 1);
-      saveProducts(productsCache);
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, message: 'Product deleted' }));
       return;
     }
   }
@@ -559,25 +587,30 @@ const server = http.createServer(async (req, res) => {
   // --- API ROUTE: Payment Settings (CBE & Telebirr Accounts) ---
   if (pathname === '/api/settings') {
     if (req.method === 'GET') {
+      const store = await getStoreData();
+      settingsCache = store.settings;
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, settings: settingsCache }));
+      res.end(JSON.stringify({ success: true, settings: store.settings }));
       return;
     }
 
     if (req.method === 'POST') {
       try {
         const newSettings = await readRequestBody(req);
-        settingsCache = {
-          ...settingsCache,
-          cbeAccount: newSettings.cbeAccount || settingsCache.cbeAccount,
-          cbeAccountName: newSettings.cbeAccountName || settingsCache.cbeAccountName,
-          telebirrPhone: newSettings.telebirrPhone || settingsCache.telebirrPhone,
-          telebirrAccountName: newSettings.telebirrAccountName || settingsCache.telebirrAccountName
+        const store = await getStoreData(false);
+        const mergedSettings = {
+          ...store.settings,
+          cbeAccount: newSettings.cbeAccount || store.settings.cbeAccount,
+          cbeAccountName: newSettings.cbeAccountName || store.settings.cbeAccountName,
+          telebirrPhone: newSettings.telebirrPhone || store.settings.telebirrPhone,
+          telebirrAccountName: newSettings.telebirrAccountName || store.settings.telebirrAccountName
         };
+        settingsCache = mergedSettings;
         saveSettings(settingsCache);
+        const saved = await saveStoreData({ settings: mergedSettings });
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, settings: settingsCache }));
+        res.end(JSON.stringify({ success: true, settings: saved.settings }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));

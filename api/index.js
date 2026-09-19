@@ -9,6 +9,8 @@ const CLOUD_NAME = process.env.CLOUD_NAME || 'trkihe9m';
 const UPLOAD_PRESET = process.env.UPLOAD_PRESET || 'Husenonlinemarketing';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'husenonlinemarketing1234';
 
+const { getStoreData, saveStoreData } = require('./cloudStorage.js');
+
 // Default initial products
 const DEFAULT_PRODUCTS = [
   {
@@ -406,12 +408,16 @@ module.exports = async function handler(req, res) {
   // --- API ROUTE: Products CRUD ---
   if (pathname === '/api/products') {
     if (req.method === 'GET') {
-      return res.status(200).json({ success: true, products: memoryProducts });
+      const store = await getStoreData();
+      return res.status(200).json({ success: true, products: store.products, updatedAt: store.updatedAt });
     }
 
     if (req.method === 'POST') {
       try {
         const newProd = await getRequestBody(req);
+        if (!newProd.name || !newProd.price) {
+          return res.status(400).json({ success: false, error: 'Product name and price are required' });
+        }
         const id = newProd.id || ('prod-' + Date.now());
         const product = {
           id: id,
@@ -421,12 +427,23 @@ module.exports = async function handler(req, res) {
           inStock: newProd.inStock !== false,
           images: Array.isArray(newProd.images) && newProd.images.length > 0 ? newProd.images : ['public/images/storage1.jpg'],
           name: typeof newProd.name === 'object' ? newProd.name : { en: newProd.name, am: newProd.name, om: newProd.name },
-          spec: typeof newProd.spec === 'object' ? newProd.spec : { en: newProd.spec || '', am: newProd.spec || '', om: newProd.spec || '' },
-          fullDesc: typeof newProd.fullDesc === 'object' ? newProd.fullDesc : { en: newProd.fullDesc || '', am: newProd.fullDesc || '', om: newProd.fullDesc || '' },
+          spec: typeof newProd.spec === 'object' ? newProd.spec : { en: newProd.spec || newProd.description || '', am: newProd.spec || newProd.description || '', om: newProd.spec || newProd.description || '' },
+          fullDesc: typeof newProd.fullDesc === 'object' ? newProd.fullDesc : { en: newProd.fullDesc || newProd.description || '', am: newProd.fullDesc || newProd.description || '', om: newProd.fullDesc || newProd.description || '' },
           badge: newProd.badge || { en: 'New', am: 'አዲስ', om: 'Haaraa' }
         };
-        memoryProducts.unshift(product);
-        return res.status(201).json({ success: true, product });
+
+        const store = await getStoreData(false);
+        const existingIdx = store.products.findIndex(p => p.id === id);
+        let updatedList;
+        if (existingIdx !== -1) {
+          updatedList = [...store.products];
+          updatedList[existingIdx] = product;
+        } else {
+          updatedList = [product, ...store.products];
+        }
+
+        const saved = await saveStoreData({ products: updatedList });
+        return res.status(201).json({ success: true, product, products: saved.products, updatedAt: saved.updatedAt });
       } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
       }
@@ -437,34 +454,82 @@ module.exports = async function handler(req, res) {
     const prodId = pathname.replace('/api/products/', '');
 
     if (req.method === 'PUT') {
-      const updateData = await getRequestBody(req);
-      const idx = memoryProducts.findIndex(p => p.id === prodId);
-      if (idx === -1) {
-        return res.status(404).json({ success: false, error: 'Product not found' });
+      try {
+        const updateData = await getRequestBody(req);
+        const store = await getStoreData(false);
+        const idx = store.products.findIndex(p => p.id === prodId);
+        if (idx === -1) {
+          return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+
+        const existing = store.products[idx];
+        const updated = {
+          ...existing,
+          ...updateData,
+          id: prodId,
+          price: updateData.price !== undefined ? Number(updateData.price) : existing.price,
+          inStock: updateData.inStock !== undefined ? Boolean(updateData.inStock) : existing.inStock,
+          images: Array.isArray(updateData.images) && updateData.images.length > 0 ? updateData.images : existing.images
+        };
+
+        if (typeof updateData.name === 'string') {
+          updated.name = { ...existing.name, en: updateData.name, am: updateData.name, om: updateData.name };
+        }
+        if (typeof updateData.spec === 'string') {
+          updated.spec = { ...existing.spec, en: updateData.spec, am: updateData.spec, om: updateData.spec };
+        }
+        if (typeof updateData.fullDesc === 'string') {
+          updated.fullDesc = { ...existing.fullDesc, en: updateData.fullDesc, am: updateData.fullDesc, om: updateData.fullDesc };
+        }
+
+        const updatedList = [...store.products];
+        updatedList[idx] = updated;
+
+        const saved = await saveStoreData({ products: updatedList });
+        return res.status(200).json({ success: true, product: updated, products: saved.products, updatedAt: saved.updatedAt });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
       }
-      memoryProducts[idx] = { ...memoryProducts[idx], ...updateData, id: prodId };
-      return res.status(200).json({ success: true, product: memoryProducts[idx] });
     }
 
     if (req.method === 'DELETE') {
-      const idx = memoryProducts.findIndex(p => p.id === prodId);
-      if (idx === -1) {
-        return res.status(404).json({ success: false, error: 'Product not found' });
+      try {
+        const store = await getStoreData(false);
+        const idx = store.products.findIndex(p => p.id === prodId);
+        if (idx === -1) {
+          return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+        const updatedList = store.products.filter(p => p.id !== prodId);
+        const saved = await saveStoreData({ products: updatedList });
+        return res.status(200).json({ success: true, message: 'Product deleted', products: saved.products, updatedAt: saved.updatedAt });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
       }
-      memoryProducts.splice(idx, 1);
-      return res.status(200).json({ success: true, message: 'Product deleted' });
     }
   }
 
   // --- API ROUTE: Settings ---
   if (pathname === '/api/settings') {
     if (req.method === 'GET') {
-      return res.status(200).json({ success: true, settings: memorySettings });
+      const store = await getStoreData();
+      return res.status(200).json({ success: true, settings: store.settings });
     }
     if (req.method === 'POST') {
-      const newSettings = await getRequestBody(req);
-      memorySettings = { ...memorySettings, ...newSettings };
-      return res.status(200).json({ success: true, settings: memorySettings });
+      try {
+        const newSettings = await getRequestBody(req);
+        const store = await getStoreData(false);
+        const mergedSettings = {
+          ...store.settings,
+          cbeAccount: newSettings.cbeAccount || store.settings.cbeAccount,
+          cbeAccountName: newSettings.cbeAccountName || store.settings.cbeAccountName,
+          telebirrPhone: newSettings.telebirrPhone || store.settings.telebirrPhone,
+          telebirrAccountName: newSettings.telebirrAccountName || store.settings.telebirrAccountName
+        };
+        const saved = await saveStoreData({ settings: mergedSettings });
+        return res.status(200).json({ success: true, settings: saved.settings });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+      }
     }
   }
 

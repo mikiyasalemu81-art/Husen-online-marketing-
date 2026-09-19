@@ -447,7 +447,12 @@
     
     // Admin filtering state
     adminStockFilter: 'all',
-    adminProdSearch: ''
+    adminProdSearch: '',
+    
+    // Cloud sync & saving flags
+    isSavingProduct: false,
+    isUploadingPhotos: false,
+    lastUpdatedAt: 0
   };
 
   const crossfadeTimers = {};
@@ -724,16 +729,26 @@
   // ==========================================================================
   // 5. BACKEND PERSISTENCE SYNC (/api/products & /api/settings)
   // ==========================================================================
-  async function syncProductsFromBackend() {
+  async function syncProductsFromBackend(force = false) {
+    if (state.isSavingProduct && !force) return;
     try {
       const res = await fetch('/api/products');
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-          state.products = data.products;
-          localStorage.setItem('hom_products', JSON.stringify(state.products));
-          renderProducts();
-          if (state.adminUnlocked) renderAdminProducts();
+        if (data.success && Array.isArray(data.products)) {
+          const serverUpdated = data.updatedAt || 0;
+          const currentJson = JSON.stringify(state.products);
+          const newJson = JSON.stringify(data.products);
+          
+          if (force || newJson !== currentJson || (serverUpdated && serverUpdated > (state.lastUpdatedAt || 0))) {
+            state.products = data.products;
+            state.lastUpdatedAt = serverUpdated || Date.now();
+            try {
+              localStorage.setItem('hom_products', JSON.stringify(state.products));
+            } catch (e) {}
+            renderProducts();
+            if (state.adminUnlocked) renderAdminProducts();
+          }
         }
       }
     } catch (e) {
@@ -2160,41 +2175,52 @@
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
 
-        showToast(`Optimizing ${files.length} photo(s)...`, '⏳');
+        state.isUploadingPhotos = true;
+        if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
+        if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Uploading photo to cloud...';
+        showToast(`Optimizing & uploading ${files.length} photo(s)...`, '⏳');
 
-        for (const file of files) {
-          // 1. Instantly compress file so memory footprint is tiny (< 50KB)
-          const compressed = await compressImageFile(file);
-          let finalPhotoUrl = compressed;
+        try {
+          for (const file of files) {
+            // 1. Instantly compress file so memory footprint is tiny (< 50KB)
+            const compressed = await compressImageFile(file);
+            let finalPhotoUrl = compressed;
 
-          // 2. Upload to Cloudinary in parallel
-          try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
+            // 2. Upload to Cloudinary in parallel
+            try {
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
 
-            const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`, {
-              method: 'POST',
-              body: formData
-            });
+              const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`, {
+                method: 'POST',
+                body: formData
+              });
 
-            if (cloudRes.ok) {
-              const cloudData = await cloudRes.json();
-              if (cloudData.secure_url) {
-                finalPhotoUrl = cloudData.secure_url;
+              if (cloudRes.ok) {
+                const cloudData = await cloudRes.json();
+                if (cloudData.secure_url) {
+                  finalPhotoUrl = cloudData.secure_url;
+                }
               }
+            } catch (cloudErr) {
+              console.warn('[CLOUDINARY NOTICE] Network notice:', cloudErr.message);
             }
-          } catch (cloudErr) {
-            console.warn('[CLOUDINARY NOTICE] Network notice:', cloudErr.message);
-          }
 
-          if (finalPhotoUrl) {
-            state.editorPhotos.push(finalPhotoUrl);
-            renderEditorThumbnails();
+            if (finalPhotoUrl) {
+              state.editorPhotos.push(finalPhotoUrl);
+              renderEditorThumbnails();
+            }
+          }
+        } finally {
+          state.isUploadingPhotos = false;
+          if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
+          if (dom.saveProductBtnText) {
+            dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
           }
         }
         dom.editorFileInput.value = '';
-        showToast('Photo(s) ready!', '✓');
+        showToast('Photo(s) ready for publishing!', '✓');
       });
     }
 
@@ -2344,11 +2370,19 @@
           renderAdminProducts();
           showToast(`${getLocString(prod.name, state.lang)} is now ${chk.checked ? 'In Stock' : 'Out of Stock'}`);
           try {
-            await fetch(`/api/products/${id}`, {
+            const res = await fetch(`/api/products/${id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ inStock: chk.checked })
             });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.products)) {
+              state.products = data.products;
+              state.lastUpdatedAt = data.updatedAt || Date.now();
+              try {
+                localStorage.setItem('hom_products', JSON.stringify(state.products));
+              } catch (e) {}
+            }
           } catch (e) {}
         }
       });
@@ -2370,14 +2404,27 @@
         const prod = state.products.find(p => p.id === id);
         if (!prod) return;
         if (confirm(`Are you sure you want to delete "${getLocString(prod.name, state.lang)}"?`)) {
-          state.products = state.products.filter(p => p.id !== id);
-          localStorage.setItem('hom_products', JSON.stringify(state.products));
-          renderProducts();
-          renderAdminProducts();
-          showToast('Product deleted from inventory');
+          showToast('Deleting product from cloud...', '⏳');
           try {
-            await fetch(`/api/products/${id}`, { method: 'DELETE' });
-          } catch (e) {}
+            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.products)) {
+              state.products = data.products;
+              state.lastUpdatedAt = data.updatedAt || Date.now();
+            } else {
+              state.products = state.products.filter(p => p.id !== id);
+            }
+            localStorage.setItem('hom_products', JSON.stringify(state.products));
+            renderProducts();
+            renderAdminProducts();
+            showToast('Product permanently deleted from all devices! ✓');
+          } catch (e) {
+            state.products = state.products.filter(p => p.id !== id);
+            localStorage.setItem('hom_products', JSON.stringify(state.products));
+            renderProducts();
+            renderAdminProducts();
+            showToast('Product removed locally', 'ℹ️');
+          }
         }
       });
     });
@@ -2447,6 +2494,11 @@
   async function handleSaveProduct(e) {
     e.preventDefault();
 
+    if (state.isUploadingPhotos) {
+      showToast('Please wait for photos to finish uploading...', '⏳');
+      return;
+    }
+
     const id = dom.editProductId ? dom.editProductId.value : '';
     const name = (dom.editorProdName ? dom.editorProdName.value : '').trim();
     const category = dom.editorProdCategory ? dom.editorProdCategory.value : 'home';
@@ -2459,6 +2511,11 @@
       showToast('Please provide a valid product name and price', '⚠️');
       return;
     }
+
+    state.isSavingProduct = true;
+    if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
+    if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = id ? 'Saving Changes...' : 'Publishing to Cloud...';
+    showToast(id ? 'Saving product changes...' : 'Publishing to cloud...', '⏳');
 
     let productToSave = null;
 
@@ -2475,7 +2532,6 @@
         existing.fullDesc = { ...existing.fullDesc, en: desc, am: desc, om: desc };
         productToSave = existing;
       }
-      showToast('Product updated successfully! ✓');
     } else {
       // Create new
       const newProd = {
@@ -2491,40 +2547,58 @@
       };
       state.products.unshift(newProd);
       productToSave = newProd;
-      showToast('New product published instantly! ✓');
     }
 
-    // Instantly close editor and update views without delay
-    closeProductEditor();
+    // Instantly update views optimistically
     renderProducts();
     renderAdminProducts();
 
-    // Safely cache in localStorage
     try {
       localStorage.setItem('hom_products', JSON.stringify(state.products));
     } catch (storageErr) {
       console.warn('[STORAGE NOTICE] LocalStorage cache limit:', storageErr);
     }
 
-    // Background push to shared cloud database
-    if (productToSave) {
-      try {
-        if (id) {
-          fetch(`/api/products/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productToSave)
-          }).catch(() => {});
-        } else {
-          fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productToSave)
-          }).catch(() => {});
-        }
-      } catch (err) {
-        console.warn('[CLOUD PUSH NOTICE]', err.message);
+    // Push to shared cloud database
+    try {
+      let res;
+      if (id) {
+        res = await fetch(`/api/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productToSave)
+        });
+      } else {
+        res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productToSave)
+        });
       }
+
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.products)) {
+          state.products = data.products;
+          state.lastUpdatedAt = data.updatedAt || Date.now();
+          try {
+            localStorage.setItem('hom_products', JSON.stringify(state.products));
+          } catch (e) {}
+          renderProducts();
+          renderAdminProducts();
+        }
+        showToast(id ? 'Product updated successfully across all devices! ✓' : 'Product published permanently across all devices! ✓');
+      } else {
+        showToast(id ? 'Product updated locally ✓' : 'Product published locally ✓');
+      }
+    } catch (err) {
+      console.warn('[CLOUD PUSH NOTICE]', err.message);
+      showToast(id ? 'Product updated locally ✓' : 'Product published locally ✓');
+    } finally {
+      state.isSavingProduct = false;
+      if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
+      if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = id ? 'Save Changes' : 'Publish Product';
+      closeProductEditor();
     }
   }
 

@@ -1731,27 +1731,19 @@
 
         const data = await res.json();
 
-        if (data.status === 'success') {
-          // If Chapa returns an official live checkout URL (https://checkout.chapa.co/...)
-          if (data.checkout_url && data.checkout_url.startsWith('https://checkout.chapa.co')) {
-            showToast('Opening Chapa Payment Screen...', '🔒');
-            if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openLink === 'function') {
-              window.Telegram.WebApp.openLink(data.checkout_url);
-            } else {
-              window.open(data.checkout_url, '_blank');
-            }
+        if (data.status === 'success' && data.checkout_url) {
+          showToast('Connecting directly to official Chapa Gateway...', '🔒');
+          if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openLink === 'function') {
+            window.Telegram.WebApp.openLink(data.checkout_url);
           } else {
-            // Open the Dedicated Authentic Chapa Hosted PIN Modal directly!
-            openChapaHostedModal(subtotal, data.tx_ref || txRef);
+            window.location.href = data.checkout_url;
           }
         } else {
-          // Open the Chapa modal as fallback so customer can authorize
-          openChapaHostedModal(subtotal, txRef);
+          showToast(data.message || 'Chapa payment gateway initialization failed. Please try again or select Cash on Delivery.', '⚠️');
         }
       } catch (err) {
-        console.error('[CHAPA ERROR]', err);
-        // Seamless fallback to Chapa PIN modal
-        openChapaHostedModal(subtotal, 'HOM-tx-' + Date.now());
+        console.error('[CHAPA INITIALIZE ERROR]', err);
+        showToast('Network error connecting to Chapa payment server. Please try again.', '⚠️');
       } finally {
         dom.btnFinalizePayment.disabled = false;
         dom.btnFinalizePayment.classList.remove('loading');
@@ -1779,7 +1771,7 @@
   }
 
   // ==========================================================================
-  // 13B. CHAPA AUTHENTIC HOSTED MODAL & SECURE PIN PROCESSING
+  // 13B. CHAPA AUTHENTIC HOSTED MODAL & SECURE REDIRECT
   // ==========================================================================
   function openChapaHostedModal(amount, txRef) {
     state.activeChapaTxRef = txRef;
@@ -1852,71 +1844,52 @@
       });
     }
 
-    // Authorize & Pay Button
+    // Authorize & Pay Button -> Connects directly to Chapa Hosted Checkout
     if (dom.btnChapaAuthorizePay) {
       dom.btnChapaAuthorizePay.addEventListener('click', async () => {
-        let pin = '';
-        if (state.chapaSelectedMethod === 'telebirr') {
-          pin = dom.chapaTelebirrPin ? dom.chapaTelebirrPin.value.trim() : '';
-          if (!pin || pin.length < 4) {
-            showToast('Please enter your 6-digit Telebirr PIN to authenticate', '⚠️');
-            return;
-          }
-        } else if (state.chapaSelectedMethod === 'cbe') {
-          pin = dom.chapaCbePin ? dom.chapaCbePin.value.trim() : '';
-          if (!pin || pin.length < 4) {
-            showToast('Please enter your CBE Mobile PIN to authenticate', '⚠️');
-            return;
-          }
-        }
-
         dom.btnChapaAuthorizePay.disabled = true;
         if (dom.chapaProcessingStatus) {
           dom.chapaProcessingStatus.style.display = 'flex';
-          if (dom.chapaStatusMsg) dom.chapaStatusMsg.textContent = 'Authenticating with ' + (state.chapaSelectedMethod === 'telebirr' ? 'Telebirr' : 'CBE') + ' gateway...';
+          if (dom.chapaStatusMsg) dom.chapaStatusMsg.textContent = 'Connecting to official Chapa gateway...';
         }
 
-        setTimeout(async () => {
-          if (dom.chapaStatusMsg) dom.chapaStatusMsg.textContent = 'PIN Verified! Confirming payment with Chapa...';
-
-          try {
-            const verifyRes = await fetch(`/api/chapa/verify/${state.activeChapaTxRef || 'HOM-tx-' + Date.now()}`);
-            const verifyData = await verifyRes.json();
-            
-            closeChapaHostedModal();
-            if (verifyData && verifyData.order) {
-              showOrderSuccess(verifyData.order);
-            } else {
-              const fallbackOrder = {
-                id: state.activeChapaTxRef || ('HOM-tx-' + Date.now()),
-                customer: state.customerData.name || 'Valued Customer',
-                phone: `+251${state.customerData.phone}`,
-                location: state.customerData.landmark || 'Adama',
-                method: 'Chapa (' + (state.chapaSelectedMethod === 'telebirr' ? 'Telebirr' : 'CBE') + ')',
-                total: state.activeChapaAmount,
-                status: 'Paid - Chapa'
-              };
-              showOrderSuccess(fallbackOrder);
-            }
-            showToast('Payment Approved! Order confirmed & SMS dispatched. ✓');
-          } catch (err) {
-            console.error('[CHAPA VERIFY ERROR]', err);
-            closeChapaHostedModal();
-            const fallbackOrder = {
-              id: state.activeChapaTxRef || ('HOM-tx-' + Date.now()),
-              customer: state.customerData.name || 'Valued Customer',
-              phone: `+251${state.customerData.phone}`,
+        try {
+          const res = await fetch('/api/chapa/initialize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: state.activeChapaAmount || 100,
+              currency: "ETB",
+              first_name: state.customerData.name || 'Valued Customer',
+              phone_number: state.customerData.phone || '',
               location: state.customerData.landmark || 'Adama',
-              method: 'Chapa Payment',
-              total: state.activeChapaAmount,
-              status: 'Paid - Chapa'
-            };
-            showOrderSuccess(fallbackOrder);
-          } finally {
-            dom.btnChapaAuthorizePay.disabled = false;
-            if (dom.chapaProcessingStatus) dom.chapaProcessingStatus.style.display = 'none';
+              address: state.customerData.address || '',
+              tx_ref: state.activeChapaTxRef || ('HOM-tx-' + Date.now()),
+              itemsSummary: 'Husen Online Order'
+            })
+          });
+
+          const data = await res.json();
+          closeChapaHostedModal();
+
+          if (data.status === 'success' && data.checkout_url) {
+            showToast('Opening Chapa Payment Screen...', '🔒');
+            if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.openLink === 'function') {
+              window.Telegram.WebApp.openLink(data.checkout_url);
+            } else {
+              window.location.href = data.checkout_url;
+            }
+          } else {
+            showToast(data.message || 'Could not connect to Chapa payment gateway. Please try again.', '⚠️');
           }
-        }, 1200);
+        } catch (err) {
+          console.error('[CHAPA VERIFY ERROR]', err);
+          closeChapaHostedModal();
+          showToast('Network error connecting to Chapa. Please try again.', '⚠️');
+        } finally {
+          dom.btnChapaAuthorizePay.disabled = false;
+          if (dom.chapaProcessingStatus) dom.chapaProcessingStatus.style.display = 'none';
+        }
       });
     }
   }

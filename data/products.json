@@ -1,9 +1,70 @@
 [
   {
+    "id": "prod-1789894252344",
+    "category": "kitchen",
+    "secondaryCategory": "",
+    "price": 5000,
+    "inStock": true,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1789894223/1000026847.jpg"
+    ],
+    "name": {
+      "en": "For fun",
+      "am": "For fun",
+      "om": "For fun"
+    },
+    "spec": {
+      "en": "How are you",
+      "am": "How are you",
+      "om": "How are you"
+    },
+    "fullDesc": {
+      "en": "How are you",
+      "am": "How are you",
+      "om": "How are you"
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1789852358338",
+    "category": "health",
+    "secondaryCategory": "",
+    "price": 2000,
+    "inStock": true,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1789761980/1000001417.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1789761982/1000001416.jpg"
+    ],
+    "name": {
+      "en": "Cacs",
+      "am": "Cacs",
+      "om": "Cacs"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
     "id": "prod-1",
     "category": "kitchen",
     "price": 1450,
-    "inStock": true,
+    "inStock": false,
     "images": [
       "public/images/storage1.jpg"
     ],
@@ -18,7 +79,7 @@
       "en": "Nesting, clip-lock lids, airtight premium glass containers."
     },
     "fullDesc": {
-      "am": "4 የተለያየ መጠን ያላቸው የብርጭቆ ዕቃዎች። አየር የማያስገባ ክሊፕ ክዳን ያላቸው ሲሆን በማቀዝቀዣ፣ ማይክሮዌቭ እና በእቃ ማጠቢያ ውስጥ በደህና መጠቀም ይቻላል።",
+      "am": "4 የተለያየ መጠን ያላቸው የብርጭቆ ዕቃዎች። ��የር የማያስገባ ክሊፕ ክዳን ያላቸው ሲሆን በማቀዝቀዣ፣ ማይክሮዌቭ እና በእቃ ማጠቢያ ውስጥ በደህና መጠቀም ይቻላል።",
       "om": "Qodaa fuullee gosa 4 kan wal keessa galuu danda'an. Cufaa jabaa qilleensa ittisu kan qaban, firiijii fi maaykirooweevii keessatti fayyadamuuf kan ta'an.",
       "en": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe."
     },
@@ -31,25 +92,25 @@
   {
     "id": "prod-2",
     "category": "health",
-    "price": 1200,
+    "price": 2000,
     "inStock": true,
     "images": [
       "public/images/vest1.jpg",
       "public/images/vest2.jpg"
     ],
     "name": {
-      "am": "የጀርባ አቋም ማስተካከያ ቬስት",
-      "om": "Vestii Dugdaa Sirreessu",
+      "am": "Posture Corrector Compression Vest",
+      "om": "Posture Corrector Compression Vest",
       "en": "Posture Corrector Compression Vest"
     },
     "spec": {
-      "am": "የጀርባ አጥንትን እና ትከሻን የሚያስተካክል፣ የሚለጠጥና ምቹ የድጋፍ ቬስት።",
-      "om": "Dugda fi ceekuuf deeggarsa kan kennu, mijataa fi sirreeffamuu kan danda'u.",
-      "en": "Adjustable back support, breathable compression vest."
+      "am": "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief.",
+      "om": "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief.",
+      "en": "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief."
     },
     "fullDesc": {
-      "am": "ለትከሻና ለጀርባ ህመም ፈጣን እፎይታ የሚሰጥ። በልብስ ስር የማይታወቅ፣ የሚለጠጥና እንደ ሰውነት መጠን የሚስተካከል የጀርባ አቋም ማስተካከያ።",
-      "om": "Dhukkubbi dugdaa fi ceekuu salphisuuf kan gargaaru. Uffata jalatti kan hin mul'anne, salphaatti kan sirreeffamu fi hargansuuf mijataa ta'e.",
+      "am": "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief.",
+      "om": "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief.",
       "en": "Ergonomic compression vest designed to pull shoulders back and align the spine. Breathable, discreet under clothing, and fully adjustable for all-day posture relief."
     },
     "badge": {
@@ -74,7 +135,7 @@
       "en": "Saachhi 2-in-1 Blender"
     },
     "spec": {
-      "am": "350W ኃይለኛ ሞተር፣ ሁለት ጃር እና ተጨማሪ መፍጫ ያለው ጥራት ያለው ማደባለቂያ።",
+      "am": "350W ኃይለኛ ���ተር፣ ሁለት ጃር እና ተጨማሪ መፍጫ ያለው ጥራት ያለው ማደባለቂያ።",
       "om": "Motora humna 350W qabu, qodaa lama fi meeshaa daakuu wajjin.",
       "en": "350W motor, two jars plus grinder attachment."
     },

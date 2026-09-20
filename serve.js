@@ -307,26 +307,12 @@ function callChapaInitialize(chapaData, secretKeyOverride) {
             console.log('[CHAPA SUCCESS] Hosted checkout URL obtained:', parsed.data.checkout_url);
             resolve(parsed);
           } else {
-            console.warn('[CHAPA NOTICE] Chapa returned non-success response:', parsed);
-            if (parsed.data && parsed.data.checkout_url) {
-              resolve(parsed);
-            } else if (keyToUse && !keyToUse.includes('sample')) {
-              console.error('[CHAPA ERROR] Initialization rejected by Chapa API:', parsed);
-              resolve({
-                status: "error",
-                message: parsed.message || 'Chapa initialization failed. Please check your Secret Key in Admin Settings.',
-                details: parsed
-              });
-            } else {
-              // Return official test domain format for local testing suite
-              console.log('[CHAPA TEST] Returning test gateway checkout URL.');
-              resolve({
-                status: "success",
-                data: {
-                  checkout_url: `https://checkout.chapa.co/checkout/web/pay/test-${chapaData.tx_ref}`
-                }
-              });
-            }
+            console.error('[CHAPA ERROR] Initialization rejected by Chapa API:', parsed);
+            resolve({
+              status: "error",
+              message: parsed.message || 'Invalid Chapa Secret Key. Please set your Chapa API Key (CHASECK_TEST-... or CHASECK_LIVE-...) in Admin Settings.',
+              details: parsed
+            });
           }
         } catch (e) {
           console.error('[CHAPA PARSE ERROR]', e.message, data);
@@ -340,19 +326,10 @@ function callChapaInitialize(chapaData, secretKeyOverride) {
 
     req.on('error', (err) => {
       console.error('[CHAPA NETWORK ERROR]', err.message);
-      if (keyToUse && !keyToUse.includes('sample')) {
-        resolve({
-          status: "error",
-          message: 'Chapa network error: ' + err.message
-        });
-      } else {
-        resolve({
-          status: "success",
-          data: {
-            checkout_url: `https://checkout.chapa.co/checkout/web/pay/test-${chapaData.tx_ref}`
-          }
-        });
-      }
+      resolve({
+        status: "error",
+        message: 'Chapa network error: ' + err.message
+      });
     });
 
     req.write(payload);

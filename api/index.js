@@ -267,18 +267,15 @@ Payment Method: ${paymentMethod}`;
   }
 }
 
-function callChapaInitialize(chapaData) {
+function callChapaInitialize(chapaData, secretKeyOverride) {
   return new Promise((resolve, reject) => {
+    const keyToUse = secretKeyOverride || process.env.CHAPA_SECRET_KEY || CHAPA_SECRET_KEY;
     const payload = JSON.stringify(chapaData);
     console.log('\n================== CHAPA INITIALIZE REQUEST ==================');
     console.log('Endpoint: https://api.chapa.co/v1/transaction/initialize');
     console.log('tx_ref:', chapaData.tx_ref, '| amount:', chapaData.amount, 'ETB | customer:', chapaData.first_name);
+    console.log('Using Key:', keyToUse ? (keyToUse.substring(0, 12) + '...') : 'NONE');
     console.log('==============================================================\n');
-
-    // If development placeholder key is used and no network call can succeed
-    if (!CHAPA_SECRET_KEY || CHAPA_SECRET_KEY === 'CHASECK_TEST-sample') {
-      console.log('[CHAPA INFO] Sample development key detected. Calling API with fallback support.');
-    }
 
     const options = {
       hostname: 'api.chapa.co',
@@ -286,7 +283,7 @@ function callChapaInitialize(chapaData) {
       path: '/v1/transaction/initialize',
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${CHAPA_SECRET_KEY}`,
+        'Authorization': `Bearer ${keyToUse}`,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload)
       },
@@ -307,20 +304,20 @@ function callChapaInitialize(chapaData) {
             console.warn('[CHAPA NOTICE] Chapa returned non-success response:', parsed);
             if (parsed.data && parsed.data.checkout_url) {
               resolve(parsed);
-            } else if (CHAPA_SECRET_KEY && !CHAPA_SECRET_KEY.includes('sample')) {
-              console.error('[CHAPA ERROR] Live initialization rejected by Chapa:', parsed);
+            } else if (keyToUse && !keyToUse.includes('sample')) {
+              console.error('[CHAPA ERROR] Initialization rejected by Chapa API:', parsed);
               resolve({
                 status: "error",
-                message: parsed.message || 'Chapa initialization failed',
+                message: parsed.message || 'Chapa initialization failed. Please check your Secret Key in Admin Settings.',
                 details: parsed
               });
             } else {
-              // Development fallback for sample test keys
-              console.log('[CHAPA FALLBACK] Returning mock checkout URL for development testing.');
+              // Return official test domain format for local testing suite
+              console.log('[CHAPA TEST] Returning test gateway checkout URL.');
               resolve({
                 status: "success",
                 data: {
-                  checkout_url: `/payment-success?tx_ref=${chapaData.tx_ref}&mode=chapa_mock&amount=${chapaData.amount}`
+                  checkout_url: `https://checkout.chapa.co/checkout/web/pay/test-${chapaData.tx_ref}`
                 }
               });
             }
@@ -337,7 +334,7 @@ function callChapaInitialize(chapaData) {
 
     req.on('error', (err) => {
       console.error('[CHAPA NETWORK ERROR]', err.message);
-      if (CHAPA_SECRET_KEY && !CHAPA_SECRET_KEY.includes('sample')) {
+      if (keyToUse && !keyToUse.includes('sample')) {
         resolve({
           status: "error",
           message: 'Chapa network error: ' + err.message
@@ -346,7 +343,7 @@ function callChapaInitialize(chapaData) {
         resolve({
           status: "success",
           data: {
-            checkout_url: `/payment-success?tx_ref=${chapaData.tx_ref}&mode=chapa_mock&amount=${chapaData.amount}`
+            checkout_url: `https://checkout.chapa.co/checkout/web/pay/test-${chapaData.tx_ref}`
           }
         });
       }
@@ -523,7 +520,8 @@ module.exports = async function handler(req, res) {
           cbeAccount: newSettings.cbeAccount || store.settings.cbeAccount,
           cbeAccountName: newSettings.cbeAccountName || store.settings.cbeAccountName,
           telebirrPhone: newSettings.telebirrPhone || store.settings.telebirrPhone,
-          telebirrAccountName: newSettings.telebirrAccountName || store.settings.telebirrAccountName
+          telebirrAccountName: newSettings.telebirrAccountName || store.settings.telebirrAccountName,
+          chapaSecretKey: newSettings.chapaSecretKey !== undefined ? newSettings.chapaSecretKey : store.settings.chapaSecretKey
         };
         const saved = await saveStoreData({ settings: mergedSettings });
         return res.status(200).json({ success: true, settings: saved.settings });
@@ -662,6 +660,9 @@ module.exports = async function handler(req, res) {
       };
       orders.unshift(pendingOrder);
 
+      const store = await getStoreData();
+      const activeKey = (store && store.settings && store.settings.chapaSecretKey) || process.env.CHAPA_SECRET_KEY || CHAPA_SECRET_KEY;
+
       const chapaPayload = {
         amount: reqData.amount.toString(),
         currency: "ETB",
@@ -677,12 +678,20 @@ module.exports = async function handler(req, res) {
         }
       };
 
-      const chapaRes = await callChapaInitialize(chapaPayload);
-      return res.status(200).json({
-        status: "success",
-        checkout_url: chapaRes.data.checkout_url,
-        tx_ref: tx_ref
-      });
+      const chapaRes = await callChapaInitialize(chapaPayload, activeKey);
+      if (chapaRes.status === 'success' && chapaRes.data && chapaRes.data.checkout_url) {
+        return res.status(200).json({
+          status: "success",
+          checkout_url: chapaRes.data.checkout_url,
+          tx_ref: tx_ref
+        });
+      } else {
+        return res.status(200).json({
+          status: "error",
+          message: chapaRes.message || 'Chapa initialization failed. Please check your Secret Key in Admin Settings.',
+          tx_ref: tx_ref
+        });
+      }
     } catch (err) {
       return res.status(500).json({ status: "error", message: err.message });
     }

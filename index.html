@@ -934,6 +934,15 @@
               </div>
             </div>
 
+            <div class="settings-card">
+              <h4 class="settings-card-title">Chapa Payment Gateway (Secret Key)</h4>
+              <div class="input-field-wrap">
+                <label for="settingChapaKey" class="field-label">Chapa Secret Key (CHASECK_TEST-... or CHASECK_LIVE-...)</label>
+                <input type="password" id="settingChapaKey" class="form-input" placeholder="CHASECK_TEST-..." value="">
+                <small style="color: var(--text-muted); margin-top: 4px; display: block;">Enter your key from <a href="https://dashboard.chapa.co" target="_blank" style="color: var(--primary); text-decoration: underline;">dashboard.chapa.co</a> to enable live payment redirects.</small>
+              </div>
+            </div>
+
             <button type="submit" class="btn-primary" id="btnSaveSettings">Save Payment Accounts</button>
           </form>
         </div>

@@ -1,35 +1,5 @@
 [
   {
-    "id": "prod-1789894252344",
-    "category": "kitchen",
-    "secondaryCategory": "",
-    "price": 5000,
-    "inStock": true,
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1789894223/1000026847.jpg"
-    ],
-    "name": {
-      "en": "For fun",
-      "am": "For fun",
-      "om": "For fun"
-    },
-    "spec": {
-      "en": "How are you",
-      "am": "How are you",
-      "om": "How are you"
-    },
-    "fullDesc": {
-      "en": "How are you",
-      "am": "How are you",
-      "om": "How are you"
-    },
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    }
-  },
-  {
     "id": "prod-1789852358338",
     "category": "health",
     "secondaryCategory": "",

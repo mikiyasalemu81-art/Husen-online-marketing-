@@ -653,6 +653,7 @@
     settingCbeName: document.getElementById('settingCbeName'),
     settingTelebirrPhone: document.getElementById('settingTelebirrPhone'),
     settingTelebirrName: document.getElementById('settingTelebirrName'),
+    settingChapaKey: document.getElementById('settingChapaKey'),
     btnSaveSettings: document.getElementById('btnSaveSettings'),
 
     // Product CRUD Editor Modal
@@ -787,10 +788,11 @@
     if (dom.telebirrNameDisplay) dom.telebirrNameDisplay.textContent = state.settings.telebirrAccountName;
     if (dom.btnCopyCbe) dom.btnCopyCbe.setAttribute('data-copy', state.settings.cbeAccount);
     if (dom.btnCopyTelebirr) dom.btnCopyTelebirr.setAttribute('data-copy', state.settings.telebirrPhone);
-    if (dom.settingCbeAccount) dom.settingCbeAccount.value = state.settings.cbeAccount;
-    if (dom.settingCbeName) dom.settingCbeName.value = state.settings.cbeAccountName;
-    if (dom.settingTelebirrPhone) dom.settingTelebirrPhone.value = state.settings.telebirrPhone;
-    if (dom.settingTelebirrName) dom.settingTelebirrName.value = state.settings.telebirrAccountName;
+    if (dom.settingCbeAccount) dom.settingCbeAccount.value = state.settings.cbeAccount || '';
+    if (dom.settingCbeName) dom.settingCbeName.value = state.settings.cbeAccountName || '';
+    if (dom.settingTelebirrPhone) dom.settingTelebirrPhone.value = state.settings.telebirrPhone || '';
+    if (dom.settingTelebirrName) dom.settingTelebirrName.value = state.settings.telebirrAccountName || '';
+    if (dom.settingChapaKey && state.settings.chapaSecretKey) dom.settingChapaKey.value = state.settings.chapaSecretKey;
   }
 
   // ==========================================================================
@@ -2077,7 +2079,8 @@
           cbeAccount: (dom.settingCbeAccount ? dom.settingCbeAccount.value : '').trim(),
           cbeAccountName: (dom.settingCbeName ? dom.settingCbeName.value : '').trim(),
           telebirrPhone: (dom.settingTelebirrPhone ? dom.settingTelebirrPhone.value : '').trim(),
-          telebirrAccountName: (dom.settingTelebirrName ? dom.settingTelebirrName.value : '').trim()
+          telebirrAccountName: (dom.settingTelebirrName ? dom.settingTelebirrName.value : '').trim(),
+          chapaSecretKey: (dom.settingChapaKey ? dom.settingChapaKey.value : '').trim()
         };
 
         state.settings = { ...state.settings, ...newSettings };
@@ -2093,7 +2096,7 @@
           console.warn('[SETTINGS NOTICE] Saved locally:', err.message);
         }
 
-        showToast('Payment account numbers updated successfully!');
+        showToast('Payment settings and Chapa key saved successfully!');
       });
     }
 

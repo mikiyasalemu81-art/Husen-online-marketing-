@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://husenonlinemarketing.com/sitemap.xml
+Sitemap: https://www.husenonlinemarketing.com/sitemap.xml

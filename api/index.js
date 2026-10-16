@@ -705,5 +705,34 @@ module.exports = async function handler(req, res) {
     return res.end();
   }
 
+  // --- SITEMAP.XML & ROBOTS.TXT ROUTE HANDLERS ---
+  if (pathname === '/sitemap.xml') {
+    const sitemapPaths = [
+      path.join(__dirname, '..', 'sitemap.xml'),
+      path.join(__dirname, '..', 'public', 'sitemap.xml'),
+      path.join(__dirname, 'sitemap.xml')
+    ];
+    for (const sp of sitemapPaths) {
+      if (fs.existsSync(sp)) {
+        res.setHeader('Content-Type', 'application/xml');
+        return res.status(200).send(fs.readFileSync(sp, 'utf8'));
+      }
+    }
+  }
+
+  if (pathname === '/robots.txt') {
+    const robotsPaths = [
+      path.join(__dirname, '..', 'robots.txt'),
+      path.join(__dirname, '..', 'public', 'robots.txt'),
+      path.join(__dirname, 'robots.txt')
+    ];
+    for (const rp of robotsPaths) {
+      if (fs.existsSync(rp)) {
+        res.setHeader('Content-Type', 'text/plain');
+        return res.status(200).send(fs.readFileSync(rp, 'utf8'));
+      }
+    }
+  }
+
   res.status(404).send('Not Found');
 };

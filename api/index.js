@@ -728,8 +728,22 @@ module.exports = async function handler(req, res) {
     ];
     for (const rp of robotsPaths) {
       if (fs.existsSync(rp)) {
-        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
         return res.status(200).send(fs.readFileSync(rp, 'utf8'));
+      }
+    }
+  }
+
+  if (pathname === '/site.webmanifest') {
+    const manifestPaths = [
+      path.join(__dirname, '..', 'site.webmanifest'),
+      path.join(__dirname, '..', 'public', 'site.webmanifest'),
+      path.join(__dirname, 'site.webmanifest')
+    ];
+    for (const mp of manifestPaths) {
+      if (fs.existsSync(mp)) {
+        res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+        return res.status(200).send(fs.readFileSync(mp, 'utf8'));
       }
     }
   }

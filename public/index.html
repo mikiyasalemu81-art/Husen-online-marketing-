@@ -845,10 +845,23 @@
       <!-- Admin Login View -->
       <div class="admin-auth-view" id="adminAuthView">
         <div class="admin-login-box">
-          <p>Please enter owner password to manage store products & orders:</p>
-          <div class="admin-pin-row">
-            <input type="password" id="adminPinInput" class="form-input" placeholder="Enter password" autocomplete="current-password">
-            <button type="button" class="btn-primary" id="adminLoginBtn">Unlock</button>
+          <p>Select your account and enter your password:</p>
+          <div class="admin-login-fields">
+            <div class="input-field-wrap">
+              <label for="adminAccountSelect" class="field-label">Account Role</label>
+              <select id="adminAccountSelect" class="form-input">
+                <option value="owner">Store Owner (ሁሴን)</option>
+                <option value="staff">Staff Member (staff)</option>
+              </select>
+            </div>
+            <div class="input-field-wrap">
+              <label for="adminPinInput" class="field-label">Password</label>
+              <div class="password-input-wrap">
+                <input type="password" id="adminPinInput" class="form-input" placeholder="Enter password" autocomplete="current-password">
+                <button type="button" class="btn-toggle-password" data-target="adminPinInput" aria-label="Toggle password visibility">👁️</button>
+              </div>
+            </div>
+            <button type="button" class="btn-primary btn-admin-login-submit" id="adminLoginBtn">Unlock Portal</button>
           </div>
         </div>
       </div>
@@ -874,6 +887,7 @@
           <button type="button" class="admin-tab active" data-tab="products" id="adminTabProducts">Products (<span id="adminProductsBadge">4</span>)</button>
           <button type="button" class="admin-tab" data-tab="orders" id="adminTabOrders">Orders (<span id="adminOrdersBadge">0</span>)</button>
           <button type="button" class="admin-tab" data-tab="settings" id="adminTabSettings">Payment Accounts</button>
+          <button type="button" class="admin-tab" data-tab="password" id="adminTabPassword">🔐 Change Password</button>
         </div>
 
         <!-- Tab 1: Product CRUD Management -->
@@ -957,6 +971,98 @@
             <button type="submit" class="btn-primary" id="btnSaveSettings">Save Payment Accounts</button>
           </form>
         </div>
+
+        <!-- Tab 4: Change Password & Staff Reset -->
+        <div class="admin-tab-pane" id="adminPanePassword" style="display:none;">
+          <div class="admin-pane-header">
+            <div>
+              <span class="admin-pane-title">Change Password</span>
+              <p class="admin-tab-desc">Securely change your account password (Hashed on server with PBKDF2):</p>
+            </div>
+            <div class="admin-current-user-pill" id="adminCurrentUserBadge">
+              <span>👤 User: <strong id="adminCurrentUsername">owner</strong> (<span id="adminCurrentRole">Owner</span>)</span>
+            </div>
+          </div>
+
+          <form id="changePasswordForm" class="settings-form" novalidate>
+            <div class="settings-card">
+              <h4 class="settings-card-title">Change My Password</h4>
+
+              <div class="input-field-wrap">
+                <label for="currentPasswordInput" class="field-label">Current Password *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="currentPasswordInput" class="form-input" placeholder="Enter current password" required autocomplete="current-password">
+                  <button type="button" class="btn-toggle-password" data-target="currentPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="newPasswordInput" class="field-label">New Password * <small>(Minimum 8 characters)</small></label>
+                <div class="password-input-wrap">
+                  <input type="password" id="newPasswordInput" class="form-input" placeholder="Enter new password (min 8 chars)" required minlength="8" autocomplete="new-password">
+                  <button type="button" class="btn-toggle-password" data-target="newPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="confirmPasswordInput" class="field-label">Confirm New Password *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="confirmPasswordInput" class="form-input" placeholder="Confirm new password" required autocomplete="new-password">
+                  <button type="button" class="btn-toggle-password" data-target="confirmPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <div class="password-requirements-box" id="passwordReqBox">
+                <div class="req-item" id="reqLen">• Minimum 8 characters</div>
+                <div class="req-item" id="reqDiff">• Must differ from old password</div>
+                <div class="req-item" id="reqMatch">• Must match confirmation</div>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnSubmitChangePassword">Update Password & Re-login</button>
+            </div>
+          </form>
+
+          <!-- Staff Reset Section (Owner Only) -->
+          <div class="settings-card" id="ownerStaffResetSection" style="margin-top: 16px; display: none;">
+            <h4 class="settings-card-title">👑 Owner Action: Reset Staff Member Password</h4>
+            <p class="admin-tab-desc" style="margin-bottom: 12px;">As the store owner, you can directly reset a staff member's password:</p>
+
+            <form id="ownerStaffResetForm" novalidate>
+              <div class="input-field-wrap">
+                <label for="resetStaffSelect" class="field-label">Select Staff Member *</label>
+                <select id="resetStaffSelect" class="form-input" required>
+                  <option value="staff">Staff Member (staff)</option>
+                </select>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="ownerAuthPasswordInput" class="field-label">Your Owner Password (to authorize reset) *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="ownerAuthPasswordInput" class="form-input" placeholder="Enter your current owner password" required>
+                  <button type="button" class="btn-toggle-password" data-target="ownerAuthPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="newStaffPasswordInput" class="field-label">New Password for Staff * <small>(Minimum 8 characters)</small></label>
+                <div class="password-input-wrap">
+                  <input type="password" id="newStaffPasswordInput" class="form-input" placeholder="Enter new password for staff" required minlength="8">
+                  <button type="button" class="btn-toggle-password" data-target="newStaffPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="confirmStaffPasswordInput" class="field-label">Confirm New Staff Password *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="confirmStaffPasswordInput" class="form-input" placeholder="Confirm new staff password" required>
+                  <button type="button" class="btn-toggle-password" data-target="confirmStaffPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnSubmitStaffReset" style="background-color: #0284c7;">Reset Staff Password</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -981,18 +1087,39 @@
         <!-- Category & Price Row -->
         <div class="editor-row-2">
           <div class="input-field-wrap">
-            <label for="editorProdCategory" class="field-label">Category *</label>
-            <select id="editorProdCategory" class="form-input" required>
+            <label for="editorProdCategory" class="field-label">Category * <small>(Type any category name)</small></label>
+            <input type="text" id="editorProdCategory" list="categorySuggestions" class="form-input" placeholder="e.g. Kitchen, Solar, Bedding, Shoes..." required autocomplete="off">
+            <datalist id="categorySuggestions">
               <option value="kitchen">Kitchen (ማብሰያ)</option>
               <option value="home">Home (የቤት)</option>
               <option value="beauty">Beauty (ውበት)</option>
               <option value="health">Health (ጤና)</option>
-            </select>
+            </datalist>
+            <button type="button" class="btn-toggle-cat-trans" id="btnToggleCatTrans">+ Add Category Translations (Optional)</button>
           </div>
 
           <div class="input-field-wrap">
             <label for="editorProdPrice" class="field-label">Price in ETB *</label>
             <input type="number" id="editorProdPrice" class="form-input" placeholder="e.g. 1500" min="1" step="10" required>
+          </div>
+        </div>
+
+        <!-- Optional Category Translations Section -->
+        <div class="cat-translations-card" id="catTranslationsCard" style="display:none;">
+          <small class="field-helper" style="margin-bottom:8px; display:block;">Optional translated names for storefront language switcher (falls back to typed name):</small>
+          <div class="editor-row-3">
+            <div class="input-field-wrap">
+              <label for="editorCatAm" class="field-label-sub">Amharic (አማርኛ)</label>
+              <input type="text" id="editorCatAm" class="form-input form-input-sm" placeholder="ለምሳሌ፡ ማብሰያ">
+            </div>
+            <div class="input-field-wrap">
+              <label for="editorCatOm" class="field-label-sub">Afaan Oromoo</label>
+              <input type="text" id="editorCatOm" class="form-input form-input-sm" placeholder="fk., Kushiinaa">
+            </div>
+            <div class="input-field-wrap">
+              <label for="editorCatEn" class="field-label-sub">English</label>
+              <input type="text" id="editorCatEn" class="form-input form-input-sm" placeholder="e.g. Kitchen">
+            </div>
           </div>
         </div>
 
@@ -1007,17 +1134,23 @@
           <div class="manager-header">
             <div>
               <label class="field-label">Product Photos (Upload from Device)</label>
-              <small class="field-helper">Pick 1, 2, 3 or more photos. Manage thumbnails with delete ("✕") badges:</small>
+              <small class="field-helper">Select 1 or more photos. First photo is cover. Reorder with ◀ / ▶ or click "Set Cover":</small>
             </div>
             
             <!-- Hidden Multi-file input -->
             <input type="file" id="editorFileInput" multiple accept="image/*" style="display:none;">
             <button type="button" class="btn-device-upload" id="btnDeviceUpload">
-              <span>📁 Upload Photo from Device</span>
+              <span>📁 Upload Photos from Device</span>
             </button>
           </div>
 
-          <!-- Thumbnails Grid with Delete Badges -->
+          <!-- Active Upload Progress List -->
+          <div class="upload-progress-list" id="uploadProgressList" style="display:none;"></div>
+
+          <!-- Upload Error Notice with Retry Button -->
+          <div class="upload-error-banner" id="uploadErrorBanner" style="display:none;"></div>
+
+          <!-- Thumbnails Grid with Delete Badges & Reorder Controls -->
           <div class="editor-thumbnails-grid" id="editorThumbnailsGrid">
             <!-- Dynamic Preview Thumbnails with '✕' buttons -->
           </div>

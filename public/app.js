@@ -387,6 +387,15 @@
     el.setAttribute('aria-hidden', 'true');
   }
 
+  // Helper to safely extract image URL from either object { secure_url, public_id } or string
+  function getImgSrc(img) {
+    if (!img) return 'public/images/storage1.jpg';
+    if (typeof img === 'object' && img) {
+      return img.secure_url || img.url || 'public/images/storage1.jpg';
+    }
+    return img;
+  }
+
   // ==========================================================================
   // 3. APPLICATION STATE
   // ==========================================================================
@@ -416,6 +425,7 @@
       telebirrPhone: "0923245529",
       telebirrAccountName: "Husen Market"
     },
+    categories: {},
     
     // Telegram Mini App Active Product
     tgProduct: null,
@@ -435,10 +445,19 @@
     
     // Admin state & Cloudinary config
     adminUnlocked: localStorage.getItem('hom_admin_logged_in') === 'true',
+    currentUser: (() => {
+      try {
+        const u = localStorage.getItem('hom_admin_user');
+        return u ? JSON.parse(u) : null;
+      } catch (e) {
+        return null;
+      }
+    })(),
     cloudName: 'trkihe9m',
     uploadPreset: 'Husenonlinemarketing',
     orders: [],
     editorPhotos: [],
+    failedUploads: [],
     
     // Chapa Hosted Modal state
     chapaSelectedMethod: 'telebirr',
@@ -629,6 +648,7 @@
     adminLogoutBtn: document.getElementById('adminLogoutBtn'),
     adminRefreshBtn: document.getElementById('adminRefreshBtn'),
     adminAuthView: document.getElementById('adminAuthView'),
+    adminAccountSelect: document.getElementById('adminAccountSelect'),
     adminPinInput: document.getElementById('adminPinInput'),
     adminLoginBtn: document.getElementById('adminLoginBtn'),
     adminDashboardView: document.getElementById('adminDashboardView'),
@@ -639,13 +659,31 @@
     adminTabProducts: document.getElementById('adminTabProducts'),
     adminTabOrders: document.getElementById('adminTabOrders'),
     adminTabSettings: document.getElementById('adminTabSettings'),
+    adminTabPassword: document.getElementById('adminTabPassword'),
     adminOrdersBadge: document.getElementById('adminOrdersBadge'),
     adminPaneProducts: document.getElementById('adminPaneProducts'),
     adminPaneOrders: document.getElementById('adminPaneOrders'),
     adminPaneSettings: document.getElementById('adminPaneSettings'),
+    adminPanePassword: document.getElementById('adminPanePassword'),
     adminProductList: document.getElementById('adminProductList'),
     adminOrdersList: document.getElementById('adminOrdersList'),
     openAddProductModalBtn: document.getElementById('openAddProductModalBtn'),
+    adminCurrentUsername: document.getElementById('adminCurrentUsername'),
+    adminCurrentRole: document.getElementById('adminCurrentRole'),
+
+    // Change Password & Staff Reset
+    changePasswordForm: document.getElementById('changePasswordForm'),
+    currentPasswordInput: document.getElementById('currentPasswordInput'),
+    newPasswordInput: document.getElementById('newPasswordInput'),
+    confirmPasswordInput: document.getElementById('confirmPasswordInput'),
+    btnSubmitChangePassword: document.getElementById('btnSubmitChangePassword'),
+    ownerStaffResetSection: document.getElementById('ownerStaffResetSection'),
+    ownerStaffResetForm: document.getElementById('ownerStaffResetForm'),
+    resetStaffSelect: document.getElementById('resetStaffSelect'),
+    ownerAuthPasswordInput: document.getElementById('ownerAuthPasswordInput'),
+    newStaffPasswordInput: document.getElementById('newStaffPasswordInput'),
+    confirmStaffPasswordInput: document.getElementById('confirmStaffPasswordInput'),
+    btnSubmitStaffReset: document.getElementById('btnSubmitStaffReset'),
 
     // Admin Settings
     paymentSettingsForm: document.getElementById('paymentSettingsForm'),
@@ -665,11 +703,19 @@
     editProductId: document.getElementById('editProductId'),
     editorProdName: document.getElementById('editorProdName'),
     editorProdCategory: document.getElementById('editorProdCategory'),
+    categorySuggestions: document.getElementById('categorySuggestions'),
+    btnToggleCatTrans: document.getElementById('btnToggleCatTrans'),
+    catTranslationsCard: document.getElementById('catTranslationsCard'),
+    editorCatAm: document.getElementById('editorCatAm'),
+    editorCatOm: document.getElementById('editorCatOm'),
+    editorCatEn: document.getElementById('editorCatEn'),
     editorProdPrice: document.getElementById('editorProdPrice'),
     editorProdDesc: document.getElementById('editorProdDesc'),
     editorProdInStock: document.getElementById('editorProdInStock'),
     editorFileInput: document.getElementById('editorFileInput'),
     btnDeviceUpload: document.getElementById('btnDeviceUpload'),
+    uploadProgressList: document.getElementById('uploadProgressList'),
+    uploadErrorBanner: document.getElementById('uploadErrorBanner'),
     editorThumbnailsGrid: document.getElementById('editorThumbnailsGrid'),
     saveProductBtn: document.getElementById('saveProductBtn'),
     saveProductBtnText: document.getElementById('saveProductBtnText'),
@@ -944,21 +990,62 @@
   }
 
   // ==========================================================================
-  // 7. CATEGORY NAVIGATION CHIPS
+  // 7. CATEGORY NAVIGATION CHIPS (Dynamic Free-Text Categories)
   // ==========================================================================
   function renderCategories() {
     if (!dom.categoryChipContainer) return;
-    const catMap = t().categories;
-    const categories = [
+    const catMap = t().categories || {};
+
+    const defaultCategoryTrans = {
+      kitchen: { en: 'Kitchen', am: 'ማብሰያ & ኩሽና', om: 'Kushiinaa', icon: '🍳' },
+      home: { en: 'Home', am: 'የቤት ዕቃዎች', om: 'Meeshaa Manaa', icon: '🏠' },
+      beauty: { en: 'Beauty', am: 'ውበት', om: 'Bareedina', icon: '💄' },
+      health: { en: 'Health', am: 'ጤና', om: 'Fayyaa', icon: '🌿' }
+    };
+
+    // A category with no visible products disappears from the bar
+    const activeCatsMap = new Map();
+
+    state.products.forEach(p => {
+      if (p.inStock === false) return; // Disappear if no visible products
+      const raw = (p.category || '').trim();
+      if (!raw) return;
+      const key = raw.toLowerCase();
+
+      if (!activeCatsMap.has(key)) {
+        let label = raw;
+        let icon = '🏷️';
+
+        if (defaultCategoryTrans[key]) {
+          label = defaultCategoryTrans[key][state.lang] || defaultCategoryTrans[key].en || raw;
+          icon = defaultCategoryTrans[key].icon || '🏷️';
+        } else if (p.categoryTranslations) {
+          label = p.categoryTranslations[state.lang] || p.categoryTranslations.en || p.categoryTranslations.am || p.categoryTranslations.om || raw;
+        } else if (state.categories && state.categories[key]) {
+          label = state.categories[key][state.lang] || state.categories[key].en || raw;
+        }
+
+        activeCatsMap.set(key, {
+          key: key,
+          originalName: raw,
+          label: label,
+          icon: icon
+        });
+      }
+    });
+
+    const categoryList = [
       { key: 'all', label: catMap.all || 'All', icon: '✨' },
-      { key: 'kitchen', label: catMap.kitchen || 'Kitchen', icon: '🍳' },
-      { key: 'home', label: catMap.home || 'Home', icon: '🏠' },
-      { key: 'beauty', label: catMap.beauty || 'Beauty', icon: '💄' },
-      { key: 'health', label: catMap.health || 'Health', icon: '🌿' }
+      ...Array.from(activeCatsMap.values())
     ];
 
-    dom.categoryChipContainer.innerHTML = categories.map(c => `
-      <button type="button" class="category-chip ${state.activeCategory === c.key ? 'active' : ''}" data-cat="${c.key}">
+    // If activeCategory is no longer in the list (unless 'all'), reset to 'all'
+    if (state.activeCategory !== 'all' && !activeCatsMap.has(state.activeCategory.toLowerCase())) {
+      state.activeCategory = 'all';
+    }
+
+    dom.categoryChipContainer.innerHTML = categoryList.map(c => `
+      <button type="button" class="category-chip ${state.activeCategory.toLowerCase() === c.key.toLowerCase() ? 'active' : ''}" data-cat="${c.key}">
         <span>${c.icon}</span>
         <span>${c.label}</span>
       </button>
@@ -966,11 +1053,24 @@
 
     dom.categoryChipContainer.querySelectorAll('.category-chip').forEach(btn => {
       btn.addEventListener('click', () => {
-        state.activeCategory = btn.getAttribute('data-cat');
+        state.activeCategory = btn.getAttribute('data-cat') || 'all';
         renderCategories();
         renderProducts();
       });
     });
+
+    updateCategorySuggestions();
+  }
+
+  function updateCategorySuggestions() {
+    if (!dom.categorySuggestions) return;
+    const catSet = new Set();
+    state.products.forEach(p => {
+      const c = (p.category || '').trim();
+      if (c) catSet.add(c);
+    });
+    ['Kitchen', 'Home', 'Beauty', 'Health'].forEach(c => catSet.add(c));
+    dom.categorySuggestions.innerHTML = Array.from(catSet).map(c => `<option value="${c}">`).join('');
   }
 
   // Helper to extract localized text or fallback
@@ -991,9 +1091,12 @@
     return state.products.filter(p => {
       if (p.inStock === false) return false;
 
-      // Category match
+      // Category match: trimmed and case-insensitive
       if (state.activeCategory !== 'all') {
-        const matchesCategory = p.category === state.activeCategory || p.secondaryCategory === state.activeCategory;
+        const prodCat = (p.category || '').trim().toLowerCase();
+        const prodSecCat = (p.secondaryCategory || '').trim().toLowerCase();
+        const targetCat = state.activeCategory.trim().toLowerCase();
+        const matchesCategory = (prodCat === targetCat) || (prodSecCat === targetCat);
         if (!matchesCategory) return false;
       }
 
@@ -1054,7 +1157,7 @@
             ` : ''}
             <div class="product-crossfade-wrap" id="crossfade-${p.id}">
               ${images.map((img, i) => `
-                <img src="${img}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy">
+                <img src="${getImgSrc(img)}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy">
               `).join('')}
             </div>
           </div>
@@ -1077,7 +1180,7 @@
       `;
     }).join('');
 
-    // Setup Crossfade Animation for multi-photo cards
+    // Setup Crossfade Animation for multi-photo cards (Auto-rotate every 5 seconds)
     visibleProducts.forEach(p => {
       const images = p.images && p.images.length > 0 ? p.images : [];
       if (images.length > 1) {
@@ -1100,7 +1203,7 @@
             imgElements[currentIdx].classList.add('active');
             if (dots[currentIdx]) dots[currentIdx].classList.add('active');
           }
-        }, 4500);
+        }, 5000);
       }
     });
 
@@ -1192,7 +1295,7 @@
       dom.tgHeroImageWrap.innerHTML = `
         <div class="tg-crossfade-container" id="tgHeroCrossfade">
           ${images.map((img, i) => `
-            <img src="${img}" alt="${name}" class="tg-hero-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}">
+            <img src="${getImgSrc(img)}" alt="${name}" class="tg-hero-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}">
           `).join('')}
         </div>
         ${images.length > 1 ? `
@@ -1257,7 +1360,7 @@
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.images && product.images[0] ? product.images[0] : 'public/images/storage1.jpg',
+        image: product.images && product.images[0] ? getImgSrc(product.images[0]) : 'public/images/storage1.jpg',
         qty: qty
       });
     }
@@ -1303,7 +1406,7 @@
       const lineTotal = item.price * item.qty;
       return `
         <div class="cart-item-row" data-id="${item.id}">
-          <img src="${item.image}" alt="${getLocString(item.name, state.lang)}" class="cart-item-img">
+          <img src="${getImgSrc(item.image)}" alt="${getLocString(item.name, state.lang)}" class="cart-item-img">
           
           <div class="cart-item-info">
             <h4 class="cart-item-name">${getLocString(item.name, state.lang)}</h4>
@@ -1377,7 +1480,7 @@
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images && product.images[0] ? product.images[0] : 'public/images/storage1.jpg',
+      image: product.images && product.images[0] ? getImgSrc(product.images[0]) : 'public/images/storage1.jpg',
       qty: 1
     }];
     renderCart();
@@ -1945,62 +2048,74 @@
     }
 
     // Check Persistent Admin Login State (Stay Logged In)
-    const isAdminAuthed = (getStorage('local', 'husen_admin_auth') === 'true' || 
-                           getStorage('local', 'hom_admin_logged_in') === 'true' ||
-                           localStorage.getItem('husen_admin_auth') === 'true' ||
-                           localStorage.getItem('hom_admin_logged_in') === 'true');
-    if (isAdminAuthed) {
+    const isAuthed = (localStorage.getItem('hom_admin_logged_in') === 'true' || localStorage.getItem('husen_admin_auth') === 'true');
+    const savedUserStr = localStorage.getItem('hom_admin_user');
+    if (isAuthed) {
       state.adminUnlocked = true;
+      try {
+        state.currentUser = savedUserStr ? JSON.parse(savedUserStr) : { username: 'owner', role: 'owner', name: 'Store Owner' };
+      } catch (e) {
+        state.currentUser = { username: 'owner', role: 'owner', name: 'Store Owner' };
+      }
       if (dom.adminAuthView) dom.adminAuthView.style.display = 'none';
       if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'block';
       if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'inline-flex';
       if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'inline-flex';
+      if (dom.adminCurrentUsername) dom.adminCurrentUsername.textContent = state.currentUser.username;
+      if (dom.adminCurrentRole) dom.adminCurrentRole.textContent = state.currentUser.role === 'owner' ? 'Owner (ሁሴን)' : 'Staff Member';
+      if (dom.ownerStaffResetSection) {
+        dom.ownerStaffResetSection.style.display = state.currentUser.role === 'owner' ? 'block' : 'none';
+      }
       renderAdminProducts();
       fetchAdminOrders();
       updateAccountDisplays();
     }
 
-    // Admin Password Login Handler
+    // Admin Authentication Login Handler (Server Verified with Hashed Passwords)
     async function performAdminLogin() {
+      const username = dom.adminAccountSelect ? dom.adminAccountSelect.value : 'owner';
       const password = dom.adminPinInput ? dom.adminPinInput.value.trim() : '';
       if (!password) {
-        showToast('Please enter the admin password', '⚠️');
+        showToast('Please enter your password', '⚠️');
         return;
       }
 
-      let authenticated = (password === 'husenonlinemarketing1234');
+      showToast('Verifying credentials on server...', '⏳');
       try {
-        const verifyRes = await fetch('/api/admin/verify', {
+        const res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password })
+          body: JSON.stringify({ username, password })
         });
-        if (verifyRes.ok) {
-          const data = await verifyRes.json();
-          if (data.success) authenticated = true;
-        }
-      } catch (e) {}
-
-      if (authenticated) {
-        state.adminUnlocked = true;
-        setStorage('local', 'husen_admin_auth', 'true');
-        setStorage('local', 'hom_admin_logged_in', 'true');
-        try {
-          localStorage.setItem('husen_admin_auth', 'true');
+        const data = await res.json();
+        if (res.ok && data.success) {
+          state.adminUnlocked = true;
+          state.currentUser = data.user;
           localStorage.setItem('hom_admin_logged_in', 'true');
-        } catch (e) {}
+          localStorage.setItem('hom_admin_user', JSON.stringify(data.user));
+          localStorage.setItem('husen_admin_auth', 'true');
 
-        if (dom.adminAuthView) dom.adminAuthView.style.display = 'none';
-        if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'block';
-        if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'inline-flex';
-        if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'inline-flex';
-        if (dom.adminPinInput) dom.adminPinInput.value = '';
-        renderAdminProducts();
-        fetchAdminOrders();
-        updateAccountDisplays();
-        showToast('Admin Portal unlocked!', '🔓');
-      } else {
-        showToast('Incorrect password. Please try again.', '⚠️');
+          if (dom.adminAuthView) dom.adminAuthView.style.display = 'none';
+          if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'block';
+          if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'inline-flex';
+          if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'inline-flex';
+          if (dom.adminPinInput) dom.adminPinInput.value = '';
+
+          if (dom.adminCurrentUsername) dom.adminCurrentUsername.textContent = data.user.username;
+          if (dom.adminCurrentRole) dom.adminCurrentRole.textContent = data.user.role === 'owner' ? 'Owner (ሁሴን)' : 'Staff Member';
+          if (dom.ownerStaffResetSection) {
+            dom.ownerStaffResetSection.style.display = data.user.role === 'owner' ? 'block' : 'none';
+          }
+
+          renderAdminProducts();
+          fetchAdminOrders();
+          updateAccountDisplays();
+          showToast(`Welcome, ${data.user.name || data.user.username}! Admin Portal unlocked.`, '🔓');
+        } else {
+          showToast(data.error || 'Incorrect username or password. Please try again.', '⚠️');
+        }
+      } catch (err) {
+        showToast('Login network error: ' + err.message, '⚠️');
       }
     }
 
@@ -2032,30 +2147,35 @@
       });
     }
 
-    // Admin Explicit Log Out Button
-    if (dom.adminLogoutBtn) {
-      dom.adminLogoutBtn.addEventListener('click', () => {
-        removeStorage('local', 'husen_admin_auth');
-        removeStorage('local', 'hom_admin_logged_in');
-        try {
-          localStorage.removeItem('husen_admin_auth');
-          localStorage.removeItem('hom_admin_logged_in');
-        } catch (e) {}
-        state.adminUnlocked = false;
-        if (dom.adminAuthView) dom.adminAuthView.style.display = 'block';
-        if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'none';
-        if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'none';
-        if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'none';
-        if (dom.adminPinInput) dom.adminPinInput.value = '';
-        showToast('Logged out of Admin Portal');
-      });
+    // Admin Logout Function
+    function logoutAdmin(msg = 'Logged out of Admin Portal') {
+      removeStorage('local', 'husen_admin_auth');
+      removeStorage('local', 'hom_admin_logged_in');
+      try {
+        localStorage.removeItem('husen_admin_auth');
+        localStorage.removeItem('hom_admin_logged_in');
+        localStorage.removeItem('hom_admin_user');
+      } catch (e) {}
+      state.adminUnlocked = false;
+      state.currentUser = null;
+      if (dom.adminAuthView) dom.adminAuthView.style.display = 'block';
+      if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'none';
+      if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'none';
+      if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'none';
+      if (dom.adminPinInput) dom.adminPinInput.value = '';
+      showToast(msg);
     }
 
-    // Admin Tabs
+    if (dom.adminLogoutBtn) {
+      dom.adminLogoutBtn.addEventListener('click', () => logoutAdmin());
+    }
+
+    // Admin Tabs (Products, Orders, Payment Accounts, Change Password)
     const tabs = [
       { btn: dom.adminTabProducts, pane: dom.adminPaneProducts },
       { btn: dom.adminTabOrders, pane: dom.adminPaneOrders },
-      { btn: dom.adminTabSettings, pane: dom.adminPaneSettings }
+      { btn: dom.adminTabSettings, pane: dom.adminPaneSettings },
+      { btn: dom.adminTabPassword, pane: dom.adminPanePassword }
     ];
 
     tabs.forEach(({ btn, pane }) => {
@@ -2070,6 +2190,133 @@
         });
       }
     });
+
+    // Password Show/Hide Toggles
+    document.querySelectorAll('.btn-toggle-password').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = btn.getAttribute('data-target');
+        const input = targetId ? document.getElementById(targetId) : btn.previousElementSibling;
+        if (!input) return;
+        if (input.type === 'password') {
+          input.type = 'text';
+          btn.textContent = '🙈';
+        } else {
+          input.type = 'password';
+          btn.textContent = '👁️';
+        }
+      });
+    });
+
+    // Change Password Form Submission
+    if (dom.changePasswordForm) {
+      dom.changePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = dom.currentPasswordInput ? dom.currentPasswordInput.value.trim() : '';
+        const newPassword = dom.newPasswordInput ? dom.newPasswordInput.value.trim() : '';
+        const confirmPassword = dom.confirmPasswordInput ? dom.confirmPasswordInput.value.trim() : '';
+
+        if (!currentPassword) {
+          showToast('Please enter your current password', '⚠️');
+          if (dom.currentPasswordInput) dom.currentPasswordInput.focus();
+          return;
+        }
+        if (newPassword.length < 8) {
+          showToast('New password must be at least 8 characters long', '⚠️');
+          if (dom.newPasswordInput) dom.newPasswordInput.focus();
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          showToast('New password and confirmation do not match', '⚠️');
+          if (dom.confirmPasswordInput) dom.confirmPasswordInput.focus();
+          return;
+        }
+        if (newPassword === currentPassword) {
+          showToast('New password must differ from current password', '⚠️');
+          if (dom.newPasswordInput) dom.newPasswordInput.focus();
+          return;
+        }
+
+        const username = state.currentUser ? state.currentUser.username : 'owner';
+        showToast('Verifying and updating password on server...', '⏳');
+
+        try {
+          const res = await fetch('/api/admin/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username,
+              currentPassword,
+              newPassword,
+              confirmPassword
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast('Password changed successfully! Please log in with your new password.', '✓');
+            dom.changePasswordForm.reset();
+            setTimeout(() => {
+              logoutAdmin('Please log in with your new password.');
+            }, 1200);
+          } else {
+            showToast(data.error || 'Failed to update password. Please check your current password.', '⚠️');
+          }
+        } catch (err) {
+          showToast('Error updating password: ' + err.message, '⚠️');
+        }
+      });
+    }
+
+    // Owner Reset Staff Password Form Submission
+    if (dom.ownerStaffResetForm) {
+      dom.ownerStaffResetForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const staffUsername = dom.resetStaffSelect ? dom.resetStaffSelect.value : 'staff';
+        const ownerPassword = dom.ownerAuthPasswordInput ? dom.ownerAuthPasswordInput.value.trim() : '';
+        const newPassword = dom.newStaffPasswordInput ? dom.newStaffPasswordInput.value.trim() : '';
+        const confirmPassword = dom.confirmStaffPasswordInput ? dom.confirmStaffPasswordInput.value.trim() : '';
+
+        if (!ownerPassword) {
+          showToast('Please enter your owner password to authorize staff reset', '⚠️');
+          if (dom.ownerAuthPasswordInput) dom.ownerAuthPasswordInput.focus();
+          return;
+        }
+        if (newPassword.length < 8) {
+          showToast('New staff password must be at least 8 characters long', '⚠️');
+          if (dom.newStaffPasswordInput) dom.newStaffPasswordInput.focus();
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          showToast('Password confirmation does not match', '⚠️');
+          if (dom.confirmStaffPasswordInput) dom.confirmStaffPasswordInput.focus();
+          return;
+        }
+
+        showToast(`Resetting password for "${staffUsername}"...`, '⏳');
+        try {
+          const res = await fetch('/api/admin/reset-staff-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ownerUsername: state.currentUser ? state.currentUser.username : 'owner',
+              ownerPassword,
+              staffUsername,
+              newPassword,
+              confirmPassword
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(data.message || `Password for ${staffUsername} was reset successfully! ✓`);
+            dom.ownerStaffResetForm.reset();
+          } else {
+            showToast(data.error || 'Failed to reset staff password. Check your owner password.', '⚠️');
+          }
+        } catch (err) {
+          showToast('Error resetting staff password: ' + err.message, '⚠️');
+        }
+      });
+    }
 
     // Save Payment Settings form
     if (dom.paymentSettingsForm) {
@@ -2100,6 +2347,15 @@
       });
     }
 
+    // Toggle Category Translations in Editor
+    if (dom.btnToggleCatTrans && dom.catTranslationsCard) {
+      dom.btnToggleCatTrans.addEventListener('click', () => {
+        const isHidden = dom.catTranslationsCard.style.display === 'none';
+        dom.catTranslationsCard.style.display = isHidden ? 'block' : 'none';
+        dom.btnToggleCatTrans.textContent = isHidden ? '− Hide Category Translations' : '+ Add Category Translations (Optional)';
+      });
+    }
+
     // Admin Add New Product Button
     if (dom.openAddProductModalBtn) {
       dom.openAddProductModalBtn.addEventListener('click', () => {
@@ -2107,41 +2363,202 @@
       });
     }
 
-    // Client-side image compression for fast instant adding (< 60KB per photo)
-    function compressImageFile(file, maxWidth = 800, quality = 0.75) {
-      return new Promise((resolve) => {
-        if (!file || !file.type.startsWith('image/')) return resolve(null);
+    // Client-side image compression for high-quality phone photos (~1600px long side, JPEG quality ~0.8)
+    function compressImageForUpload(file, maxDimension = 1600, quality = 0.8) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith('image/')) {
+          return reject(new Error(`"${file ? file.name : 'File'}" is not a valid image. Only JPG, PNG, WebP are supported.`));
+        }
+
         const reader = new FileReader();
         reader.onload = (e) => {
           const img = new Image();
           img.onload = () => {
             let width = img.width;
             let height = img.height;
-            if (width > maxWidth || height > maxWidth) {
-              if (width > height) {
-                height = Math.round((height * maxWidth) / width);
-                width = maxWidth;
+
+            // Scale long side to approx 1600px
+            if (width > maxDimension || height > maxDimension) {
+              if (width >= height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
               } else {
-                width = Math.round((width * maxWidth) / height);
-                height = maxWidth;
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
               }
             }
+
             const canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', quality));
+
+            canvas.toBlob((blob) => {
+              if (!blob) {
+                return reject(new Error('Canvas to Blob conversion failed'));
+              }
+              resolve({
+                blob: blob,
+                name: file.name
+              });
+            }, 'image/jpeg', quality);
           };
-          img.onerror = () => resolve(e.target.result);
+          img.onerror = () => reject(new Error(`Failed to load "${file.name}" for compression`));
           img.src = e.target.result;
         };
-        reader.onerror = () => resolve(null);
+        reader.onerror = () => reject(new Error(`Failed to read "${file.name}"`));
         reader.readAsDataURL(file);
       });
     }
 
-    // Admin Photo Uploader with automatic compression & Cloudinary upload
+    // Upload single photo with XMLHttpRequest progress tracking and Cloudinary error reporting
+    function uploadSinglePhoto(file, onProgress) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const compressed = await compressImageForUpload(file, 1600, 0.8);
+          const formData = new FormData();
+          const sanitizedName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
+          formData.append('file', compressed.blob, sanitizedName);
+          formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
+
+          const endpoint = `https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`;
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', endpoint);
+
+          xhr.upload.onprogress = (evt) => {
+            if (evt.lengthComputable && onProgress) {
+              const pct = Math.round((evt.loaded / evt.total) * 100);
+              onProgress(pct);
+            }
+          };
+
+          xhr.onload = () => {
+            let parsed = null;
+            try {
+              parsed = JSON.parse(xhr.responseText);
+            } catch (e) {
+              parsed = null;
+            }
+
+            if (xhr.status >= 200 && xhr.status < 300 && parsed && parsed.secure_url) {
+              resolve({
+                secure_url: parsed.secure_url,
+                public_id: parsed.public_id || ''
+              });
+            } else {
+              // Log full response & error body
+              console.error(`[CLOUDINARY UPLOAD ERROR] HTTP ${xhr.status}:`, xhr.responseText);
+              const errMsg = (parsed && parsed.error && parsed.error.message)
+                ? parsed.error.message
+                : `Upload rejected (Status ${xhr.status}): ${xhr.statusText || 'Unknown error'}`;
+              reject(new Error(errMsg));
+            }
+          };
+
+          xhr.onerror = () => {
+            console.error('[CLOUDINARY NETWORK ERROR]');
+            reject(new Error('Network error connecting to Cloudinary. Check internet connection.'));
+          };
+
+          xhr.ontimeout = () => {
+            console.error('[CLOUDINARY TIMEOUT ERROR]');
+            reject(new Error('Upload timed out after 30 seconds.'));
+          };
+
+          xhr.timeout = 30000;
+          xhr.send(formData);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    function showUploadErrorBanner(msg, fileToRetry = null) {
+      if (!dom.uploadErrorBanner) return;
+      dom.uploadErrorBanner.style.display = 'flex';
+      dom.uploadErrorBanner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span>⚠️</span>
+          <span><strong>Cloudinary Upload Error:</strong> ${msg}</span>
+        </div>
+        ${fileToRetry ? `<button type="button" class="btn-retry-upload" id="btnRetryFailedPhoto">Retry Upload</button>` : ''}
+      `;
+
+      if (fileToRetry) {
+        const btn = dom.uploadErrorBanner.querySelector('#btnRetryFailedPhoto');
+        if (btn) {
+          btn.addEventListener('click', async () => {
+            dom.uploadErrorBanner.style.display = 'none';
+            await retryFailedPhoto(fileToRetry);
+          });
+        }
+      }
+    }
+
+    function hideUploadErrorBanner() {
+      if (dom.uploadErrorBanner) dom.uploadErrorBanner.style.display = 'none';
+    }
+
+    function updateProgressUI(activeUploads) {
+      if (!dom.uploadProgressList) return;
+      if (activeUploads.length === 0) {
+        dom.uploadProgressList.style.display = 'none';
+        dom.uploadProgressList.innerHTML = '';
+        return;
+      }
+      dom.uploadProgressList.style.display = 'flex';
+      dom.uploadProgressList.innerHTML = activeUploads.map(item => `
+        <div class="upload-progress-item">
+          <div style="display:flex; justify-content:space-between;">
+            <span>${item.name}</span>
+            <span>${item.pct}%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width: ${item.pct}%;"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function retryFailedPhoto(failedItem) {
+      state.isUploadingPhotos = true;
+      if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
+      if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = `Retrying upload for ${failedItem.name}...`;
+      hideUploadErrorBanner();
+
+      const activeUploads = [{ name: failedItem.name, pct: 10 }];
+      updateProgressUI(activeUploads);
+
+      try {
+        const result = await uploadSinglePhoto(failedItem.file, (pct) => {
+          activeUploads[0].pct = pct;
+          updateProgressUI(activeUploads);
+        });
+
+        state.editorPhotos.push({
+          secure_url: result.secure_url,
+          public_id: result.public_id
+        });
+        state.failedUploads = state.failedUploads.filter(f => f !== failedItem);
+        renderEditorThumbnails();
+        showToast(`"${failedItem.name}" uploaded successfully! ✓`);
+      } catch (err) {
+        showUploadErrorBanner(err.message, failedItem);
+        showToast(`Retry failed: ${err.message}`, '⚠️');
+      } finally {
+        updateProgressUI([]);
+        state.isUploadingPhotos = false;
+        if (state.failedUploads.length === 0) {
+          if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
+          if (dom.saveProductBtnText) {
+            dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
+          }
+        }
+      }
+    }
+
+    // Admin Photo Uploader with Multi-file Selection, Parallel Upload & Retry
     if (dom.btnDeviceUpload && dom.editorFileInput) {
       dom.btnDeviceUpload.addEventListener('click', () => {
         dom.editorFileInput.click();
@@ -2151,52 +2568,71 @@
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
 
-        state.isUploadingPhotos = true;
-        if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
-        if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Uploading photo to cloud...';
-        showToast(`Optimizing & uploading ${files.length} photo(s)...`, '⏳');
-
-        try {
-          for (const file of files) {
-            // 1. Instantly compress file so memory footprint is tiny (< 50KB)
-            const compressed = await compressImageFile(file);
-            let finalPhotoUrl = compressed;
-
-            // 2. Upload to Cloudinary in parallel
-            try {
-              const formData = new FormData();
-              formData.append('file', file);
-              formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
-
-              const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`, {
-                method: 'POST',
-                body: formData
-              });
-
-              if (cloudRes.ok) {
-                const cloudData = await cloudRes.json();
-                if (cloudData.secure_url) {
-                  finalPhotoUrl = cloudData.secure_url;
-                }
-              }
-            } catch (cloudErr) {
-              console.warn('[CLOUDINARY NOTICE] Network notice:', cloudErr.message);
-            }
-
-            if (finalPhotoUrl) {
-              state.editorPhotos.push(finalPhotoUrl);
-              renderEditorThumbnails();
-            }
+        // Validate formats
+        const validFiles = [];
+        for (const file of files) {
+          if (!file.type.startsWith('image/')) {
+            showToast(`"${file.name}" is not a valid image file.`, '⚠️');
+            showUploadErrorBanner(`"${file.name}" is not a supported image format. Please select JPG, PNG, or WebP.`);
+            continue;
           }
-        } finally {
-          state.isUploadingPhotos = false;
+          validFiles.push(file);
+        }
+
+        if (validFiles.length === 0) {
+          dom.editorFileInput.value = '';
+          return;
+        }
+
+        state.isUploadingPhotos = true;
+        state.failedUploads = [];
+        hideUploadErrorBanner();
+        if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
+        if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = `Uploading photos (0/${validFiles.length})...`;
+        showToast(`Compressing & uploading ${validFiles.length} photo(s) in parallel...`, '⏳');
+
+        const activeUploads = validFiles.map((f, idx) => ({ id: idx, name: f.name, pct: 0 }));
+        updateProgressUI(activeUploads);
+
+        let completedCount = 0;
+        const uploadTasks = validFiles.map((file, idx) => {
+          return uploadSinglePhoto(file, (pct) => {
+            activeUploads[idx].pct = pct;
+            updateProgressUI(activeUploads);
+          }).then(result => {
+            completedCount++;
+            if (dom.saveProductBtnText) {
+              dom.saveProductBtnText.textContent = `Uploading photos (${completedCount}/${validFiles.length})...`;
+            }
+            state.editorPhotos.push({
+              secure_url: result.secure_url,
+              public_id: result.public_id
+            });
+            renderEditorThumbnails();
+          }).catch(err => {
+            const failedItem = { file, name: file.name, error: err.message };
+            state.failedUploads.push(failedItem);
+            showUploadErrorBanner(err.message, failedItem);
+          });
+        });
+
+        await Promise.allSettled(uploadTasks);
+
+        updateProgressUI([]);
+        state.isUploadingPhotos = false;
+        dom.editorFileInput.value = '';
+
+        if (state.failedUploads.length > 0) {
+          if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
+          if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Resolve failed uploads';
+          showToast(`Cloudinary upload failed for ${state.failedUploads.length} photo(s). Check the error and click Retry.`, '⚠️');
+        } else {
           if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
           if (dom.saveProductBtnText) {
             dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
           }
+          showToast('All photos uploaded successfully to Cloudinary! ✓');
         }
-        dom.editorFileInput.value = '';
-        showToast('Photo(s) ready for publishing!', '✓');
       });
     }
 
@@ -2244,7 +2680,10 @@
       btn.addEventListener('click', () => {
         const preset = btn.getAttribute('data-preset');
         if (preset) {
-          state.editorPhotos.push(preset);
+          state.editorPhotos.push({
+            secure_url: preset,
+            public_id: ''
+          });
           renderEditorThumbnails();
         }
       });
@@ -2298,7 +2737,7 @@
 
     dom.adminProductList.innerHTML = filtered.map(p => {
       const name = getLocString(p.name, state.lang);
-      const img = p.images && p.images[0] ? p.images[0] : 'public/images/storage1.jpg';
+      const img = p.images && p.images[0] ? getImgSrc(p.images[0]) : 'public/images/storage1.jpg';
       const inStock = p.inStock !== false;
 
       return `
@@ -2342,6 +2781,7 @@
           try {
             localStorage.setItem('hom_products', JSON.stringify(state.products));
           } catch (e) {}
+          renderCategories();
           renderProducts();
           renderAdminProducts();
           showToast(`${getLocString(prod.name, state.lang)} is now ${chk.checked ? 'In Stock' : 'Out of Stock'}`);
@@ -2391,12 +2831,14 @@
               state.products = state.products.filter(p => p.id !== id);
             }
             localStorage.setItem('hom_products', JSON.stringify(state.products));
+            renderCategories();
             renderProducts();
             renderAdminProducts();
-            showToast('Product permanently deleted from all devices! ✓');
+            showToast('Product permanently deleted! ✓');
           } catch (e) {
             state.products = state.products.filter(p => p.id !== id);
             localStorage.setItem('hom_products', JSON.stringify(state.products));
+            renderCategories();
             renderProducts();
             renderAdminProducts();
             showToast('Product removed locally', 'ℹ️');
@@ -2408,6 +2850,11 @@
 
   function openProductEditor(productToEdit) {
     state.editorPhotos = [];
+    state.failedUploads = [];
+    hideUploadErrorBanner();
+    updateProgressUI([]);
+
+    updateCategorySuggestions();
 
     if (productToEdit) {
       // EDIT MODE
@@ -2415,7 +2862,22 @@
       if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Save Changes';
       if (dom.editProductId) dom.editProductId.value = productToEdit.id;
       if (dom.editorProdName) dom.editorProdName.value = getLocString(productToEdit.name, 'en');
-      if (dom.editorProdCategory) dom.editorProdCategory.value = productToEdit.category || 'home';
+      if (dom.editorProdCategory) dom.editorProdCategory.value = productToEdit.category || '';
+      
+      if (productToEdit.categoryTranslations) {
+        if (dom.editorCatAm) dom.editorCatAm.value = productToEdit.categoryTranslations.am || '';
+        if (dom.editorCatOm) dom.editorCatOm.value = productToEdit.categoryTranslations.om || '';
+        if (dom.editorCatEn) dom.editorCatEn.value = productToEdit.categoryTranslations.en || '';
+        if (dom.catTranslationsCard) dom.catTranslationsCard.style.display = 'block';
+        if (dom.btnToggleCatTrans) dom.btnToggleCatTrans.textContent = '− Hide Category Translations';
+      } else {
+        if (dom.editorCatAm) dom.editorCatAm.value = '';
+        if (dom.editorCatOm) dom.editorCatOm.value = '';
+        if (dom.editorCatEn) dom.editorCatEn.value = '';
+        if (dom.catTranslationsCard) dom.catTranslationsCard.style.display = 'none';
+        if (dom.btnToggleCatTrans) dom.btnToggleCatTrans.textContent = '+ Add Category Translations (Optional)';
+      }
+
       if (dom.editorProdPrice) dom.editorProdPrice.value = productToEdit.price;
       if (dom.editorProdDesc) dom.editorProdDesc.value = getLocString(productToEdit.fullDesc || productToEdit.spec, 'en');
       if (dom.editorProdInStock) dom.editorProdInStock.checked = productToEdit.inStock !== false;
@@ -2426,12 +2888,17 @@
       if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Publish Product';
       if (dom.editProductId) dom.editProductId.value = '';
       if (dom.productEditorForm) dom.productEditorForm.reset();
+      if (dom.editorCatAm) dom.editorCatAm.value = '';
+      if (dom.editorCatOm) dom.editorCatOm.value = '';
+      if (dom.editorCatEn) dom.editorCatEn.value = '';
+      if (dom.catTranslationsCard) dom.catTranslationsCard.style.display = 'none';
+      if (dom.btnToggleCatTrans) dom.btnToggleCatTrans.textContent = '+ Add Category Translations (Optional)';
       if (dom.editorProdInStock) dom.editorProdInStock.checked = true;
-      state.editorPhotos = ['public/images/storage1.jpg'];
+      state.editorPhotos = [];
     }
 
+    if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
     renderEditorThumbnails();
-
     openElement(dom.productEditorBackdrop);
   }
 
@@ -2444,20 +2911,76 @@
     if (state.editorPhotos.length === 0) {
       dom.editorThumbnailsGrid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 12px;">
-          No photos selected. Click "📁 Upload Photo from Device" to pick images.
+          No photos selected. Click "📁 Upload Photos from Device" to pick images.
         </div>
       `;
       return;
     }
 
-    dom.editorThumbnailsGrid.innerHTML = state.editorPhotos.map((img, i) => `
-      <div class="thumb-preview-card" data-idx="${i}">
-        <img src="${img}" alt="Preview ${i + 1}" class="thumb-preview-img">
-        <button type="button" class="thumb-delete-btn" data-idx="${i}" title="Remove Photo">✕</button>
-      </div>
-    `).join('');
+    dom.editorThumbnailsGrid.innerHTML = state.editorPhotos.map((photo, i) => {
+      const url = getImgSrc(photo);
+      const isCover = i === 0;
 
-    dom.editorThumbnailsGrid.querySelectorAll('.thumb-delete-btn').forEach(btn => {
+      return `
+        <div class="thumb-preview-card ${isCover ? 'is-cover' : ''}" data-idx="${i}">
+          ${isCover ? '<span class="thumb-cover-badge">★ Cover</span>' : ''}
+          <img src="${url}" alt="Preview ${i + 1}" class="thumb-preview-img">
+          <div class="thumb-actions-bar">
+            <div style="display:flex; gap:2px;">
+              ${i > 0 ? `<button type="button" class="thumb-btn-mini btn-move-left" data-idx="${i}" title="Move Left">◀</button>` : ''}
+              ${i < state.editorPhotos.length - 1 ? `<button type="button" class="thumb-btn-mini btn-move-right" data-idx="${i}" title="Move Right">▶</button>` : ''}
+              ${!isCover ? `<button type="button" class="thumb-btn-mini thumb-btn-cover btn-set-cover" data-idx="${i}" title="Set as Main Cover">★ Cover</button>` : ''}
+            </div>
+            <button type="button" class="thumb-btn-mini thumb-btn-delete btn-delete-photo" data-idx="${i}" title="Remove Photo">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Reorder Left
+    dom.editorThumbnailsGrid.querySelectorAll('.btn-move-left').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (idx > 0) {
+          const temp = state.editorPhotos[idx];
+          state.editorPhotos[idx] = state.editorPhotos[idx - 1];
+          state.editorPhotos[idx - 1] = temp;
+          renderEditorThumbnails();
+        }
+      });
+    });
+
+    // Reorder Right
+    dom.editorThumbnailsGrid.querySelectorAll('.btn-move-right').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (idx < state.editorPhotos.length - 1) {
+          const temp = state.editorPhotos[idx];
+          state.editorPhotos[idx] = state.editorPhotos[idx + 1];
+          state.editorPhotos[idx + 1] = temp;
+          renderEditorThumbnails();
+        }
+      });
+    });
+
+    // Set as Cover (Moves to position 0)
+    dom.editorThumbnailsGrid.querySelectorAll('.btn-set-cover').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        if (idx > 0) {
+          const item = state.editorPhotos.splice(idx, 1)[0];
+          state.editorPhotos.unshift(item);
+          renderEditorThumbnails();
+          showToast('Cover photo updated! (First photo is the main storefront cover)');
+        }
+      });
+    });
+
+    // Delete Photo
+    dom.editorThumbnailsGrid.querySelectorAll('.btn-delete-photo').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const idx = parseInt(btn.getAttribute('data-idx'), 10);
@@ -2475,18 +2998,59 @@
       return;
     }
 
+    if (state.failedUploads.length > 0) {
+      showToast('Please resolve or retry failed photo uploads before saving', '⚠️');
+      return;
+    }
+
     const id = dom.editProductId ? dom.editProductId.value : '';
     const name = (dom.editorProdName ? dom.editorProdName.value : '').trim();
-    const category = dom.editorProdCategory ? dom.editorProdCategory.value : 'home';
+    const categoryRaw = (dom.editorProdCategory ? dom.editorProdCategory.value : '').trim();
     const price = dom.editorProdPrice ? parseFloat(dom.editorProdPrice.value) : 0;
     const desc = (dom.editorProdDesc ? dom.editorProdDesc.value : '').trim();
     const inStock = dom.editorProdInStock ? dom.editorProdInStock.checked : true;
-    const photos = state.editorPhotos.length > 0 ? state.editorPhotos : ['public/images/storage1.jpg'];
 
-    if (!name || isNaN(price) || price <= 0) {
-      showToast('Please provide a valid product name and price', '⚠️');
+    if (!name) {
+      showToast('Product name is required', '⚠️');
+      if (dom.editorProdName) dom.editorProdName.focus();
       return;
     }
+
+    if (!categoryRaw) {
+      showToast('Category is required. Please type a category name.', '⚠️');
+      if (dom.editorProdCategory) dom.editorProdCategory.focus();
+      return;
+    }
+
+    if (isNaN(price) || price <= 0) {
+      showToast('Please provide a valid price in ETB', '⚠️');
+      if (dom.editorProdPrice) dom.editorProdPrice.focus();
+      return;
+    }
+
+    const catAm = (dom.editorCatAm ? dom.editorCatAm.value : '').trim();
+    const catOm = (dom.editorCatOm ? dom.editorCatOm.value : '').trim();
+    const catEn = (dom.editorCatEn ? dom.editorCatEn.value : '').trim();
+
+    const categoryTranslations = (catAm || catOm || catEn) ? {
+      en: catEn || categoryRaw,
+      am: catAm || categoryRaw,
+      om: catOm || categoryRaw
+    } : null;
+
+    // Preserve all secure_url values in order
+    const photos = state.editorPhotos.length > 0 ? state.editorPhotos.map(p => {
+      if (typeof p === 'object' && p) {
+        return {
+          secure_url: p.secure_url || p.url,
+          public_id: p.public_id || ''
+        };
+      }
+      return {
+        secure_url: p,
+        public_id: ''
+      };
+    }) : [{ secure_url: 'public/images/storage1.jpg', public_id: '' }];
 
     state.isSavingProduct = true;
     if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
@@ -2499,7 +3063,8 @@
       // Update existing
       const existing = state.products.find(p => p.id === id);
       if (existing) {
-        existing.category = category;
+        existing.category = categoryRaw;
+        existing.categoryTranslations = categoryTranslations;
         existing.price = price;
         existing.inStock = inStock;
         existing.images = photos;
@@ -2512,7 +3077,8 @@
       // Create new
       const newProd = {
         id: 'prod-' + Date.now(),
-        category: category,
+        category: categoryRaw,
+        categoryTranslations: categoryTranslations,
         price: price,
         inStock: inStock,
         images: photos,
@@ -2526,8 +3092,10 @@
     }
 
     // Instantly update views optimistically
+    renderCategories();
     renderProducts();
     renderAdminProducts();
+    updateCategorySuggestions();
 
     try {
       localStorage.setItem('hom_products', JSON.stringify(state.products));
@@ -2560,6 +3128,7 @@
           try {
             localStorage.setItem('hom_products', JSON.stringify(state.products));
           } catch (e) {}
+          renderCategories();
           renderProducts();
           renderAdminProducts();
         }
@@ -2576,6 +3145,7 @@
       if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = id ? 'Save Changes' : 'Publish Product';
       closeProductEditor();
     }
+  }
   }
 
   async function fetchAdminOrders() {

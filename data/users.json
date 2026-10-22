@@ -1,0 +1,16 @@
+[
+  {
+    "id": "usr-owner",
+    "username": "owner",
+    "name": "Store Owner (ሁሴን)",
+    "role": "owner",
+    "passwordHash": "5a415a786377317265616c6861736831:1a7940e4f165975b9f936b85d38865f123d463efcf4bc1ad2e77e2dc550b07b39f69ce8737c0500beadca2e4004a441e88e89cf39943260c6d7d42cf38a44b1c"
+  },
+  {
+    "id": "usr-staff",
+    "username": "staff",
+    "name": "Staff Member",
+    "role": "staff",
+    "passwordHash": "737461666673616c7431323334353637:d06da48d56966601ea187b8979ee050d2bc436fc7d581292fa1f753c15aa314eb37efebcb16faeb08bc176d6350f2aa6f2023a17ca82c9e78a63ae841dfc45f4"
+  }
+]

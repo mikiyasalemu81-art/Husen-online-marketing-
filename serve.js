@@ -45,6 +45,7 @@ console.log('[CONFIG] UPLOAD_PRESET (Cloudinary):', UPLOAD_PRESET);
 console.log('[CONFIG] OWNER_CHAT_PHONE (Telegram / Direct Call):', OWNER_CHAT_PHONE);
 
 const { getStoreData, saveStoreData } = require('./api/cloudStorage.js');
+const { hashPassword, verifyPassword, getDefaultUsers, sanitizeUser } = require('./api/authHelper.js');
 
 // ==========================================================================
 // 2. PERSISTENT STORAGE: PRODUCTS & SETTINGS
@@ -405,6 +406,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;");
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -435,10 +437,12 @@ const server = http.createServer(async (req, res) => {
         }
 
         const id = newProd.id || ('prod-' + Date.now());
+        const trimmedCat = (newProd.category || 'home').trim();
         const product = {
           id: id,
-          category: newProd.category || 'home',
+          category: trimmedCat,
           secondaryCategory: newProd.secondaryCategory || '',
+          categoryTranslations: newProd.categoryTranslations || null,
           price: Number(newProd.price),
           inStock: newProd.inStock !== false,
           images: Array.isArray(newProd.images) && newProd.images.length > 0 ? newProd.images : ['public/images/storage1.jpg'],
@@ -470,9 +474,15 @@ const server = http.createServer(async (req, res) => {
           updatedList = [product, ...store.products];
         }
 
+        // Auto-register category translations if provided
+        let updatedCategories = { ...(store.categories || {}) };
+        if (newProd.categoryTranslations) {
+          updatedCategories[trimmedCat.toLowerCase()] = newProd.categoryTranslations;
+        }
+
         productsCache = updatedList;
         saveProducts(productsCache);
-        const saved = await saveStoreData({ products: updatedList });
+        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
 
         res.writeHead(201, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, product, products: saved.products, updatedAt: saved.updatedAt }));
@@ -500,10 +510,13 @@ const server = http.createServer(async (req, res) => {
         }
 
         const existing = store.products[idx];
+        const trimmedCat = updateData.category !== undefined ? String(updateData.category).trim() : existing.category;
         const updated = {
           ...existing,
           ...updateData,
           id: prodId,
+          category: trimmedCat,
+          categoryTranslations: updateData.categoryTranslations !== undefined ? updateData.categoryTranslations : existing.categoryTranslations,
           price: updateData.price !== undefined ? Number(updateData.price) : existing.price,
           inStock: updateData.inStock !== undefined ? Boolean(updateData.inStock) : existing.inStock,
           images: Array.isArray(updateData.images) && updateData.images.length > 0 ? updateData.images : existing.images
@@ -523,9 +536,14 @@ const server = http.createServer(async (req, res) => {
         const updatedList = [...store.products];
         updatedList[idx] = updated;
 
+        let updatedCategories = { ...(store.categories || {}) };
+        if (updateData.categoryTranslations) {
+          updatedCategories[trimmedCat.toLowerCase()] = updateData.categoryTranslations;
+        }
+
         productsCache = updatedList;
         saveProducts(productsCache);
-        const saved = await saveStoreData({ products: updatedList });
+        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, product: updated, products: saved.products, updatedAt: saved.updatedAt }));
@@ -608,13 +626,151 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // --- API ROUTE: Admin Verify Login Password ---
+  // --- API ROUTE: Categories Store ---
+  if (pathname === '/api/categories') {
+    if (req.method === 'GET') {
+      const store = await getStoreData();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, categories: store.categories || {} }));
+      return;
+    }
+    if (req.method === 'POST') {
+      try {
+        const newCats = await readRequestBody(req);
+        const store = await getStoreData(false);
+        const merged = { ...(store.categories || {}), ...newCats };
+        await saveStoreData({ categories: merged });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, categories: merged }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+      return;
+    }
+  }
+
+  // --- API ROUTE: Cloudinary Server Signing (Secrets stay on server) ---
+  if (req.method === 'POST' && pathname === '/api/cloudinary/sign') {
+    try {
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+
+      if (!apiSecret || !apiKey) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          signed: false,
+          cloudName: CLOUD_NAME,
+          uploadPreset: UPLOAD_PRESET
+        }));
+        return;
+      }
+
+      const body = await readRequestBody(req);
+      const timestamp = Math.round(Date.now() / 1000);
+      const paramsToSign = {
+        timestamp: timestamp,
+        ...(body.params || {})
+      };
+
+      const sortedKeys = Object.keys(paramsToSign).sort();
+      const toSign = sortedKeys.map(k => `${k}=${paramsToSign[k]}`).join('&');
+      const crypto = require('crypto');
+      const signature = crypto.createHash('sha1').update(toSign + apiSecret).digest('hex');
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        signed: true,
+        signature,
+        timestamp,
+        apiKey,
+        cloudName: CLOUD_NAME
+      }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  // --- API ROUTE: Admin Login (Hashed Password on Server) ---
+  if (req.method === 'POST' && pathname === '/api/admin/login') {
+    try {
+      const body = await readRequestBody(req);
+      const password = (body.password || '').trim();
+      const username = (body.username || '').trim().toLowerCase();
+
+      if (!password) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Password is required' }));
+        return;
+      }
+
+      const store = await getStoreData();
+      const users = store.users && store.users.length > 0 ? store.users : getDefaultUsers();
+
+      let matchedUser = null;
+      if (username) {
+        matchedUser = users.find(u => u.username.toLowerCase() === username);
+      } else {
+        // Fallback: match by password against owner first, then staff
+        for (const u of users) {
+          if (verifyPassword(password, u.passwordHash)) {
+            matchedUser = u;
+            break;
+          }
+        }
+      }
+
+      // Legacy fallback check for ADMIN_PASSWORD env
+      const isLegacyOwner = (!matchedUser || matchedUser.role === 'owner') && password === ADMIN_PASSWORD;
+
+      if ((matchedUser && verifyPassword(password, matchedUser.passwordHash)) || isLegacyOwner) {
+        const userObj = matchedUser ? sanitizeUser(matchedUser) : { id: 'usr-owner', username: 'owner', name: 'Store Owner', role: 'owner' };
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          user: userObj
+        }));
+      } else {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Incorrect username or password' }));
+      }
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  // --- API ROUTE: Admin Verify Login Password (Backwards Compatibility) ---
   if (req.method === 'POST' && pathname === '/api/admin/verify') {
     try {
       const body = await readRequestBody(req);
-      if (body.password === ADMIN_PASSWORD) {
+      const password = (body.password || '').trim();
+      const username = (body.username || '').trim().toLowerCase();
+
+      const store = await getStoreData();
+      const users = store.users && store.users.length > 0 ? store.users : getDefaultUsers();
+
+      let matchedUser = null;
+      if (username) {
+        matchedUser = users.find(u => u.username.toLowerCase() === username);
+      } else {
+        for (const u of users) {
+          if (verifyPassword(password, u.passwordHash)) {
+            matchedUser = u;
+            break;
+          }
+        }
+      }
+
+      const isLegacyMatch = password === ADMIN_PASSWORD;
+
+      if ((matchedUser && verifyPassword(password, matchedUser.passwordHash)) || isLegacyMatch) {
+        const userObj = matchedUser ? sanitizeUser(matchedUser) : { id: 'usr-owner', username: 'owner', name: 'Store Owner', role: 'owner' };
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true }));
+        res.end(JSON.stringify({ success: true, user: userObj }));
       } else {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: 'Incorrect password' }));
@@ -623,6 +779,172 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: false, error: err.message }));
     }
+    return;
+  }
+
+  // --- API ROUTE: Change Password ---
+  if (req.method === 'POST' && pathname === '/api/admin/change-password') {
+    try {
+      const body = await readRequestBody(req);
+      const username = (body.username || '').trim().toLowerCase();
+      const currentPassword = (body.currentPassword || '').trim();
+      const newPassword = (body.newPassword || '').trim();
+      const confirmPassword = (body.confirmPassword || '').trim();
+
+      if (!username) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Username is required' }));
+        return;
+      }
+      if (!currentPassword) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Current password is required' }));
+        return;
+      }
+      if (!newPassword || newPassword.length < 8) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'New password must be at least 8 characters long' }));
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'New password and confirmation do not match' }));
+        return;
+      }
+      if (newPassword === currentPassword) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'New password must differ from current password' }));
+        return;
+      }
+
+      const store = await getStoreData(false);
+      let users = Array.isArray(store.users) && store.users.length > 0 ? [...store.users] : getDefaultUsers();
+      const userIndex = users.findIndex(u => u.username.toLowerCase() === username);
+
+      if (userIndex === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'User account not found' }));
+        return;
+      }
+
+      const user = users[userIndex];
+      // Verify current password first (or legacy env match for owner)
+      const isCurrentValid = verifyPassword(currentPassword, user.passwordHash) ||
+                             (user.role === 'owner' && currentPassword === ADMIN_PASSWORD);
+
+      if (!isCurrentValid) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Current password is incorrect' }));
+        return;
+      }
+
+      // Hash new password securely
+      const newHash = hashPassword(newPassword);
+      users[userIndex] = {
+        ...user,
+        passwordHash: newHash,
+        updatedAt: Date.now()
+      };
+
+      await saveStoreData({ users });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        message: 'Password changed successfully. Please log in again.'
+      }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  // --- API ROUTE: Reset Staff Password (Owner Only) ---
+  if (req.method === 'POST' && pathname === '/api/admin/reset-staff-password') {
+    try {
+      const body = await readRequestBody(req);
+      const ownerUsername = (body.ownerUsername || 'owner').trim().toLowerCase();
+      const ownerPassword = (body.ownerPassword || '').trim();
+      const staffUsername = (body.staffUsername || '').trim().toLowerCase();
+      const newPassword = (body.newPassword || '').trim();
+      const confirmPassword = (body.confirmPassword || '').trim();
+
+      if (!ownerPassword) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Owner password is required to authorize staff reset' }));
+        return;
+      }
+      if (!staffUsername) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Staff username is required' }));
+        return;
+      }
+      if (!newPassword || newPassword.length < 8) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'New password must be at least 8 characters long' }));
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Password confirmation does not match' }));
+        return;
+      }
+
+      const store = await getStoreData(false);
+      let users = Array.isArray(store.users) && store.users.length > 0 ? [...store.users] : getDefaultUsers();
+
+      // Verify owner
+      const ownerUser = users.find(u => u.username.toLowerCase() === ownerUsername && u.role === 'owner');
+      const isOwnerValid = (ownerUser && verifyPassword(ownerPassword, ownerUser.passwordHash)) ||
+                           ownerPassword === ADMIN_PASSWORD;
+
+      if (!isOwnerValid) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Invalid owner credentials' }));
+        return;
+      }
+
+      // Verify target staff
+      const staffIndex = users.findIndex(u => u.username.toLowerCase() === staffUsername);
+      if (staffIndex === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: `Staff account "${staffUsername}" not found` }));
+        return;
+      }
+
+      if (users[staffIndex].role === 'owner') {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Owner password must be changed via Change Password' }));
+        return;
+      }
+
+      users[staffIndex] = {
+        ...users[staffIndex],
+        passwordHash: hashPassword(newPassword),
+        updatedAt: Date.now()
+      };
+
+      await saveStoreData({ users });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        message: `Password for staff member "${staffUsername}" was reset successfully.`
+      }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  // --- API ROUTE: List Admin Users (Public Info Only) ---
+  if (req.method === 'GET' && pathname === '/api/admin/users') {
+    const store = await getStoreData();
+    const users = (store.users || getDefaultUsers()).map(sanitizeUser);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, users }));
     return;
   }
 

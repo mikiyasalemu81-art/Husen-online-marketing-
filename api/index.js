@@ -10,6 +10,7 @@ const UPLOAD_PRESET = process.env.UPLOAD_PRESET || 'Husenonlinemarketing';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'husenonlinemarketing1234';
 
 const { getStoreData, saveStoreData } = require('./cloudStorage.js');
+const { hashPassword, verifyPassword, getDefaultUsers, sanitizeUser } = require('./authHelper.js');
 
 // Default initial products
 const DEFAULT_PRODUCTS = [
@@ -370,6 +371,7 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;");
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -393,10 +395,12 @@ module.exports = async function handler(req, res) {
           return res.status(400).json({ success: false, error: 'Product name and price are required' });
         }
         const id = newProd.id || ('prod-' + Date.now());
+        const trimmedCat = (newProd.category || 'home').trim();
         const product = {
           id: id,
-          category: newProd.category || 'home',
+          category: trimmedCat,
           secondaryCategory: newProd.secondaryCategory || '',
+          categoryTranslations: newProd.categoryTranslations || null,
           price: Number(newProd.price),
           inStock: newProd.inStock !== false,
           images: Array.isArray(newProd.images) && newProd.images.length > 0 ? newProd.images : ['public/images/storage1.jpg'],
@@ -416,7 +420,12 @@ module.exports = async function handler(req, res) {
           updatedList = [product, ...store.products];
         }
 
-        const saved = await saveStoreData({ products: updatedList });
+        let updatedCategories = { ...(store.categories || {}) };
+        if (newProd.categoryTranslations) {
+          updatedCategories[trimmedCat.toLowerCase()] = newProd.categoryTranslations;
+        }
+
+        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
         return res.status(201).json({ success: true, product, products: saved.products, updatedAt: saved.updatedAt });
       } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
@@ -437,10 +446,13 @@ module.exports = async function handler(req, res) {
         }
 
         const existing = store.products[idx];
+        const trimmedCat = updateData.category !== undefined ? String(updateData.category).trim() : existing.category;
         const updated = {
           ...existing,
           ...updateData,
           id: prodId,
+          category: trimmedCat,
+          categoryTranslations: updateData.categoryTranslations !== undefined ? updateData.categoryTranslations : existing.categoryTranslations,
           price: updateData.price !== undefined ? Number(updateData.price) : existing.price,
           inStock: updateData.inStock !== undefined ? Boolean(updateData.inStock) : existing.inStock,
           images: Array.isArray(updateData.images) && updateData.images.length > 0 ? updateData.images : existing.images
@@ -459,7 +471,12 @@ module.exports = async function handler(req, res) {
         const updatedList = [...store.products];
         updatedList[idx] = updated;
 
-        const saved = await saveStoreData({ products: updatedList });
+        let updatedCategories = { ...(store.categories || {}) };
+        if (updateData.categoryTranslations) {
+          updatedCategories[trimmedCat.toLowerCase()] = updateData.categoryTranslations;
+        }
+
+        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
         return res.status(200).json({ success: true, product: updated, products: saved.products, updatedAt: saved.updatedAt });
       } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
@@ -517,18 +534,264 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // --- API ROUTE: Admin Verify Login Password ---
+  // --- API ROUTE: Categories ---
+  if (pathname === '/api/categories') {
+    if (req.method === 'GET') {
+      const store = await getStoreData();
+      return res.status(200).json({ success: true, categories: store.categories || {} });
+    }
+    if (req.method === 'POST') {
+      try {
+        const newCats = await getRequestBody(req);
+        const store = await getStoreData(false);
+        const merged = { ...(store.categories || {}), ...newCats };
+        await saveStoreData({ categories: merged });
+        return res.status(200).json({ success: true, categories: merged });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+      }
+    }
+  }
+
+  // --- API ROUTE: Cloudinary Server Signing (Secrets stay on server) ---
+  if (pathname === '/api/cloudinary/sign' && req.method === 'POST') {
+    try {
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+
+      if (!apiSecret || !apiKey) {
+        return res.status(200).json({
+          signed: false,
+          cloudName: CLOUD_NAME,
+          uploadPreset: UPLOAD_PRESET
+        });
+      }
+
+      const body = await getRequestBody(req);
+      const timestamp = Math.round(Date.now() / 1000);
+      const paramsToSign = {
+        timestamp: timestamp,
+        ...(body.params || {})
+      };
+
+      const sortedKeys = Object.keys(paramsToSign).sort();
+      const toSign = sortedKeys.map(k => `${k}=${paramsToSign[k]}`).join('&');
+      const crypto = require('crypto');
+      const signature = crypto.createHash('sha1').update(toSign + apiSecret).digest('hex');
+
+      return res.status(200).json({
+        signed: true,
+        signature,
+        timestamp,
+        apiKey,
+        cloudName: CLOUD_NAME
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // --- API ROUTE: Admin Login (Hashed Password on Server) ---
+  if (pathname === '/api/admin/login' && req.method === 'POST') {
+    try {
+      const body = await getRequestBody(req);
+      const password = (body.password || '').trim();
+      const username = (body.username || '').trim().toLowerCase();
+
+      if (!password) {
+        return res.status(400).json({ success: false, error: 'Password is required' });
+      }
+
+      const store = await getStoreData();
+      const users = store.users && store.users.length > 0 ? store.users : getDefaultUsers();
+
+      let matchedUser = null;
+      if (username) {
+        matchedUser = users.find(u => u.username.toLowerCase() === username);
+      } else {
+        for (const u of users) {
+          if (verifyPassword(password, u.passwordHash)) {
+            matchedUser = u;
+            break;
+          }
+        }
+      }
+
+      const isLegacyOwner = (!matchedUser || matchedUser.role === 'owner') && password === ADMIN_PASSWORD;
+
+      if ((matchedUser && verifyPassword(password, matchedUser.passwordHash)) || isLegacyOwner) {
+        const userObj = matchedUser ? sanitizeUser(matchedUser) : { id: 'usr-owner', username: 'owner', name: 'Store Owner', role: 'owner' };
+        return res.status(200).json({
+          success: true,
+          user: userObj
+        });
+      } else {
+        return res.status(401).json({ success: false, error: 'Incorrect username or password' });
+      }
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // --- API ROUTE: Admin Verify Login Password (Backwards Compatibility) ---
   if (pathname === '/api/admin/verify' && req.method === 'POST') {
     try {
       const body = await getRequestBody(req);
-      if (body.password === ADMIN_PASSWORD) {
-        return res.status(200).json({ success: true });
+      const password = (body.password || '').trim();
+      const username = (body.username || '').trim().toLowerCase();
+
+      const store = await getStoreData();
+      const users = store.users && store.users.length > 0 ? store.users : getDefaultUsers();
+
+      let matchedUser = null;
+      if (username) {
+        matchedUser = users.find(u => u.username.toLowerCase() === username);
+      } else {
+        for (const u of users) {
+          if (verifyPassword(password, u.passwordHash)) {
+            matchedUser = u;
+            break;
+          }
+        }
+      }
+
+      const isLegacyMatch = password === ADMIN_PASSWORD;
+
+      if ((matchedUser && verifyPassword(password, matchedUser.passwordHash)) || isLegacyMatch) {
+        const userObj = matchedUser ? sanitizeUser(matchedUser) : { id: 'usr-owner', username: 'owner', name: 'Store Owner', role: 'owner' };
+        return res.status(200).json({ success: true, user: userObj });
       } else {
         return res.status(401).json({ success: false, error: 'Incorrect password' });
       }
     } catch (err) {
       return res.status(500).json({ success: false, error: err.message });
     }
+  }
+
+  // --- API ROUTE: Change Password ---
+  if (pathname === '/api/admin/change-password' && req.method === 'POST') {
+    try {
+      const body = await getRequestBody(req);
+      const username = (body.username || '').trim().toLowerCase();
+      const currentPassword = (body.currentPassword || '').trim();
+      const newPassword = (body.newPassword || '').trim();
+      const confirmPassword = (body.confirmPassword || '').trim();
+
+      if (!username) {
+        return res.status(400).json({ success: false, error: 'Username is required' });
+      }
+      if (!currentPassword) {
+        return res.status(400).json({ success: false, error: 'Current password is required' });
+      }
+      if (!newPassword || newPassword.length < 8) {
+        return res.status(400).json({ success: false, error: 'New password must be at least 8 characters long' });
+      }
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ success: false, error: 'New password and confirmation do not match' });
+      }
+      if (newPassword === currentPassword) {
+        return res.status(400).json({ success: false, error: 'New password must differ from current password' });
+      }
+
+      const store = await getStoreData(false);
+      let users = Array.isArray(store.users) && store.users.length > 0 ? [...store.users] : getDefaultUsers();
+      const userIndex = users.findIndex(u => u.username.toLowerCase() === username);
+
+      if (userIndex === -1) {
+        return res.status(404).json({ success: false, error: 'User account not found' });
+      }
+
+      const user = users[userIndex];
+      const isCurrentValid = verifyPassword(currentPassword, user.passwordHash) ||
+                             (user.role === 'owner' && currentPassword === ADMIN_PASSWORD);
+
+      if (!isCurrentValid) {
+        return res.status(401).json({ success: false, error: 'Current password is incorrect' });
+      }
+
+      const newHash = hashPassword(newPassword);
+      users[userIndex] = {
+        ...user,
+        passwordHash: newHash,
+        updatedAt: Date.now()
+      };
+
+      await saveStoreData({ users });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Password changed successfully. Please log in again.'
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // --- API ROUTE: Reset Staff Password (Owner Only) ---
+  if (pathname === '/api/admin/reset-staff-password' && req.method === 'POST') {
+    try {
+      const body = await getRequestBody(req);
+      const ownerUsername = (body.ownerUsername || 'owner').trim().toLowerCase();
+      const ownerPassword = (body.ownerPassword || '').trim();
+      const staffUsername = (body.staffUsername || '').trim().toLowerCase();
+      const newPassword = (body.newPassword || '').trim();
+      const confirmPassword = (body.confirmPassword || '').trim();
+
+      if (!ownerPassword) {
+        return res.status(400).json({ success: false, error: 'Owner password is required to authorize staff reset' });
+      }
+      if (!staffUsername) {
+        return res.status(400).json({ success: false, error: 'Staff username is required' });
+      }
+      if (!newPassword || newPassword.length < 8) {
+        return res.status(400).json({ success: false, error: 'New password must be at least 8 characters long' });
+      }
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ success: false, error: 'Password confirmation does not match' });
+      }
+
+      const store = await getStoreData(false);
+      let users = Array.isArray(store.users) && store.users.length > 0 ? [...store.users] : getDefaultUsers();
+
+      const ownerUser = users.find(u => u.username.toLowerCase() === ownerUsername && u.role === 'owner');
+      const isOwnerValid = (ownerUser && verifyPassword(ownerPassword, ownerUser.passwordHash)) ||
+                           ownerPassword === ADMIN_PASSWORD;
+
+      if (!isOwnerValid) {
+        return res.status(403).json({ success: false, error: 'Invalid owner credentials' });
+      }
+
+      const staffIndex = users.findIndex(u => u.username.toLowerCase() === staffUsername);
+      if (staffIndex === -1) {
+        return res.status(404).json({ success: false, error: `Staff account "${staffUsername}" not found` });
+      }
+
+      if (users[staffIndex].role === 'owner') {
+        return res.status(403).json({ success: false, error: 'Owner password must be changed via Change Password' });
+      }
+
+      users[staffIndex] = {
+        ...users[staffIndex],
+        passwordHash: hashPassword(newPassword),
+        updatedAt: Date.now()
+      };
+
+      await saveStoreData({ users });
+
+      return res.status(200).json({
+        success: true,
+        message: `Password for staff member "${staffUsername}" was reset successfully.`
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  // --- API ROUTE: List Admin Users ---
+  if (pathname === '/api/admin/users' && req.method === 'GET') {
+    const store = await getStoreData();
+    const users = (store.users || getDefaultUsers()).map(sanitizeUser);
+    return res.status(200).json({ success: true, users });
   }
 
   // --- API ROUTE: Test SMS Dispatch to 0907173634 ---

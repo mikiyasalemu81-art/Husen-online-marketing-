@@ -1,7 +1,7 @@
 /**
  * HUSEN ONLINE MARKETING — Zero-Config Cloud Persistence Engine
- * Seamlessly synchronizes products and payment settings across all devices
- * on Vercel Serverless Functions and Local Node Server.
+ * Seamlessly synchronizes products, payment settings, user accounts and categories
+ * across all devices on Vercel Serverless Functions and Local Node Server.
  * 
  * Uses Cloudinary Raw Manifest Storage (unlimited size, CDN-cached) +
  * Global Real-Time Key-Value Pointer Index for instant cross-device updates.
@@ -10,6 +10,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { getDefaultUsers } = require('./authHelper.js');
 
 const CLOUD_NAME = process.env.CLOUD_NAME || 'trkihe9m';
 const UPLOAD_PRESET = process.env.UPLOAD_PRESET || 'Husenonlinemarketing';
@@ -18,11 +19,15 @@ const POINTER_KEY = 'products_manifest_url';
 
 const LOCAL_PRODUCTS_FILE = path.join(__dirname, '..', 'data', 'products.json');
 const LOCAL_SETTINGS_FILE = path.join(__dirname, '..', 'data', 'settings.json');
+const LOCAL_USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const LOCAL_CATEGORIES_FILE = path.join(__dirname, '..', 'data', 'categories.json');
 
 // In-memory cache for ultra-fast responses
 let memoryCache = {
   products: null,
   settings: null,
+  users: null,
+  categories: null,
   updatedAt: 0,
   cachedAt: 0
 };
@@ -131,10 +136,19 @@ const DEFAULT_SETTINGS = {
   telebirrAccountName: "Husen Market"
 };
 
+const DEFAULT_CATEGORIES = {
+  kitchen: { en: "Kitchen", am: "ማብሰያ & ኩሽና", om: "Kushiinaa" },
+  home: { en: "Home", am: "የቤት ዕቃዎች", om: "Meeshaa Manaa" },
+  beauty: { en: "Beauty", am: "ውበት", om: "Bareedina" },
+  health: { en: "Health", am: "ጤና", om: "Fayyaa" }
+};
+
 // Helper: Read local disk fallback
 function readLocalFallback() {
   let prods = null;
   let sets = null;
+  let usrs = null;
+  let cats = null;
 
   try {
     if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
@@ -148,19 +162,35 @@ function readLocalFallback() {
     }
   } catch (e) {}
 
+  try {
+    if (fs.existsSync(LOCAL_USERS_FILE)) {
+      usrs = JSON.parse(fs.readFileSync(LOCAL_USERS_FILE, 'utf8'));
+    }
+  } catch (e) {}
+
+  try {
+    if (fs.existsSync(LOCAL_CATEGORIES_FILE)) {
+      cats = JSON.parse(fs.readFileSync(LOCAL_CATEGORIES_FILE, 'utf8'));
+    }
+  } catch (e) {}
+
   return {
     products: Array.isArray(prods) && prods.length > 0 ? prods : DEFAULT_PRODUCTS,
-    settings: sets || DEFAULT_SETTINGS
+    settings: sets || DEFAULT_SETTINGS,
+    users: Array.isArray(usrs) && usrs.length > 0 ? usrs : getDefaultUsers(),
+    categories: cats || DEFAULT_CATEGORIES
   };
 }
 
 // Helper: Save local disk file if writable
-function saveLocalDisk(products, settings) {
+function saveLocalDisk(products, settings, users, categories) {
   try {
     const dir = path.dirname(LOCAL_PRODUCTS_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     if (products) fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8');
     if (settings) fs.writeFileSync(LOCAL_SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
+    if (users) fs.writeFileSync(LOCAL_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+    if (categories) fs.writeFileSync(LOCAL_CATEGORIES_FILE, JSON.stringify(categories, null, 2), 'utf8');
   } catch (e) {
     // Read-only filesystem on Vercel lambda is expected
   }
@@ -283,7 +313,7 @@ function uploadManifestToCloudinary(dataObj) {
 }
 
 /**
- * Get current store data (products + settings)
+ * Get current store data (products + settings + users + categories)
  * Checks cloud pointer first, falls back to memory cache and local disk.
  */
 async function getStoreData(forceRefresh = false) {
@@ -293,6 +323,8 @@ async function getStoreData(forceRefresh = false) {
     return {
       products: memoryCache.products,
       settings: memoryCache.settings || DEFAULT_SETTINGS,
+      users: memoryCache.users || getDefaultUsers(),
+      categories: memoryCache.categories || DEFAULT_CATEGORIES,
       updatedAt: memoryCache.updatedAt
     };
   }
@@ -304,12 +336,16 @@ async function getStoreData(forceRefresh = false) {
       if (cloudData && Array.isArray(cloudData.products)) {
         memoryCache.products = cloudData.products;
         memoryCache.settings = cloudData.settings || DEFAULT_SETTINGS;
+        memoryCache.users = Array.isArray(cloudData.users) && cloudData.users.length > 0 ? cloudData.users : (memoryCache.users || readLocalFallback().users);
+        memoryCache.categories = cloudData.categories || memoryCache.categories || DEFAULT_CATEGORIES;
         memoryCache.updatedAt = cloudData.updatedAt || now;
         memoryCache.cachedAt = now;
-        saveLocalDisk(cloudData.products, cloudData.settings);
+        saveLocalDisk(cloudData.products, cloudData.settings, memoryCache.users, memoryCache.categories);
         return {
           products: cloudData.products,
           settings: memoryCache.settings,
+          users: memoryCache.users,
+          categories: memoryCache.categories,
           updatedAt: memoryCache.updatedAt
         };
       }
@@ -323,6 +359,8 @@ async function getStoreData(forceRefresh = false) {
     return {
       products: memoryCache.products,
       settings: memoryCache.settings || DEFAULT_SETTINGS,
+      users: memoryCache.users || readLocalFallback().users,
+      categories: memoryCache.categories || DEFAULT_CATEGORIES,
       updatedAt: memoryCache.updatedAt
     };
   }
@@ -331,40 +369,50 @@ async function getStoreData(forceRefresh = false) {
   const fallback = readLocalFallback();
   memoryCache.products = fallback.products;
   memoryCache.settings = fallback.settings;
+  memoryCache.users = fallback.users;
+  memoryCache.categories = fallback.categories;
   memoryCache.updatedAt = now;
   memoryCache.cachedAt = now;
 
   return {
     products: fallback.products,
     settings: fallback.settings,
+    users: fallback.users,
+    categories: fallback.categories,
     updatedAt: now
   };
 }
 
 /**
- * Save store data (products and/or settings) to Cloud and Memory
+ * Save store data (products, settings, users and/or categories) to Cloud and Memory
  */
-async function saveStoreData({ products, settings }) {
+async function saveStoreData({ products, settings, users, categories }) {
   const now = Date.now();
   const current = await getStoreData(false);
 
   const updatedProducts = Array.isArray(products) ? products : current.products;
   const updatedSettings = settings ? { ...current.settings, ...settings } : current.settings;
+  const updatedUsers = Array.isArray(users) ? users : current.users;
+  const updatedCategories = categories ? { ...current.categories, ...categories } : current.categories;
 
   // 1. Immediately update in-memory cache for instant responses
   memoryCache.products = updatedProducts;
   memoryCache.settings = updatedSettings;
+  memoryCache.users = updatedUsers;
+  memoryCache.categories = updatedCategories;
   memoryCache.updatedAt = now;
   memoryCache.cachedAt = now;
 
   // 2. Save to local disk if running locally
-  saveLocalDisk(updatedProducts, updatedSettings);
+  saveLocalDisk(updatedProducts, updatedSettings, updatedUsers, updatedCategories);
 
   // 3. Persist to Cloudinary and update Global Pointer
   try {
     const manifest = {
       products: updatedProducts,
       settings: updatedSettings,
+      users: updatedUsers,
+      categories: updatedCategories,
       updatedAt: now
     };
     const cdnUrl = await uploadManifestToCloudinary(manifest);
@@ -379,6 +427,8 @@ async function saveStoreData({ products, settings }) {
   return {
     products: updatedProducts,
     settings: updatedSettings,
+    users: updatedUsers,
+    categories: updatedCategories,
     updatedAt: now
   };
 }
@@ -387,5 +437,6 @@ module.exports = {
   getStoreData,
   saveStoreData,
   DEFAULT_PRODUCTS,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  DEFAULT_CATEGORIES
 };

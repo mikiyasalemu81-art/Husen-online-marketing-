@@ -862,10 +862,14 @@
     document.querySelectorAll('.gate-lang-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const selected = btn.getAttribute('data-lang');
-        setLanguage(selected);
         if (dom.languageGate) {
           dom.languageGate.classList.add('hidden');
           dom.languageGate.style.display = 'none';
+        }
+        try {
+          setLanguage(selected);
+        } catch (err) {
+          console.error('[Language select notice]', err);
         }
       });
     });
@@ -3145,7 +3149,6 @@
       if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = id ? 'Save Changes' : 'Publish Product';
       closeProductEditor();
     }
-  }
   }
 
   async function fetchAdminOrders() {

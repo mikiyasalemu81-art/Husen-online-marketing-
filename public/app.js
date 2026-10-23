@@ -2030,6 +2030,402 @@
   }
 
   // ==========================================================================
+  // 13C. CLOUDINARY DEVICE PHOTO UPLOADER HELPERS (Global Scope)
+  // ==========================================================================
+  // Client-side image compression for high-quality phone photos (~1600px long side, JPEG quality ~0.8)
+  function compressImageForUpload(file, maxDimension = 1600, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('image/')) {
+        return reject(new Error(`"${file ? file.name : 'File'}" is not a valid image. Only JPG, PNG, WebP are supported.`));
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // Scale long side to approx 1600px
+          if (width > maxDimension || height > maxDimension) {
+            if (width >= height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              return reject(new Error('Canvas to Blob conversion failed'));
+            }
+            resolve({
+              blob: blob,
+              name: file.name
+            });
+          }, 'image/jpeg', quality);
+        };
+        img.onerror = () => reject(new Error(`Failed to load "${file.name}" for compression`));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error(`Failed to read "${file.name}"`));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Upload single photo with XMLHttpRequest progress tracking and Cloudinary error reporting
+  function uploadSinglePhoto(file, onProgress) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const compressed = await compressImageForUpload(file, 1600, 0.8);
+        const formData = new FormData();
+        const sanitizedName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
+        formData.append('file', compressed.blob, sanitizedName);
+        formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
+
+        const endpoint = `https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', endpoint);
+
+        xhr.upload.onprogress = (evt) => {
+          if (evt.lengthComputable && onProgress) {
+            const pct = Math.round((evt.loaded / evt.total) * 100);
+            onProgress(pct);
+          }
+        };
+
+        xhr.onload = () => {
+          let parsed = null;
+          try {
+            parsed = JSON.parse(xhr.responseText);
+          } catch (e) {
+            parsed = null;
+          }
+
+          if (xhr.status >= 200 && xhr.status < 300 && parsed && parsed.secure_url) {
+            resolve({
+              secure_url: parsed.secure_url,
+              public_id: parsed.public_id || ''
+            });
+          } else {
+            console.error(`[CLOUDINARY UPLOAD ERROR] HTTP ${xhr.status}:`, xhr.responseText);
+            const errMsg = (parsed && parsed.error && parsed.error.message)
+              ? parsed.error.message
+              : `Upload rejected (Status ${xhr.status}): ${xhr.statusText || 'Unknown error'}`;
+            reject(new Error(errMsg));
+          }
+        };
+
+        xhr.onerror = () => {
+          console.error('[CLOUDINARY NETWORK ERROR]');
+          reject(new Error('Network error connecting to Cloudinary. Check internet connection.'));
+        };
+
+        xhr.ontimeout = () => {
+          console.error('[CLOUDINARY TIMEOUT ERROR]');
+          reject(new Error('Upload timed out after 30 seconds.'));
+        };
+
+        xhr.timeout = 30000;
+        xhr.send(formData);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  function showUploadErrorBanner(msg, fileToRetry = null) {
+    if (!dom.uploadErrorBanner) return;
+    dom.uploadErrorBanner.style.display = 'flex';
+    dom.uploadErrorBanner.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span>⚠️</span>
+        <span><strong>Cloudinary Upload Error:</strong> ${msg}</span>
+      </div>
+      ${fileToRetry ? `<button type="button" class="btn-retry-upload" id="btnRetryFailedPhoto">Retry Upload</button>` : ''}
+    `;
+
+    if (fileToRetry) {
+      const btn = dom.uploadErrorBanner.querySelector('#btnRetryFailedPhoto');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          dom.uploadErrorBanner.style.display = 'none';
+          await retryFailedPhoto(fileToRetry);
+        });
+      }
+    }
+  }
+
+  function hideUploadErrorBanner() {
+    if (dom.uploadErrorBanner) dom.uploadErrorBanner.style.display = 'none';
+  }
+
+  function updateProgressUI(activeUploads) {
+    if (!dom.uploadProgressList) return;
+    if (!activeUploads || activeUploads.length === 0) {
+      dom.uploadProgressList.style.display = 'none';
+      dom.uploadProgressList.innerHTML = '';
+      return;
+    }
+    dom.uploadProgressList.style.display = 'flex';
+    dom.uploadProgressList.innerHTML = activeUploads.map(item => `
+      <div class="upload-progress-item">
+        <div style="display:flex; justify-content:space-between;">
+          <span>${item.name}</span>
+          <span>${item.pct}%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width: ${item.pct}%;"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function retryFailedPhoto(failedItem) {
+    state.isUploadingPhotos = true;
+    if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
+    if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = `Retrying upload for ${failedItem.name}...`;
+    hideUploadErrorBanner();
+
+    const activeUploads = [{ name: failedItem.name, pct: 10 }];
+    updateProgressUI(activeUploads);
+
+    try {
+      const result = await uploadSinglePhoto(failedItem.file, (pct) => {
+        activeUploads[0].pct = pct;
+        updateProgressUI(activeUploads);
+      });
+
+      state.editorPhotos.push({
+        secure_url: result.secure_url,
+        public_id: result.public_id
+      });
+      state.failedUploads = state.failedUploads.filter(f => f !== failedItem);
+      renderEditorThumbnails();
+      showToast(`"${failedItem.name}" uploaded successfully! ✓`);
+    } catch (err) {
+      showUploadErrorBanner(err.message, failedItem);
+      showToast(`Retry failed: ${err.message}`, '⚠️');
+    } finally {
+      updateProgressUI([]);
+      state.isUploadingPhotos = false;
+      if (state.failedUploads.length === 0) {
+        if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
+        if (dom.saveProductBtnText) {
+          dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
+        }
+      }
+    }
+  }
+
+  // ==========================================================================
+  // 13C. CLOUDINARY DEVICE PHOTO UPLOADER HELPERS (Global Scope)
+  // ==========================================================================
+  // Client-side image compression for high-quality phone photos (~1600px long side, JPEG quality ~0.8)
+  function compressImageForUpload(file, maxDimension = 1600, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('image/')) {
+        return reject(new Error(`"${file ? file.name : 'File'}" is not a valid image. Only JPG, PNG, WebP are supported.`));
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          // Scale long side to approx 1600px
+          if (width > maxDimension || height > maxDimension) {
+            if (width >= height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              return reject(new Error('Canvas to Blob conversion failed'));
+            }
+            resolve({
+              blob: blob,
+              name: file.name
+            });
+          }, 'image/jpeg', quality);
+        };
+        img.onerror = () => reject(new Error(`Failed to load "${file.name}" for compression`));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error(`Failed to read "${file.name}"`));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Upload single photo with XMLHttpRequest progress tracking and Cloudinary error reporting
+  function uploadSinglePhoto(file, onProgress) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const compressed = await compressImageForUpload(file, 1600, 0.8);
+        const formData = new FormData();
+        const sanitizedName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
+        formData.append('file', compressed.blob, sanitizedName);
+        formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
+
+        const endpoint = `https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', endpoint);
+
+        xhr.upload.onprogress = (evt) => {
+          if (evt.lengthComputable && onProgress) {
+            const pct = Math.round((evt.loaded / evt.total) * 100);
+            onProgress(pct);
+          }
+        };
+
+        xhr.onload = () => {
+          let parsed = null;
+          try {
+            parsed = JSON.parse(xhr.responseText);
+          } catch (e) {
+            parsed = null;
+          }
+
+          if (xhr.status >= 200 && xhr.status < 300 && parsed && parsed.secure_url) {
+            resolve({
+              secure_url: parsed.secure_url,
+              public_id: parsed.public_id || ''
+            });
+          } else {
+            // Log full response & error body
+            console.error(`[CLOUDINARY UPLOAD ERROR] HTTP ${xhr.status}:`, xhr.responseText);
+            const errMsg = (parsed && parsed.error && parsed.error.message)
+              ? parsed.error.message
+              : `Upload rejected (Status ${xhr.status}): ${xhr.statusText || 'Unknown error'}`;
+            reject(new Error(errMsg));
+          }
+        };
+
+        xhr.onerror = () => {
+          console.error('[CLOUDINARY NETWORK ERROR]');
+          reject(new Error('Network error connecting to Cloudinary. Check internet connection.'));
+        };
+
+        xhr.ontimeout = () => {
+          console.error('[CLOUDINARY TIMEOUT ERROR]');
+          reject(new Error('Upload timed out after 30 seconds.'));
+        };
+
+        xhr.timeout = 30000;
+        xhr.send(formData);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  function showUploadErrorBanner(msg, fileToRetry = null) {
+    if (!dom.uploadErrorBanner) return;
+    dom.uploadErrorBanner.style.display = 'flex';
+    dom.uploadErrorBanner.innerHTML = `
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span>⚠️</span>
+        <span><strong>Cloudinary Upload Error:</strong> ${msg}</span>
+      </div>
+      ${fileToRetry ? `<button type="button" class="btn-retry-upload" id="btnRetryFailedPhoto">Retry Upload</button>` : ''}
+    `;
+
+    if (fileToRetry) {
+      const btn = dom.uploadErrorBanner.querySelector('#btnRetryFailedPhoto');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          dom.uploadErrorBanner.style.display = 'none';
+          await retryFailedPhoto(fileToRetry);
+        });
+      }
+    }
+  }
+
+  function hideUploadErrorBanner() {
+    if (dom.uploadErrorBanner) dom.uploadErrorBanner.style.display = 'none';
+  }
+
+  function updateProgressUI(activeUploads) {
+    if (!dom.uploadProgressList) return;
+    if (activeUploads.length === 0) {
+      dom.uploadProgressList.style.display = 'none';
+      dom.uploadProgressList.innerHTML = '';
+      return;
+    }
+    dom.uploadProgressList.style.display = 'flex';
+    dom.uploadProgressList.innerHTML = activeUploads.map(item => `
+      <div class="upload-progress-item">
+        <div style="display:flex; justify-content:space-between;">
+          <span>${item.name}</span>
+          <span>${item.pct}%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width: ${item.pct}%;"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function retryFailedPhoto(failedItem) {
+    state.isUploadingPhotos = true;
+    if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
+    if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = `Retrying upload for ${failedItem.name}...`;
+    hideUploadErrorBanner();
+
+    const activeUploads = [{ name: failedItem.name, pct: 10 }];
+    updateProgressUI(activeUploads);
+
+    try {
+      const result = await uploadSinglePhoto(failedItem.file, (pct) => {
+        activeUploads[0].pct = pct;
+        updateProgressUI(activeUploads);
+      });
+
+      state.editorPhotos.push({
+        secure_url: result.secure_url,
+        public_id: result.public_id
+      });
+      state.failedUploads = state.failedUploads.filter(f => f !== failedItem);
+      renderEditorThumbnails();
+      showToast(`"${failedItem.name}" uploaded successfully! ✓`);
+    } catch (err) {
+      showUploadErrorBanner(err.message, failedItem);
+      showToast(`Retry failed: ${err.message}`, '⚠️');
+    } finally {
+      updateProgressUI([]);
+      state.isUploadingPhotos = false;
+      if (state.failedUploads.length === 0) {
+        if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
+        if (dom.saveProductBtnText) {
+          dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
+        }
+      }
+    }
+  }
+
+
+  // ==========================================================================
   // 14. ADMIN PORTAL (Product CRUD, Device Multi-Photo & Payment Settings)
   // ==========================================================================
   function initAdminPortal() {
@@ -2365,201 +2761,6 @@
       dom.openAddProductModalBtn.addEventListener('click', () => {
         openProductEditor(null);
       });
-    }
-
-    // Client-side image compression for high-quality phone photos (~1600px long side, JPEG quality ~0.8)
-    function compressImageForUpload(file, maxDimension = 1600, quality = 0.8) {
-      return new Promise((resolve, reject) => {
-        if (!file || !file.type.startsWith('image/')) {
-          return reject(new Error(`"${file ? file.name : 'File'}" is not a valid image. Only JPG, PNG, WebP are supported.`));
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            let width = img.width;
-            let height = img.height;
-
-            // Scale long side to approx 1600px
-            if (width > maxDimension || height > maxDimension) {
-              if (width >= height) {
-                height = Math.round((height * maxDimension) / width);
-                width = maxDimension;
-              } else {
-                width = Math.round((width * maxDimension) / height);
-                height = maxDimension;
-              }
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            canvas.toBlob((blob) => {
-              if (!blob) {
-                return reject(new Error('Canvas to Blob conversion failed'));
-              }
-              resolve({
-                blob: blob,
-                name: file.name
-              });
-            }, 'image/jpeg', quality);
-          };
-          img.onerror = () => reject(new Error(`Failed to load "${file.name}" for compression`));
-          img.src = e.target.result;
-        };
-        reader.onerror = () => reject(new Error(`Failed to read "${file.name}"`));
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // Upload single photo with XMLHttpRequest progress tracking and Cloudinary error reporting
-    function uploadSinglePhoto(file, onProgress) {
-      return new Promise(async (resolve, reject) => {
-        try {
-          const compressed = await compressImageForUpload(file, 1600, 0.8);
-          const formData = new FormData();
-          const sanitizedName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
-          formData.append('file', compressed.blob, sanitizedName);
-          formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
-
-          const endpoint = `https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`;
-          const xhr = new XMLHttpRequest();
-          xhr.open('POST', endpoint);
-
-          xhr.upload.onprogress = (evt) => {
-            if (evt.lengthComputable && onProgress) {
-              const pct = Math.round((evt.loaded / evt.total) * 100);
-              onProgress(pct);
-            }
-          };
-
-          xhr.onload = () => {
-            let parsed = null;
-            try {
-              parsed = JSON.parse(xhr.responseText);
-            } catch (e) {
-              parsed = null;
-            }
-
-            if (xhr.status >= 200 && xhr.status < 300 && parsed && parsed.secure_url) {
-              resolve({
-                secure_url: parsed.secure_url,
-                public_id: parsed.public_id || ''
-              });
-            } else {
-              // Log full response & error body
-              console.error(`[CLOUDINARY UPLOAD ERROR] HTTP ${xhr.status}:`, xhr.responseText);
-              const errMsg = (parsed && parsed.error && parsed.error.message)
-                ? parsed.error.message
-                : `Upload rejected (Status ${xhr.status}): ${xhr.statusText || 'Unknown error'}`;
-              reject(new Error(errMsg));
-            }
-          };
-
-          xhr.onerror = () => {
-            console.error('[CLOUDINARY NETWORK ERROR]');
-            reject(new Error('Network error connecting to Cloudinary. Check internet connection.'));
-          };
-
-          xhr.ontimeout = () => {
-            console.error('[CLOUDINARY TIMEOUT ERROR]');
-            reject(new Error('Upload timed out after 30 seconds.'));
-          };
-
-          xhr.timeout = 30000;
-          xhr.send(formData);
-        } catch (err) {
-          reject(err);
-        }
-      });
-    }
-
-    function showUploadErrorBanner(msg, fileToRetry = null) {
-      if (!dom.uploadErrorBanner) return;
-      dom.uploadErrorBanner.style.display = 'flex';
-      dom.uploadErrorBanner.innerHTML = `
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span>⚠️</span>
-          <span><strong>Cloudinary Upload Error:</strong> ${msg}</span>
-        </div>
-        ${fileToRetry ? `<button type="button" class="btn-retry-upload" id="btnRetryFailedPhoto">Retry Upload</button>` : ''}
-      `;
-
-      if (fileToRetry) {
-        const btn = dom.uploadErrorBanner.querySelector('#btnRetryFailedPhoto');
-        if (btn) {
-          btn.addEventListener('click', async () => {
-            dom.uploadErrorBanner.style.display = 'none';
-            await retryFailedPhoto(fileToRetry);
-          });
-        }
-      }
-    }
-
-    function hideUploadErrorBanner() {
-      if (dom.uploadErrorBanner) dom.uploadErrorBanner.style.display = 'none';
-    }
-
-    function updateProgressUI(activeUploads) {
-      if (!dom.uploadProgressList) return;
-      if (activeUploads.length === 0) {
-        dom.uploadProgressList.style.display = 'none';
-        dom.uploadProgressList.innerHTML = '';
-        return;
-      }
-      dom.uploadProgressList.style.display = 'flex';
-      dom.uploadProgressList.innerHTML = activeUploads.map(item => `
-        <div class="upload-progress-item">
-          <div style="display:flex; justify-content:space-between;">
-            <span>${item.name}</span>
-            <span>${item.pct}%</span>
-          </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width: ${item.pct}%;"></div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function retryFailedPhoto(failedItem) {
-      state.isUploadingPhotos = true;
-      if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
-      if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = `Retrying upload for ${failedItem.name}...`;
-      hideUploadErrorBanner();
-
-      const activeUploads = [{ name: failedItem.name, pct: 10 }];
-      updateProgressUI(activeUploads);
-
-      try {
-        const result = await uploadSinglePhoto(failedItem.file, (pct) => {
-          activeUploads[0].pct = pct;
-          updateProgressUI(activeUploads);
-        });
-
-        state.editorPhotos.push({
-          secure_url: result.secure_url,
-          public_id: result.public_id
-        });
-        state.failedUploads = state.failedUploads.filter(f => f !== failedItem);
-        renderEditorThumbnails();
-        showToast(`"${failedItem.name}" uploaded successfully! ✓`);
-      } catch (err) {
-        showUploadErrorBanner(err.message, failedItem);
-        showToast(`Retry failed: ${err.message}`, '⚠️');
-      } finally {
-        updateProgressUI([]);
-        state.isUploadingPhotos = false;
-        if (state.failedUploads.length === 0) {
-          if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
-          if (dom.saveProductBtnText) {
-            dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
-          }
-        }
-      }
     }
 
     // Admin Photo Uploader with Multi-file Selection, Parallel Upload & Retry

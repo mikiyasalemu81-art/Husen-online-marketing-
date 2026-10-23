@@ -2613,6 +2613,10 @@ input:checked + .slider:before {
 /* ==========================================================================
    PRODUCT CRUD MODAL (Add / Edit)
    ========================================================================== */
+.editor-backdrop {
+  z-index: 600;
+}
+
 .editor-modal {
   width: 100%;
   max-width: 500px;

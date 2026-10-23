@@ -779,7 +779,13 @@
   async function syncProductsFromBackend(force = false) {
     if (state.isSavingProduct && !force) return;
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch(`/api/products?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.products)) {
@@ -793,6 +799,7 @@
             try {
               localStorage.setItem('hom_products', JSON.stringify(state.products));
             } catch (e) {}
+            renderCategories();
             renderProducts();
             if (state.adminUnlocked) renderAdminProducts();
           }
@@ -2906,6 +2913,95 @@
         if (e.target === dom.productEditorBackdrop) closeProductEditor();
       });
     }
+
+    // Delegated Event Handlers for Product List (Whole Card Clickable to Edit)
+    // Ensures clicking any card or edit button works 100% reliably even during polling re-renders
+    if (dom.adminProductList) {
+      dom.adminProductList.addEventListener('click', async (e) => {
+        // 1. Delete button
+        const delBtn = e.target.closest('.btn-del-prod');
+        if (delBtn) {
+          e.stopPropagation();
+          const id = delBtn.getAttribute('data-id');
+          const prod = state.products.find(p => String(p.id) === String(id));
+          if (!prod) return;
+          if (confirm(`Are you sure you want to delete "${getLocString(prod.name, state.lang)}"?`)) {
+            showToast('Deleting product from cloud...', '⏳');
+            try {
+              const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+              const data = await res.json();
+              if (data.success && Array.isArray(data.products)) {
+                state.products = data.products;
+                state.lastUpdatedAt = data.updatedAt || Date.now();
+              } else {
+                state.products = state.products.filter(p => String(p.id) !== String(id));
+              }
+              localStorage.setItem('hom_products', JSON.stringify(state.products));
+              renderCategories();
+              renderProducts();
+              renderAdminProducts();
+              showToast('Product permanently deleted! ✓');
+            } catch (err) {
+              state.products = state.products.filter(p => String(p.id) !== String(id));
+              localStorage.setItem('hom_products', JSON.stringify(state.products));
+              renderCategories();
+              renderProducts();
+              renderAdminProducts();
+              showToast('Product removed locally', 'ℹ️');
+            }
+          }
+          return;
+        }
+
+        // 2. Ignore clicks on the stock toggle switch or its children
+        if (e.target.closest('.switch') || e.target.closest('.stock-toggle')) {
+          return;
+        }
+
+        // 3. Edit product: Clicking "✏️ Edit" button OR anywhere on the product card
+        const card = e.target.closest('.admin-prod-card');
+        if (card) {
+          const id = card.getAttribute('data-id');
+          const prod = state.products.find(p => String(p.id) === String(id));
+          if (prod) {
+            openProductEditor(prod);
+          }
+        }
+      });
+
+      // Stock toggle switch change listener
+      dom.adminProductList.addEventListener('change', async (e) => {
+        const chk = e.target.closest('.stock-toggle');
+        if (!chk) return;
+        const id = chk.getAttribute('data-id');
+        const prod = state.products.find(p => String(p.id) === String(id));
+        if (prod) {
+          prod.inStock = chk.checked;
+          try {
+            localStorage.setItem('hom_products', JSON.stringify(state.products));
+          } catch (err) {}
+          renderCategories();
+          renderProducts();
+          renderAdminProducts();
+          showToast(`${getLocString(prod.name, state.lang)} is now ${chk.checked ? 'In Stock' : 'Out of Stock'}`);
+          try {
+            const res = await fetch(`/api/products/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ inStock: chk.checked })
+            });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.products)) {
+              state.products = data.products;
+              state.lastUpdatedAt = data.updatedAt || Date.now();
+              try {
+                localStorage.setItem('hom_products', JSON.stringify(state.products));
+              } catch (err) {}
+            }
+          } catch (err) {}
+        }
+      });
+    }
   }
 
   function renderAdminProducts() {
@@ -2946,7 +3042,7 @@
       const inStock = p.inStock !== false;
 
       return `
-        <div class="admin-prod-card" data-id="${p.id}">
+        <div class="admin-prod-card" data-id="${p.id}" role="button" tabindex="0" title="Click to edit ${name}">
           <img src="${img}" alt="${name}" class="admin-prod-thumb">
           
           <div class="admin-prod-details">
@@ -2975,82 +3071,6 @@
         </div>
       `;
     }).join('');
-
-    // Wire stock toggles
-    dom.adminProductList.querySelectorAll('.stock-toggle').forEach(chk => {
-      chk.addEventListener('change', async () => {
-        const id = chk.getAttribute('data-id');
-        const prod = state.products.find(p => p.id === id);
-        if (prod) {
-          prod.inStock = chk.checked;
-          try {
-            localStorage.setItem('hom_products', JSON.stringify(state.products));
-          } catch (e) {}
-          renderCategories();
-          renderProducts();
-          renderAdminProducts();
-          showToast(`${getLocString(prod.name, state.lang)} is now ${chk.checked ? 'In Stock' : 'Out of Stock'}`);
-          try {
-            const res = await fetch(`/api/products/${id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ inStock: chk.checked })
-            });
-            const data = await res.json();
-            if (data.success && Array.isArray(data.products)) {
-              state.products = data.products;
-              state.lastUpdatedAt = data.updatedAt || Date.now();
-              try {
-                localStorage.setItem('hom_products', JSON.stringify(state.products));
-              } catch (e) {}
-            }
-          } catch (e) {}
-        }
-      });
-    });
-
-    // Wire Edit buttons
-    dom.adminProductList.querySelectorAll('.btn-edit-prod').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        const prod = state.products.find(p => p.id === id);
-        if (prod) openProductEditor(prod);
-      });
-    });
-
-    // Wire Delete buttons
-    dom.adminProductList.querySelectorAll('.btn-del-prod').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        const prod = state.products.find(p => p.id === id);
-        if (!prod) return;
-        if (confirm(`Are you sure you want to delete "${getLocString(prod.name, state.lang)}"?`)) {
-          showToast('Deleting product from cloud...', '⏳');
-          try {
-            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success && Array.isArray(data.products)) {
-              state.products = data.products;
-              state.lastUpdatedAt = data.updatedAt || Date.now();
-            } else {
-              state.products = state.products.filter(p => p.id !== id);
-            }
-            localStorage.setItem('hom_products', JSON.stringify(state.products));
-            renderCategories();
-            renderProducts();
-            renderAdminProducts();
-            showToast('Product permanently deleted! ✓');
-          } catch (e) {
-            state.products = state.products.filter(p => p.id !== id);
-            localStorage.setItem('hom_products', JSON.stringify(state.products));
-            renderCategories();
-            renderProducts();
-            renderAdminProducts();
-            showToast('Product removed locally', 'ℹ️');
-          }
-        }
-      });
-    });
   }
 
   function openProductEditor(productToEdit) {
@@ -3104,6 +3124,7 @@
 
     if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
     renderEditorThumbnails();
+    if (dom.productEditorForm) dom.productEditorForm.scrollTop = 0;
     openElement(dom.productEditorBackdrop);
   }
 
@@ -3266,16 +3287,34 @@
 
     if (id) {
       // Update existing
-      const existing = state.products.find(p => p.id === id);
+      const existing = state.products.find(p => String(p.id) === String(id));
       if (existing) {
         existing.category = categoryRaw;
         existing.categoryTranslations = categoryTranslations;
         existing.price = price;
         existing.inStock = inStock;
         existing.images = photos;
-        existing.name = { ...existing.name, en: name, am: name, om: name };
-        existing.spec = { ...existing.spec, en: desc, am: desc, om: desc };
-        existing.fullDesc = { ...existing.fullDesc, en: desc, am: desc, om: desc };
+        const prevName = (typeof existing.name === 'object' && existing.name) ? existing.name : {};
+        const prevSpec = (typeof existing.spec === 'object' && existing.spec) ? existing.spec : {};
+        const prevFull = (typeof existing.fullDesc === 'object' && existing.fullDesc) ? existing.fullDesc : {};
+        existing.name = {
+          ...prevName,
+          en: name,
+          am: (prevName.am && prevName.am !== prevName.en) ? prevName.am : name,
+          om: (prevName.om && prevName.om !== prevName.en) ? prevName.om : name
+        };
+        existing.spec = {
+          ...prevSpec,
+          en: desc,
+          am: (prevSpec.am && prevSpec.am !== prevSpec.en) ? prevSpec.am : desc,
+          om: (prevSpec.om && prevSpec.om !== prevSpec.en) ? prevSpec.om : desc
+        };
+        existing.fullDesc = {
+          ...prevFull,
+          en: desc,
+          am: (prevFull.am && prevFull.am !== prevFull.en) ? prevFull.am : desc,
+          om: (prevFull.om && prevFull.om !== prevFull.en) ? prevFull.om : desc
+        };
         productToSave = existing;
       }
     } else {

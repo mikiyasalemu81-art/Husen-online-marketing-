@@ -2388,11 +2388,20 @@ img {
   border-radius: var(--radius-md);
   padding: 8px 10px;
   transition: all var(--transition-fast);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(217, 42, 42, 0.08);
 }
 
 .admin-prod-card:hover {
-  border-color: rgba(32, 26, 23, 0.15);
+  border-color: var(--brand-accent);
   box-shadow: var(--shadow-sm);
+  background-color: #faf7f5;
+}
+
+.admin-prod-card:active {
+  transform: scale(0.995);
+  background-color: #f5eeea;
 }
 
 /* Left: Small square image thumbnail (w-14 h-14 / 56px, rounded, cover) */

@@ -36,6 +36,28 @@
           "value": "application/manifest+json; charset=utf-8"
         }
       ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/(app\\.js|style\\.css)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [

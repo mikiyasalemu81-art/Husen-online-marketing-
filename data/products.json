@@ -1,28 +1,371 @@
 [
   {
-    "id": "prod-1789852358338",
+    "id": "prod-1792254126514",
     "category": "health",
+    "secondaryCategory": "",
+    "price": 1500,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254082/1000002613.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254096/1000002614.jpg"
+    ],
+    "name": {
+      "en": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes",
+      "am": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes",
+      "om": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes"
+    },
+    "spec": {
+      "en": "This portable heated massage pad offers soothing warmth and gentle vibration for targeted comfort. It has four massage modes and multiple heat levels, all controlled from the digital display on the front. The rechargeable battery means you can use it at home, at the office, or on the go. Its soft pink design comes in a gift-ready box, making it a thoughtful present.",
+      "am": "This portable heated massage pad offers soothing warmth and gentle vibration for targeted comfort. It has four massage modes and multiple heat levels, all controlled from the digital display on the front. The rechargeable battery means you can use it at home, at the office, or on the go. Its soft pink design comes in a gift-ready box, making it a thoughtful present.",
+      "om": "This portable heated massage pad offers soothing warmth and gentle vibration for targeted comfort. It has four massage modes and multiple heat levels, all controlled from the digital display on the front. The rechargeable battery means you can use it at home, at the office, or on the go. Its soft pink design comes in a gift-ready box, making it a thoughtful present."
+    },
+    "fullDesc": {
+      "en": "This portable heated massage pad offers soothing warmth and gentle vibration for targeted comfort. It has four massage modes and multiple heat levels, all controlled from the digital display on the front. The rechargeable battery means you can use it at home, at the office, or on the go. Its soft pink design comes in a gift-ready box, making it a thoughtful present.",
+      "am": "This portable heated massage pad offers soothing warmth and gentle vibration for targeted comfort. It has four massage modes and multiple heat levels, all controlled from the digital display on the front. The rechargeable battery means you can use it at home, at the office, or on the go. Its soft pink design comes in a gift-ready box, making it a thoughtful present.",
+      "om": "This portable heated massage pad offers soothing warmth and gentle vibration for targeted comfort. It has four massage modes and multiple heat levels, all controlled from the digital display on the front. The rechargeable battery means you can use it at home, at the office, or on the go. Its soft pink design comes in a gift-ready box, making it a thoughtful present."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792254056084",
+    "category": "kitchen",
     "secondaryCategory": "",
     "price": 2000,
     "inStock": true,
     "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1789761980/1000001417.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1789761982/1000001416.jpg"
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253985/1000002612.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253992/1000002611.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254000/1000002610.jpg"
     ],
     "name": {
-      "en": "Cacs",
-      "am": "Cacs",
-      "om": "Cacs"
+      "en": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces",
+      "am": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces",
+      "om": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces"
     },
     "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
+      "en": "Organize your kitchen in style with this bamboo spice rack set. It includes glass jars with bamboo-look lids, two oil and vinegar dispensers, and a two-tier rack with dedicated compartments. The clean, natural look suits modern and rustic kitchens alike. Keep your seasonings, oils, and condiments within reach and easy to find.",
+      "am": "Organize your kitchen in style with this bamboo spice rack set. It includes glass jars with bamboo-look lids, two oil and vinegar dispensers, and a two-tier rack with dedicated compartments. The clean, natural look suits modern and rustic kitchens alike. Keep your seasonings, oils, and condiments within reach and easy to find.",
+      "om": "Organize your kitchen in style with this bamboo spice rack set. It includes glass jars with bamboo-look lids, two oil and vinegar dispensers, and a two-tier rack with dedicated compartments. The clean, natural look suits modern and rustic kitchens alike. Keep your seasonings, oils, and condiments within reach and easy to find."
     },
     "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
+      "en": "Organize your kitchen in style with this bamboo spice rack set. It includes glass jars with bamboo-look lids, two oil and vinegar dispensers, and a two-tier rack with dedicated compartments. The clean, natural look suits modern and rustic kitchens alike. Keep your seasonings, oils, and condiments within reach and easy to find.",
+      "am": "Organize your kitchen in style with this bamboo spice rack set. It includes glass jars with bamboo-look lids, two oil and vinegar dispensers, and a two-tier rack with dedicated compartments. The clean, natural look suits modern and rustic kitchens alike. Keep your seasonings, oils, and condiments within reach and easy to find.",
+      "om": "Organize your kitchen in style with this bamboo spice rack set. It includes glass jars with bamboo-look lids, two oil and vinegar dispensers, and a two-tier rack with dedicated compartments. The clean, natural look suits modern and rustic kitchens alike. Keep your seasonings, oils, and condiments within reach and easy to find."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253944033",
+    "category": "health",
+    "secondaryCategory": "",
+    "price": 1000,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253933/1000002615.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253940/1000002617.jpg"
+    ],
+    "name": {
+      "en": "Marvis Amarelli Licorice Toothpaste",
+      "am": "Marvis Amarelli Licorice Toothpaste",
+      "om": "Marvis Amarelli Licorice Toothpaste"
+    },
+    "spec": {
+      "en": "Marvis Amarelli Licorice toothpaste combines the bold, sweet flavor of licorice with xylitol. It cleans thoroughly and leaves a long-lasting fresh feeling. Packaged in the brand's signature black and silver tube and box, it makes a stylish addition to any bathroom. Contains fluoride for everyday protection.",
+      "am": "Marvis Amarelli Licorice toothpaste combines the bold, sweet flavor of licorice with xylitol. It cleans thoroughly and leaves a long-lasting fresh feeling. Packaged in the brand's signature black and silver tube and box, it makes a stylish addition to any bathroom. Contains fluoride for everyday protection.",
+      "om": "Marvis Amarelli Licorice toothpaste combines the bold, sweet flavor of licorice with xylitol. It cleans thoroughly and leaves a long-lasting fresh feeling. Packaged in the brand's signature black and silver tube and box, it makes a stylish addition to any bathroom. Contains fluoride for everyday protection."
+    },
+    "fullDesc": {
+      "en": "Marvis Amarelli Licorice toothpaste combines the bold, sweet flavor of licorice with xylitol. It cleans thoroughly and leaves a long-lasting fresh feeling. Packaged in the brand's signature black and silver tube and box, it makes a stylish addition to any bathroom. Contains fluoride for everyday protection.",
+      "am": "Marvis Amarelli Licorice toothpaste combines the bold, sweet flavor of licorice with xylitol. It cleans thoroughly and leaves a long-lasting fresh feeling. Packaged in the brand's signature black and silver tube and box, it makes a stylish addition to any bathroom. Contains fluoride for everyday protection.",
+      "om": "Marvis Amarelli Licorice toothpaste combines the bold, sweet flavor of licorice with xylitol. It cleans thoroughly and leaves a long-lasting fresh feeling. Packaged in the brand's signature black and silver tube and box, it makes a stylish addition to any bathroom. Contains fluoride for everyday protection."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253833313",
+    "category": "health",
+    "secondaryCategory": "",
+    "price": 1000,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253778/1000002619.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253786/1000002618.jpg"
+    ],
+    "name": {
+      "en": "Aloe Vera Foaming Facial Cleanser with Silicone Brush",
+      "am": "Aloe Vera Foaming Facial Cleanser with Silicone Brush",
+      "om": "Aloe Vera Foaming Facial Cleanser with Silicone Brush"
+    },
+    "spec": {
+      "en": "This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.",
+      "am": "This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.",
+      "om": "This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use."
+    },
+    "fullDesc": {
+      "en": "This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.",
+      "am": "This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.",
+      "om": "This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use.This aloe vera foam cleanser gently removes dirt, oil, and makeup. Pump the bottle to create a rich foam, then use the soft silicone brush head to massage your face for a deeper clean. Aloe vera soothes and hydrates skin, leaving it fresh and smooth. Suitable for daily use."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253734383",
+    "category": "beauty",
+    "secondaryCategory": "",
+    "price": 2000,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253706/1000002622.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253710/1000002620.jpg"
+    ],
+    "name": {
+      "en": "Motions Versatile Foam Styling Lotion, 8.5 oz",
+      "am": "Motions Versatile Foam Styling Lotion, 8.5 oz",
+      "om": "Motions Versatile Foam Styling Lotion, 8.5 oz"
+    },
+    "spec": {
+      "en": "Motions Versatile Foam Styling Lotion helps you style and define your hair with a lightweight, non-greasy foam. Enriched with shea butter, argan oil, and coconut oil, it moisturizes while it sets. Use it on damp or dry hair for curls, waves, and twists. Pump the bottle to dispense the foam and work it through from roots to ends.",
+      "am": "Motions Versatile Foam Styling Lotion helps you style and define your hair with a lightweight, non-greasy foam. Enriched with shea butter, argan oil, and coconut oil, it moisturizes while it sets. Use it on damp or dry hair for curls, waves, and twists. Pump the bottle to dispense the foam and work it through from roots to ends.",
+      "om": "Motions Versatile Foam Styling Lotion helps you style and define your hair with a lightweight, non-greasy foam. Enriched with shea butter, argan oil, and coconut oil, it moisturizes while it sets. Use it on damp or dry hair for curls, waves, and twists. Pump the bottle to dispense the foam and work it through from roots to ends."
+    },
+    "fullDesc": {
+      "en": "Motions Versatile Foam Styling Lotion helps you style and define your hair with a lightweight, non-greasy foam. Enriched with shea butter, argan oil, and coconut oil, it moisturizes while it sets. Use it on damp or dry hair for curls, waves, and twists. Pump the bottle to dispense the foam and work it through from roots to ends.",
+      "am": "Motions Versatile Foam Styling Lotion helps you style and define your hair with a lightweight, non-greasy foam. Enriched with shea butter, argan oil, and coconut oil, it moisturizes while it sets. Use it on damp or dry hair for curls, waves, and twists. Pump the bottle to dispense the foam and work it through from roots to ends.",
+      "om": "Motions Versatile Foam Styling Lotion helps you style and define your hair with a lightweight, non-greasy foam. Enriched with shea butter, argan oil, and coconut oil, it moisturizes while it sets. Use it on damp or dry hair for curls, waves, and twists. Pump the bottle to dispense the foam and work it through from roots to ends."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253645670",
+    "category": "health",
+    "secondaryCategory": "",
+    "price": 1500,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253604/1000002625.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253617/1000002624.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253622/1000002623.jpg"
+    ],
+    "name": {
+      "en": "Halora 7-in-1 Essential Scalp and Hair Growth Oil",
+      "am": "Halora 7-in-1 Essential Scalp and Hair Growth Oil",
+      "om": "Halora 7-in-1 Essential Scalp and Hair Growth Oil"
+    },
+    "spec": {
+      "en": "Halora is a nourishing blend of seven essential oils formulated to support scalp health and hair growth. Its olive-based formula strengthens and repairs damaged hair, helps with thinning, and suits all hair types. Apply a few drops to the scalp and massage gently. The dropper bottle makes precise application easy.",
+      "am": "Halora is a nourishing blend of seven essential oils formulated to support scalp health and hair growth. Its olive-based formula strengthens and repairs damaged hair, helps with thinning, and suits all hair types. Apply a few drops to the scalp and massage gently. The dropper bottle makes precise application easy.",
+      "om": "Halora is a nourishing blend of seven essential oils formulated to support scalp health and hair growth. Its olive-based formula strengthens and repairs damaged hair, helps with thinning, and suits all hair types. Apply a few drops to the scalp and massage gently. The dropper bottle makes precise application easy."
+    },
+    "fullDesc": {
+      "en": "Halora is a nourishing blend of seven essential oils formulated to support scalp health and hair growth. Its olive-based formula strengthens and repairs damaged hair, helps with thinning, and suits all hair types. Apply a few drops to the scalp and massage gently. The dropper bottle makes precise application easy.",
+      "am": "Halora is a nourishing blend of seven essential oils formulated to support scalp health and hair growth. Its olive-based formula strengthens and repairs damaged hair, helps with thinning, and suits all hair types. Apply a few drops to the scalp and massage gently. The dropper bottle makes precise application easy.",
+      "om": "Halora is a nourishing blend of seven essential oils formulated to support scalp health and hair growth. Its olive-based formula strengthens and repairs damaged hair, helps with thinning, and suits all hair types. Apply a few drops to the scalp and massage gently. The dropper bottle makes precise application easy."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253563610",
+    "category": "beauty",
+    "secondaryCategory": "",
+    "price": 200,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253513/1000002628.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253515/1000002626.jpg"
+    ],
+    "name": {
+      "en": "Kojie San Skin Lightening Soap",
+      "am": "Kojie San Skin Lightening Soap",
+      "om": "Kojie San Skin Lightening Soap"
+    },
+    "spec": {
+      "en": "Kojie San Classic soap is designed to help even out skin tone and promote a brighter complexion with regular use. Its gentle formula is made with kojic acid and cleanses without stripping moisture. Each bar arrives individually wrapped in the signature orange packaging. Suitable for daily use on the face and body.",
+      "am": "Kojie San Classic soap is designed to help even out skin tone and promote a brighter complexion with regular use. Its gentle formula is made with kojic acid and cleanses without stripping moisture. Each bar arrives individually wrapped in the signature orange packaging. Suitable for daily use on the face and body.",
+      "om": "Kojie San Classic soap is designed to help even out skin tone and promote a brighter complexion with regular use. Its gentle formula is made with kojic acid and cleanses without stripping moisture. Each bar arrives individually wrapped in the signature orange packaging. Suitable for daily use on the face and body."
+    },
+    "fullDesc": {
+      "en": "Kojie San Classic soap is designed to help even out skin tone and promote a brighter complexion with regular use. Its gentle formula is made with kojic acid and cleanses without stripping moisture. Each bar arrives individually wrapped in the signature orange packaging. Suitable for daily use on the face and body.",
+      "am": "Kojie San Classic soap is designed to help even out skin tone and promote a brighter complexion with regular use. Its gentle formula is made with kojic acid and cleanses without stripping moisture. Each bar arrives individually wrapped in the signature orange packaging. Suitable for daily use on the face and body.",
+      "om": "Kojie San Classic soap is designed to help even out skin tone and promote a brighter complexion with regular use. Its gentle formula is made with kojic acid and cleanses without stripping moisture. Each bar arrives individually wrapped in the signature orange packaging. Suitable for daily use on the face and body."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253237073",
+    "category": "home",
+    "secondaryCategory": "",
+    "price": 2000,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253196/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1105.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253199/1000002630.jpg"
+    ],
+    "name": {
+      "en": "40 oz Insulated Stainless Steel Tumbler with Straw",
+      "am": "40 oz Insulated Stainless Steel Tumbler with Straw",
+      "om": "40 oz Insulated Stainless Steel Tumbler with Straw"
+    },
+    "spec": {
+      "en": "Keep your drinks cold for hours with this double-wall vacuum-insulated tumbler. The large 40 oz capacity lasts through your whole workday, and the built-in handle and spill-resistant lid with straw make it easy to carry. The sleek white finish resists fingerprints and looks great on a desk, in the car, or at the gym.",
+      "am": "Keep your drinks cold for hours with this double-wall vacuum-insulated tumbler. The large 40 oz capacity lasts through your whole workday, and the built-in handle and spill-resistant lid with straw make it easy to carry. The sleek white finish resists fingerprints and looks great on a desk, in the car, or at the gym.",
+      "om": "Keep your drinks cold for hours with this double-wall vacuum-insulated tumbler. The large 40 oz capacity lasts through your whole workday, and the built-in handle and spill-resistant lid with straw make it easy to carry. The sleek white finish resists fingerprints and looks great on a desk, in the car, or at the gym."
+    },
+    "fullDesc": {
+      "en": "Keep your drinks cold for hours with this double-wall vacuum-insulated tumbler. The large 40 oz capacity lasts through your whole workday, and the built-in handle and spill-resistant lid with straw make it easy to carry. The sleek white finish resists fingerprints and looks great on a desk, in the car, or at the gym.",
+      "am": "Keep your drinks cold for hours with this double-wall vacuum-insulated tumbler. The large 40 oz capacity lasts through your whole workday, and the built-in handle and spill-resistant lid with straw make it easy to carry. The sleek white finish resists fingerprints and looks great on a desk, in the car, or at the gym.",
+      "om": "Keep your drinks cold for hours with this double-wall vacuum-insulated tumbler. The large 40 oz capacity lasts through your whole workday, and the built-in handle and spill-resistant lid with straw make it easy to carry. The sleek white finish resists fingerprints and looks great on a desk, in the car, or at the gym."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253145362",
+    "category": "kitchen",
+    "secondaryCategory": "",
+    "price": 2000,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253112/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1106.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253120/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1107.jpg"
+    ],
+    "name": {
+      "en": "Rechargeable Handheld Electric Milk Frother",
+      "am": "Rechargeable Handheld Electric Milk Frother",
+      "om": "Rechargeable Handheld Electric Milk Frother"
+    },
+    "spec": {
+      "en": "Make café-style foam at home in seconds. This handheld frother has a stainless steel whisk for lattes, cappuccinos, and hot chocolate, plus a second attachment for blending and mixing. It has multiple speed settings and charges via the included USB cable, so you can skip the batteries. Its compact design makes it easy to store in a drawer or take to the office.",
+      "am": "Make café-style foam at home in seconds. This handheld frother has a stainless steel whisk for lattes, cappuccinos, and hot chocolate, plus a second attachment for blending and mixing. It has multiple speed settings and charges via the included USB cable, so you can skip the batteries. Its compact design makes it easy to store in a drawer or take to the office.",
+      "om": "Make café-style foam at home in seconds. This handheld frother has a stainless steel whisk for lattes, cappuccinos, and hot chocolate, plus a second attachment for blending and mixing. It has multiple speed settings and charges via the included USB cable, so you can skip the batteries. Its compact design makes it easy to store in a drawer or take to the office."
+    },
+    "fullDesc": {
+      "en": "Make café-style foam at home in seconds. This handheld frother has a stainless steel whisk for lattes, cappuccinos, and hot chocolate, plus a second attachment for blending and mixing. It has multiple speed settings and charges via the included USB cable, so you can skip the batteries. Its compact design makes it easy to store in a drawer or take to the office.",
+      "am": "Make café-style foam at home in seconds. This handheld frother has a stainless steel whisk for lattes, cappuccinos, and hot chocolate, plus a second attachment for blending and mixing. It has multiple speed settings and charges via the included USB cable, so you can skip the batteries. Its compact design makes it easy to store in a drawer or take to the office.",
+      "om": "Make café-style foam at home in seconds. This handheld frother has a stainless steel whisk for lattes, cappuccinos, and hot chocolate, plus a second attachment for blending and mixing. It has multiple speed settings and charges via the included USB cable, so you can skip the batteries. Its compact design makes it easy to store in a drawer or take to the office."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1792253052635",
+    "category": "health",
+    "secondaryCategory": "",
+    "price": 2000,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792252996/1000002634.jpg",
+      "data:image/jpeg;base64,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"
+    ],
+    "name": {
+      "en": "Sonic Electric Toothbrush",
+      "am": "Sonic Electric Toothbrush",
+      "om": "Sonic Electric Toothbrush"
+    },
+    "spec": {
+      "en": "Upgrade your daily brushing with this compact electric toothbrush. It comes with two soft-bristle brush heads, so you can share it or keep a spare on hand. It runs on a single AA battery, which is included, and its slim white handle fits comfortably in the hand. The set arrives in clear blister packaging, making it an easy gift or a simple everyday upgrade.",
+      "am": "Upgrade your daily brushing with this compact electric toothbrush. It comes with two soft-bristle brush heads, so you can share it or keep a spare on hand. It runs on a single AA battery, which is included, and its slim white handle fits comfortably in the hand. The set arrives in clear blister packaging, making it an easy gift or a simple everyday upgrade.",
+      "om": "Upgrade your daily brushing with this compact electric toothbrush. It comes with two soft-bristle brush heads, so you can share it or keep a spare on hand. It runs on a single AA battery, which is included, and its slim white handle fits comfortably in the hand. The set arrives in clear blister packaging, making it an easy gift or a simple everyday upgrade."
+    },
+    "fullDesc": {
+      "en": "Upgrade your daily brushing with this compact electric toothbrush. It comes with two soft-bristle brush heads, so you can share it or keep a spare on hand. It runs on a single AA battery, which is included, and its slim white handle fits comfortably in the hand. The set arrives in clear blister packaging, making it an easy gift or a simple everyday upgrade.",
+      "am": "Upgrade your daily brushing with this compact electric toothbrush. It comes with two soft-bristle brush heads, so you can share it or keep a spare on hand. It runs on a single AA battery, which is included, and its slim white handle fits comfortably in the hand. The set arrives in clear blister packaging, making it an easy gift or a simple everyday upgrade.",
+      "om": "Upgrade your daily brushing with this compact electric toothbrush. It comes with two soft-bristle brush heads, so you can share it or keep a spare on hand. It runs on a single AA battery, which is included, and its slim white handle fits comfortably in the hand. The set arrives in clear blister packaging, making it an easy gift or a simple everyday upgrade."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1790409606500",
+    "category": "home",
+    "secondaryCategory": "",
+    "price": 3500,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790409493/1000001758.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790409495/1000001757.jpg"
+    ],
+    "name": {
+      "en": "HOMETIME Portable Handheld Garment Steamer",
+      "am": "HOMETIME Portable Handheld Garment Steamer",
+      "om": "HOMETIME Portable Handheld Garment Steamer"
+    },
+    "spec": {
+      "en": "Heats up in just 30 seconds to effortlessly erase wrinkles from suits, silks, and everyday clothes. Its compact, dual-action design steams both vertically and horizontally with zero burn risk.",
+      "am": "Heats up in just 30 seconds to effortlessly erase wrinkles from suits, silks, and everyday clothes. Its compact, dual-action design steams both vertically and horizontally with zero burn risk.",
+      "om": "Heats up in just 30 seconds to effortlessly erase wrinkles from suits, silks, and everyday clothes. Its compact, dual-action design steams both vertically and horizontally with zero burn risk."
+    },
+    "fullDesc": {
+      "en": "Heats up in just 30 seconds to effortlessly erase wrinkles from suits, silks, and everyday clothes. Its compact, dual-action design steams both vertically and horizontally with zero burn risk.",
+      "am": "Heats up in just 30 seconds to effortlessly erase wrinkles from suits, silks, and everyday clothes. Its compact, dual-action design steams both vertically and horizontally with zero burn risk.",
+      "om": "Heats up in just 30 seconds to effortlessly erase wrinkles from suits, silks, and everyday clothes. Its compact, dual-action design steams both vertically and horizontally with zero burn risk."
+    },
+    "badge": {
+      "en": "New",
+      "am": "አዲስ",
+      "om": "Haaraa"
+    }
+  },
+  {
+    "id": "prod-1789852358338",
+    "category": "health",
+    "secondaryCategory": "",
+    "price": 2000,
+    "inStock": false,
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1789761980/1000001417.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790239816/cacs.jpg"
+    ],
+    "name": {
+      "en": "Hair Dryer",
+      "am": "Hair Dryer",
+      "om": "Hair Dryer"
+    },
+    "spec": {
+      "en": "Dry, style, and volumize your hair in one step with this all-in-one hot air brush. The ceramic-coated barrel and ionic-style bristles smooth frizz as you dry, while the round brush shape creates bounce and volume at the roots. Three heat and speed settings (low, medium, and high) let you adjust for fine, thick, or damp hair. The ergonomic handle fits comfortably in the hand, and the 360-degree swivel cord prevents tangling as you style.",
+      "am": "Dry, style, and volumize your hair in one step with this all-in-one hot air brush. The ceramic-coated barrel and ionic-style bristles smooth frizz as you dry, while the round brush shape creates bounce and volume at the roots. Three heat and speed settings (low, medium, and high) let you adjust for fine, thick, or damp hair. The ergonomic handle fits comfortably in the hand, and the 360-degree swivel cord prevents tangling as you style.",
+      "om": "Dry, style, and volumize your hair in one step with this all-in-one hot air brush. The ceramic-coated barrel and ionic-style bristles smooth frizz as you dry, while the round brush shape creates bounce and volume at the roots. Three heat and speed settings (low, medium, and high) let you adjust for fine, thick, or damp hair. The ergonomic handle fits comfortably in the hand, and the 360-degree swivel cord prevents tangling as you style."
+    },
+    "fullDesc": {
+      "en": "Dry, style, and volumize your hair in one step with this all-in-one hot air brush. The ceramic-coated barrel and ionic-style bristles smooth frizz as you dry, while the round brush shape creates bounce and volume at the roots. Three heat and speed settings (low, medium, and high) let you adjust for fine, thick, or damp hair. The ergonomic handle fits comfortably in the hand, and the 360-degree swivel cord prevents tangling as you style.",
+      "am": "Dry, style, and volumize your hair in one step with this all-in-one hot air brush. The ceramic-coated barrel and ionic-style bristles smooth frizz as you dry, while the round brush shape creates bounce and volume at the roots. Three heat and speed settings (low, medium, and high) let you adjust for fine, thick, or damp hair. The ergonomic handle fits comfortably in the hand, and the 360-degree swivel cord prevents tangling as you style.",
+      "om": "Dry, style, and volumize your hair in one step with this all-in-one hot air brush. The ceramic-coated barrel and ionic-style bristles smooth frizz as you dry, while the round brush shape creates bounce and volume at the roots. Three heat and speed settings (low, medium, and high) let you adjust for fine, thick, or damp hair. The ergonomic handle fits comfortably in the hand, and the 360-degree swivel cord prevents tangling as you style."
     },
     "badge": {
       "en": "New",
@@ -36,25 +379,26 @@
     "price": 1450,
     "inStock": false,
     "images": [
-      "public/images/storage1.jpg"
+      "public/images/storage1.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790240028/food_launcher.avif"
     ],
     "name": {
-      "am": "የብርጭቆ ዕቃ መያዣ (4 ፍሬ)",
-      "om": "Qodaa Fuullee Nyaataa (Cimdi 4)",
+      "am": "Glass Storage Container Set (4-piece)",
+      "om": "Glass Storage Container Set (4-piece)",
       "en": "Glass Storage Container Set (4-piece)"
     },
     "spec": {
-      "am": "እርስ በርስ የሚገጣጠሙ፣ አየር የማያስገቡ ክሊፕ-መቆለፊያ ክዳን ያላቸው ጥራት ያላቸው የብርጭቆ ዕቃዎች።",
-      "om": "Qulqullina olaanaa, qilleensa kan hin galchine, cufaa jabaa kan qabu.",
-      "en": "Nesting, clip-lock lids, airtight premium glass containers."
+      "am": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe.",
+      "om": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe.",
+      "en": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe."
     },
     "fullDesc": {
-      "am": "4 የተለያየ መጠን ያላቸው የብርጭቆ ዕቃዎች። ��የር የማያስገባ ክሊፕ ክዳን ያላቸው ሲሆን በማቀዝቀዣ፣ ማይክሮዌቭ እና በእቃ ማጠቢያ ውስጥ በደህና መጠቀም ይቻላል።",
-      "om": "Qodaa fuullee gosa 4 kan wal keessa galuu danda'an. Cufaa jabaa qilleensa ittisu kan qaban, firiijii fi maaykirooweevii keessatti fayyadamuuf kan ta'an.",
+      "am": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe.",
+      "om": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe.",
       "en": "Set of 4 heavy-duty glass containers with snap-tight clip lids. Airtight silicone seal preserves freshness. Oven, microwave, freezer and dishwasher safe."
     },
     "badge": {
-      "am": "ኦሪጅናል",
+      "am": "ኦ���ጅናል",
       "om": "Qulqullina",
       "en": "Original"
     }
@@ -63,7 +407,7 @@
     "id": "prod-2",
     "category": "health",
     "price": 2000,
-    "inStock": true,
+    "inStock": false,
     "images": [
       "public/images/vest1.jpg",
       "public/images/vest2.jpg"
@@ -94,24 +438,25 @@
     "category": "kitchen",
     "secondaryCategory": "home",
     "price": 2850,
-    "inStock": true,
+    "inStock": false,
     "images": [
       "public/images/blender1.jpg",
-      "public/images/blender2.jpg"
+      "public/images/blender2.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790240733/juice_mashine.avif"
     ],
     "name": {
-      "am": "ሳቺ 2-በ-1 ፈጪ እና መፍጫ",
-      "om": "Saachhi 2-in-1 Blenders (Makiinaa Harcaatuu)",
+      "am": "Saachhi 2-in-1 Blender",
+      "om": "Saachhi 2-in-1 Blender",
       "en": "Saachhi 2-in-1 Blender"
     },
     "spec": {
-      "am": "350W ኃይለኛ ���ተር፣ ሁለት ጃር እና ተጨማሪ መፍጫ ያለው ጥራት ያለው ማደባለቂያ።",
-      "om": "Motora humna 350W qabu, qodaa lama fi meeshaa daakuu wajjin.",
-      "en": "350W motor, two jars plus grinder attachment."
+      "am": "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices.",
+      "om": "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices.",
+      "en": "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices."
     },
     "fullDesc": {
-      "am": "የሳቺ ኦሪጅናል 2-በ-1 ፈጪ። ፍራፍሬዎችን፣ ጁሶችን እና አትክልቶችን በቀላሉ የሚፈጭ ትልቅ ጃር እንዲሁም ቡና፣ ቅመማቅመም እና ደረቅ ነገሮችን የሚፈጭ ተጨማሪ ማያያዣ አለው።",
-      "om": "Saachhi 2-in-1 kan buna, mi'eessituu fi muduraa daakuuf gargaaru. Motora 350W jabaa, qodaa lama fi haaduu sibiila hin danda'amne qaba.",
+      "am": "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices.",
+      "om": "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices.",
       "en": "Powerful 350W Saachhi blender featuring a large blending jug for juices/smoothies and a specialized stainless steel milling grinder for coffee, grains, and spices."
     },
     "badge": {
@@ -124,23 +469,24 @@
     "id": "prod-4",
     "category": "beauty",
     "price": 950,
-    "inStock": true,
+    "inStock": false,
     "images": [
-      "public/images/melanix.jpg"
+      "public/images/melanix.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790240535/Melanix_Anti-Gray_Hair_Lotion.jpg"
     ],
     "name": {
-      "am": "ሜላኒክስ የፀጉር ቅባት",
-      "om": "Qoricha Rifeensaa Melanix",
+      "am": "Melanix Anti-Gray Hair Lotion",
+      "om": "Melanix Anti-Gray Hair Lotion",
       "en": "Melanix Anti-Gray Hair Lotion"
     },
     "spec": {
-      "am": "ከተፈጥሮ ንጥረነገሮች የተዘጋጀ፣ ሽበትን የሚከላከልና ተፈጥሮአዊ የፀጉር ቀለምን የሚመልስ ቅባት።",
-      "om": "Qoricha uumamaa rifeensa arrii ittisuu fi bifa uumamaa deebisu.",
-      "en": "All-natural botanical formula restores youthful natural hair."
+      "am": "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women.",
+      "om": "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women.",
+      "en": "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women."
     },
     "fullDesc": {
-      "am": "ሜላኒክስ የጸጉርን ተፈጥሯዊ ሜላኒን በማነቃቃት የነጣ ፀጉርን ደረጃ በደረጃ ወደ ቀደመው ጥቁር ቀለም ይመልሳል። ምንም ዓይነት ጎጂ ኬሚካል የሌለው።",
-      "om": "Melanix rifeensa arrii gara bifa uumamaatti deebisuuf kan gargaaru. Kemikaala miidhaa qabu kan hin qabne, dhiiraafis dubartootaafis kan ta'u.",
+      "am": "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women.",
+      "om": "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women.",
       "en": "Formulated with plant-derived actives to gently revitalize natural melanin synthesis in graying roots. Chemical dye-free, nourishing and suitable for both men and women."
     },
     "badge": {

@@ -419,8 +419,13 @@ const server = http.createServer(async (req, res) => {
 
   // --- API ROUTE: Products CRUD ---
   if (pathname === '/api/products') {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     if (req.method === 'GET') {
-      const store = await getStoreData();
+      const forceRefresh = parsedUrl.searchParams.has('t');
+      const store = await getStoreData(forceRefresh);
       productsCache = store.products;
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: true, products: store.products, updatedAt: store.updatedAt }));
@@ -465,7 +470,7 @@ const server = http.createServer(async (req, res) => {
         };
 
         const store = await getStoreData(false);
-        const existingIdx = store.products.findIndex(p => p.id === id);
+        const existingIdx = store.products.findIndex(p => String(p.id) === String(id));
         let updatedList;
         if (existingIdx !== -1) {
           updatedList = [...store.products];
@@ -497,12 +502,15 @@ const server = http.createServer(async (req, res) => {
   // --- API ROUTE: Single Product PUT / DELETE (/api/products/:id) ---
   if (pathname.startsWith('/api/products/')) {
     const prodId = pathname.replace('/api/products/', '');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
 
     if (req.method === 'PUT') {
       try {
         const updateData = await readRequestBody(req);
         const store = await getStoreData(false);
-        const idx = store.products.findIndex(p => p.id === prodId);
+        const idx = store.products.findIndex(p => String(p.id) === String(prodId));
         if (idx === -1) {
           res.writeHead(404, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Product not found' }));
@@ -514,7 +522,7 @@ const server = http.createServer(async (req, res) => {
         const updated = {
           ...existing,
           ...updateData,
-          id: prodId,
+          id: existing.id || prodId,
           category: trimmedCat,
           categoryTranslations: updateData.categoryTranslations !== undefined ? updateData.categoryTranslations : existing.categoryTranslations,
           price: updateData.price !== undefined ? Number(updateData.price) : existing.price,
@@ -522,15 +530,33 @@ const server = http.createServer(async (req, res) => {
           images: Array.isArray(updateData.images) && updateData.images.length > 0 ? updateData.images : existing.images
         };
 
-        // Format localized strings if passed as string
-        if (typeof updateData.name === 'string') {
-          updated.name = { ...existing.name, en: updateData.name, am: updateData.name, om: updateData.name };
+        // Format localized strings if passed as string or object
+        if (typeof updateData.name === 'object' && updateData.name) {
+          updated.name = { ...existing.name, ...updateData.name };
+        } else if (typeof updateData.name === 'string') {
+          updated.name = {
+            en: updateData.name,
+            am: (existing.name && existing.name.am && existing.name.am !== existing.name.en) ? existing.name.am : updateData.name,
+            om: (existing.name && existing.name.om && existing.name.om !== existing.name.en) ? existing.name.om : updateData.name
+          };
         }
-        if (typeof updateData.spec === 'string') {
-          updated.spec = { ...existing.spec, en: updateData.spec, am: updateData.spec, om: updateData.spec };
+        if (typeof updateData.spec === 'object' && updateData.spec) {
+          updated.spec = { ...existing.spec, ...updateData.spec };
+        } else if (typeof updateData.spec === 'string') {
+          updated.spec = {
+            en: updateData.spec,
+            am: (existing.spec && existing.spec.am && existing.spec.am !== existing.spec.en) ? existing.spec.am : updateData.spec,
+            om: (existing.spec && existing.spec.om && existing.spec.om !== existing.spec.en) ? existing.spec.om : updateData.spec
+          };
         }
-        if (typeof updateData.fullDesc === 'string') {
-          updated.fullDesc = { ...existing.fullDesc, en: updateData.fullDesc, am: updateData.fullDesc, om: updateData.fullDesc };
+        if (typeof updateData.fullDesc === 'object' && updateData.fullDesc) {
+          updated.fullDesc = { ...existing.fullDesc, ...updateData.fullDesc };
+        } else if (typeof updateData.fullDesc === 'string') {
+          updated.fullDesc = {
+            en: updateData.fullDesc,
+            am: (existing.fullDesc && existing.fullDesc.am && existing.fullDesc.am !== existing.fullDesc.en) ? existing.fullDesc.am : updateData.fullDesc,
+            om: (existing.fullDesc && existing.fullDesc.om && existing.fullDesc.om !== existing.fullDesc.en) ? existing.fullDesc.om : updateData.fullDesc
+          };
         }
 
         const updatedList = [...store.products];
@@ -557,14 +583,14 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'DELETE') {
       try {
         const store = await getStoreData(false);
-        const idx = store.products.findIndex(p => p.id === prodId);
+        const idx = store.products.findIndex(p => String(p.id) === String(prodId));
         if (idx === -1) {
           res.writeHead(404, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: false, error: 'Product not found' }));
           return;
         }
 
-        const updatedList = store.products.filter(p => p.id !== prodId);
+        const updatedList = store.products.filter(p => String(p.id) !== String(prodId));
         productsCache = updatedList;
         saveProducts(productsCache);
         const saved = await saveStoreData({ products: updatedList });

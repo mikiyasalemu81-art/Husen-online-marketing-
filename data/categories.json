@@ -1,0 +1,22 @@
+{
+  "kitchen": {
+    "en": "Kitchen",
+    "am": "ማብሰያ & ኩሽና",
+    "om": "Kushiinaa"
+  },
+  "home": {
+    "en": "Home",
+    "am": "የቤት ዕቃዎች",
+    "om": "Meeshaa Manaa"
+  },
+  "beauty": {
+    "en": "Beauty",
+    "am": "ውበት",
+    "om": "Bareedina"
+  },
+  "health": {
+    "en": "Health",
+    "am": "ጤና",
+    "om": "Fayyaa"
+  }
+}

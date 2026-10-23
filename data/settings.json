@@ -2,5 +2,6 @@
   "cbeAccount": "1000123456789",
   "cbeAccountName": "Husen Online Store",
   "telebirrPhone": "0923245529",
-  "telebirrAccountName": "Husen Market"
+  "telebirrAccountName": "Husen Market",
+  "chapaSecretKey": "CHAPA_TEST_PRIV_-uikg-2wHrTG3JqzNQZ7y0NA0-YBQ5vKWjM5p0Ej"
 }

@@ -84,6 +84,19 @@ function isExcludedFromCache(url, method) {
   return false;
 }
 
+// Neutral Husen Logo SVG Placeholder for offline/failed image requests
+const FALLBACK_IMAGE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300"><rect width="400" height="300" fill="#faf7f5"/><circle cx="200" cy="125" r="48" fill="#d92a2a" opacity="0.12"/><path d="M184 105 h32 v42 h-32 z M190 105 a10 10 0 0 1 20 0" fill="none" stroke="#d92a2a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><text x="200" y="205" text-anchor="middle" fill="#d92a2a" font-family="system-ui, sans-serif" font-weight="700" font-size="16">HUSEN ONLINE</text><text x="200" y="225" text-anchor="middle" fill="#888888" font-family="system-ui, sans-serif" font-size="12">Product Photo</text></svg>`;
+
+function getFallbackImageResponse() {
+  return new Response(FALLBACK_IMAGE_SVG, {
+    status: 200,
+    headers: {
+      'Content-Type': 'image/svg+xml',
+      'Cache-Control': 'no-store'
+    }
+  });
+}
+
 // 4. Helper to detect static assets & Cloudinary images
 function isStaticOrImage(url) {
   const href = url.href;
@@ -161,7 +174,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-First for Static Assets, Fonts & Cloudinary Images
+  // Cache-First for Static Assets, Fonts & Cloudinary Images (with safe SVG fallback)
   if (isStaticOrImage(url)) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
@@ -176,7 +189,8 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         }).catch((err) => {
           console.warn('[SW] Fetch failed for static asset:', request.url, err);
-          return cachedResponse;
+          if (cachedResponse) return cachedResponse;
+          return getFallbackImageResponse();
         });
       })
     );

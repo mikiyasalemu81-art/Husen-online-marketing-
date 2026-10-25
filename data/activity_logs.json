@@ -1,5 +1,95 @@
 [
   {
+    "id": 1792930580835,
+    "actor": "owner",
+    "action": "TEST_ACTION",
+    "target": "unit-test",
+    "details": {
+      "note": "Verification test"
+    },
+    "created_at": "2026-10-25T12:16:20.248Z"
+  },
+  {
+    "id": 1792930580130,
+    "actor": "test-runner",
+    "action": "STOCK_IN",
+    "target": "prod-1792254126514",
+    "details": {
+      "inStock": true
+    },
+    "created_at": "2026-10-25T12:16:19.854Z"
+  },
+  {
+    "id": 1792930580173,
+    "actor": "test-runner",
+    "action": "STOCK_OUT",
+    "target": "prod-1792254126514",
+    "details": {
+      "inStock": false
+    },
+    "created_at": "2026-10-25T12:16:19.262Z"
+  },
+  {
+    "id": 1792930473344,
+    "actor": "owner",
+    "action": "TEST_ACTION",
+    "target": "unit-test",
+    "details": {
+      "note": "Verification test"
+    },
+    "created_at": "2026-10-25T12:14:32.442Z"
+  },
+  {
+    "id": 1792930472569,
+    "actor": "test-runner",
+    "action": "STOCK_IN",
+    "target": "prod-1792254126514",
+    "details": {
+      "inStock": true
+    },
+    "created_at": "2026-10-25T12:14:32.060Z"
+  },
+  {
+    "id": 1792930472178,
+    "actor": "test-runner",
+    "action": "STOCK_OUT",
+    "target": "prod-1792254126514",
+    "details": {
+      "inStock": false
+    },
+    "created_at": "2026-10-25T12:14:31.471Z"
+  },
+  {
+    "id": 1792929447872,
+    "actor": "owner",
+    "action": "TEST_ACTION",
+    "target": "unit-test",
+    "details": {
+      "note": "Verification test"
+    },
+    "created_at": "2026-10-25T11:57:27.077Z"
+  },
+  {
+    "id": 1792929447252,
+    "actor": "test-runner",
+    "action": "STOCK_IN",
+    "target": "prod-1792254126514",
+    "details": {
+      "inStock": true
+    },
+    "created_at": "2026-10-25T11:57:26.694Z"
+  },
+  {
+    "id": 1792929447053,
+    "actor": "test-runner",
+    "action": "STOCK_OUT",
+    "target": "prod-1792254126514",
+    "details": {
+      "inStock": false
+    },
+    "created_at": "2026-10-25T11:57:26.108Z"
+  },
+  {
     "id": 1792926754930,
     "actor": "owner",
     "action": "TEST_ACTION",

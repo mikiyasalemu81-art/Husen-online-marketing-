@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Husen Admin — Management Portal</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Progressive Web App: Dedicated Admin Manifest -->
+  <link rel="manifest" href="/admin.webmanifest">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Husen Admin">
+  <meta name="application-name" content="Husen Admin">
+
+  <!-- Favicons and Touch Icons (Admin Badge Edition) -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/admin-icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/admin-apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css?v=2.2">
+  <style>
+    body {
+      background-color: #0f172a;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+    .admin-standalone-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-standalone-bar {
+      background: #1e293b;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+    }
+    .admin-standalone-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #ffffff;
+    }
+    .admin-standalone-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .admin-standalone-title {
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+    .admin-badge-pill {
+      background: #d92a2a;
+      color: #ffffff;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      margin-left: 6px;
+      letter-spacing: 0.05em;
+    }
+    .admin-install-action-btn {
+      background: #d92a2a;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(217, 42, 42, 0.35);
+      transition: all 0.15s ease;
+    }
+    .admin-install-action-btn:hover {
+      background: #b91c1c;
+    }
+    .admin-return-store-link {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s ease;
+    }
+    .admin-return-store-link:hover {
+      color: #ffffff;
+    }
+    /* Display admin modal as the primary in-flow view */
+    .admin-backdrop {
+      display: flex !important;
+      position: static !important;
+      background: transparent !important;
+      padding: 16px;
+      flex: 1;
+      align-items: flex-start;
+      justify-content: center;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    .admin-modal {
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      animation: none !important;
+    }
+    #closeAdminBtn {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-standalone-wrapper">
+    <!-- Top Admin Bar with Dedicated Install App Trigger -->
+    <header class="admin-standalone-bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <a href="/admin" class="admin-standalone-brand">
+          <img src="/admin-icon-192.png" alt="Husen Admin Icon" class="admin-standalone-logo">
+          <div>
+            <span class="admin-standalone-title">Husen Portal</span>
+            <span class="admin-badge-pill">ADMIN</span>
+          </div>
+        </a>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px;">
+        <!-- Install Husen Admin App Button -->
+        <button type="button" class="admin-install-action-btn" id="btnAdminInstallPwa" style="display:none;" title="Install Admin Dashboard to Home Screen">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="btnAdminInstallText">Install Admin App</span>
+        </button>
+
+        <a href="/" class="admin-return-store-link" title="Open Customer Storefront">
+          <span>← Customer Store</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Admin Portal View Container -->
+    <div class="admin-backdrop" id="adminBackdrop" aria-hidden="false">
+      <div class="admin-modal" role="dialog" aria-labelledby="adminTitle">
+        <div class="admin-header">
+          <div>
+            <h2 class="admin-title" id="adminTitle">Husen Store Admin Portal</h2>
+            <p class="admin-subtitle">Live store inventory, multi-photo product CRUD, settings & orders</p>
+          </div>
+          <div class="admin-header-actions" style="display:flex; align-items:center; gap:6px;">
+            <button type="button" class="btn-admin-sms" id="btnTestSms" style="display:none;" title="Send Test SMS to 0907173634">📱 Test SMS</button>
+            <button type="button" class="btn-admin-refresh" id="adminRefreshBtn" style="display:none;" title="Refresh Data from Cloud">🔄 Refresh Data</button>
+            <button type="button" class="btn-admin-logout" id="adminLogoutBtn" style="display:none;">Log Out</button>
+            <button type="button" class="sheet-close-btn" id="closeAdminBtn" aria-label="Close Admin" style="display:none;">✕</button>
+          </div>
+        </div>
+
+        <!-- Admin Login View -->
+        <div class="admin-auth-view" id="adminAuthView">
+          <div class="admin-login-box">
+            <p>Select your account and enter your password:</p>
+            <div class="admin-login-fields">
+              <div class="input-field-wrap">
+                <label for="adminAccountSelect" class="field-label">Account Role</label>
+                <select id="adminAccountSelect" class="form-input">
+                  <option value="owner">Store Owner (ሁሴን)</option>
+                  <option value="staff">Staff Member (staff)</option>
+                </select>
+              </div>
+              <div class="input-field-wrap">
+                <label for="adminPinInput" class="field-label">Password</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="adminPinInput" class="form-input" placeholder="Enter password" autocomplete="current-password">
+                  <button type="button" class="btn-toggle-password" data-target="adminPinInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+              <button type="button" class="btn-primary btn-admin-login-submit" id="adminLoginBtn">Unlock Portal</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Dashboard View -->
+        <div class="admin-dashboard-view" id="adminDashboardView" style="display:none;">
+          <div class="admin-metrics-row">
+            <div class="metric-card">
+              <span class="metric-label">Today's Revenue</span>
+              <strong class="metric-value" id="adminTotalRevenue">0 ETB</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Total Orders</span>
+              <strong class="metric-value" id="adminOrderCount">0</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Products in Catalog</span>
+              <strong class="metric-value" id="adminProductsCount" style="color: #10b981;">0</strong>
+            </div>
+          </div>
+
+          <div class="admin-tabs">
+            <button type="button" class="admin-tab active" data-tab="products" id="adminTabProducts">Products (<span id="adminProductsBadge">0</span>)</button>
+            <button type="button" class="admin-tab" data-tab="orders" id="adminTabOrders">Orders (<span id="adminOrdersBadge">0</span>)</button>
+            <button type="button" class="admin-tab" data-tab="settings" id="adminTabSettings">Payment Accounts</button>
+            <button type="button" class="admin-tab" data-tab="password" id="adminTabPassword">🔐 Change Password</button>
+          </div>
+
+          <!-- Tab 1: Product CRUD Management -->
+          <div class="admin-tab-pane active" id="adminPaneProducts">
+            <div class="admin-pane-header">
+              <div>
+                <span class="admin-pane-title">Store Products</span>
+                <p class="admin-tab-desc">Add, edit, upload device photos, toggle stock, or delete items:</p>
+              </div>
+              <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
+                <span>+ Add New Product</span>
+              </button>
+            </div>
+
+            <!-- Admin Product Quick Search & Stock Filters -->
+            <div class="admin-product-filter-bar">
+              <input type="search" id="adminProdSearchInput" class="form-input admin-search-input" placeholder="🔍 Search catalog products...">
+              <div class="admin-filter-chips-row">
+                <button type="button" class="admin-filter-chip active" data-stock-filter="all">All</button>
+                <button type="button" class="admin-filter-chip" data-stock-filter="in">✓ In Stock</button>
+                <button type="button" class="admin-filter-chip" data-stock-filter="out">✕ Out of Stock</button>
+              </div>
+            </div>
+
+            <div class="admin-product-list" id="adminProductList">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Tab 2: Orders List -->
+          <div class="admin-tab-pane" id="adminPaneOrders" style="display:none;">
+            <div class="admin-orders-list" id="adminOrdersList">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Tab 3: Payment Accounts Settings -->
+          <div class="admin-tab-pane" id="adminPaneSettings" style="display:none;">
+            <div class="admin-pane-header">
+              <div>
+                <span class="admin-pane-title">Manual Transfer Accounts</span>
+                <p class="admin-tab-desc">Update CBE and Telebirr account details displayed to customers:</p>
+              </div>
+            </div>
+
+            <form id="paymentSettingsForm" class="settings-form">
+              <div class="settings-card">
+                <h4 class="settings-card-title">Commercial Bank of Ethiopia (CBE)</h4>
+                <div class="input-field-wrap">
+                  <label for="settingCbeAccount" class="field-label">CBE Account Number</label>
+                  <input type="text" id="settingCbeAccount" class="form-input" value="1000123456789" required>
+                </div>
+                <div class="input-field-wrap">
+                  <label for="settingCbeName" class="field-label">CBE Account Holder Name</label>
+                  <input type="text" id="settingCbeName" class="form-input" value="Husen Online Store" required>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h4 class="settings-card-title">Telebirr Account</h4>
+                <div class="input-field-wrap">
+                  <label for="settingTelebirrPhone" class="field-label">Telebirr Phone Number</label>
+                  <input type="text" id="settingTelebirrPhone" class="form-input" value="0923245529" required>
+                </div>
+                <div class="input-field-wrap">
+                  <label for="settingTelebirrName" class="field-label">Telebirr Account Name</label>
+                  <input type="text" id="settingTelebirrName" class="form-input" value="Husen Market" required>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h4 class="settings-card-title">Chapa Payment Gateway (Secret Key)</h4>
+                <div class="input-field-wrap">
+                  <label for="settingChapaKey" class="field-label">Chapa Secret Key (CHASECK_TEST-... or CHASECK_LIVE-...)</label>
+                  <input type="password" id="settingChapaKey" class="form-input" placeholder="CHASECK_TEST-..." value="">
+                  <small style="color: var(--text-muted); margin-top: 4px; display: block;">Enter your key from <a href="https://dashboard.chapa.co" target="_blank" style="color: var(--primary); text-decoration: underline;">dashboard.chapa.co</a> to enable live payment redirects.</small>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnSaveSettings">Save Payment Accounts</button>
+            </form>
+          </div>
+
+          <!-- Tab 4: Change Password & Staff Reset -->
+          <div class="admin-tab-pane" id="adminPanePassword" style="display:none;">
+            <div class="admin-pane-header">
+              <div>
+                <span class="admin-pane-title">Change Password</span>
+                <p class="admin-tab-desc">Securely change your account password (Hashed on server with PBKDF2):</p>
+              </div>
+            </div>
+
+            <form id="changePasswordForm" class="settings-form" style="max-width: 480px;">
+              <div class="current-user-banner" style="background:var(--bg-subtle); padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:0.85rem;">
+                Logged in as: <strong id="adminCurrentUsername">owner</strong> (<span id="adminCurrentRole">Owner (ሁሴን)</span>)
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="currentPasswordInput" class="field-label">Current Password *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="currentPasswordInput" class="form-input" placeholder="Enter current password" required autocomplete="current-password">
+                  <button type="button" class="btn-toggle-password" data-target="currentPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="newPasswordInput" class="field-label">New Password * (Min 6 characters)</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="newPasswordInput" class="form-input" placeholder="Enter new password" required minlength="6" autocomplete="new-password">
+                  <button type="button" class="btn-toggle-password" data-target="newPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <div class="input-field-wrap">
+                <label for="confirmPasswordInput" class="field-label">Confirm New Password *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="confirmPasswordInput" class="form-input" placeholder="Confirm new password" required minlength="6" autocomplete="new-password">
+                  <button type="button" class="btn-toggle-password" data-target="confirmPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" id="btnSubmitChangePassword">Update Password</button>
+            </form>
+
+            <div class="owner-staff-reset-section" id="ownerStaffResetSection" style="margin-top: 32px; border-top: 1px solid var(--border-medium); padding-top: 24px; display: none;">
+              <h4 style="font-size: 1rem; color: var(--text-main); margin-bottom: 6px;">Store Owner Control: Reset Staff Password</h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">As the store owner, you can directly override and reset staff credentials:</p>
+
+              <form id="ownerStaffResetForm" class="settings-form" style="max-width: 480px;">
+                <div class="input-field-wrap">
+                  <label for="resetStaffSelect" class="field-label">Select Staff Account</label>
+                  <select id="resetStaffSelect" class="form-input">
+                    <option value="staff">staff (Store Staff Member)</option>
+                  </select>
+                </div>
+
+                <div class="input-field-wrap">
+                  <label for="ownerAuthPasswordInput" class="field-label">Your Owner Password *</label>
+                  <div class="password-input-wrap">
+                    <input type="password" id="ownerAuthPasswordInput" class="form-input" placeholder="Enter your owner password to authorize" required>
+                    <button type="button" class="btn-toggle-password" data-target="ownerAuthPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                  </div>
+                </div>
+
+                <div class="input-field-wrap">
+                  <label for="newStaffPasswordInput" class="field-label">New Password for Staff *</label>
+                  <div class="password-input-wrap">
+                    <input type="password" id="newStaffPasswordInput" class="form-input" placeholder="Enter new staff password (min 6 chars)" required minlength="6">
+                    <button type="button" class="btn-toggle-password" data-target="newStaffPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                  </div>
+                </div>
+
+                <div class="input-field-wrap">
+                  <label for="confirmStaffPasswordInput" class="field-label">Confirm New Staff Password *</label>
+                  <div class="password-input-wrap">
+                    <input type="password" id="confirmStaffPasswordInput" class="form-input" placeholder="Confirm new staff password" required>
+                    <button type="button" class="btn-toggle-password" data-target="confirmStaffPasswordInput" aria-label="Toggle password visibility">👁️</button>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="btnSubmitStaffReset" style="background-color: #0284c7;">Reset Staff Password</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Add / Edit Modal -->
+  <div class="editor-backdrop" id="productEditorBackdrop" aria-hidden="true">
+    <div class="editor-modal" role="dialog" aria-labelledby="editorModalTitle">
+      <div class="editor-header">
+        <h3 class="editor-title" id="editorModalTitle">Add New Product</h3>
+        <button type="button" class="sheet-close-btn" id="closeEditorBtn" aria-label="Close Editor">✕</button>
+      </div>
+
+      <form id="productEditorForm" class="editor-body" novalidate>
+        <input type="hidden" id="editProductId" value="">
+
+        <div class="input-field-wrap">
+          <label for="editorProdName" class="field-label">Product Name *</label>
+          <input type="text" id="editorProdName" class="form-input" placeholder="e.g. Electric Kettle 2.0L Stainless" required>
+        </div>
+
+        <div class="editor-row-2">
+          <div class="input-field-wrap">
+            <label for="editorProdCategory" class="field-label">Category * <small>(Type any category name)</small></label>
+            <input type="text" id="editorProdCategory" list="categorySuggestions" class="form-input" placeholder="e.g. Kitchen, Solar, Bedding..." required autocomplete="off">
+            <datalist id="categorySuggestions">
+              <option value="kitchen">Kitchen (ማብሰያ)</option>
+              <option value="home">Home (የቤት)</option>
+              <option value="beauty">Beauty (ውበት)</option>
+              <option value="health">Health (ጤና)</option>
+            </datalist>
+            <button type="button" class="btn-toggle-cat-trans" id="btnToggleCatTrans">+ Add Category Translations (Optional)</button>
+          </div>
+
+          <div class="input-field-wrap">
+            <label for="editorProdPrice" class="field-label">Price in ETB *</label>
+            <input type="number" id="editorProdPrice" class="form-input" placeholder="e.g. 1500" min="1" step="10" required>
+          </div>
+        </div>
+
+        <div class="cat-translations-card" id="catTranslationsCard" style="display:none;">
+          <small class="field-helper" style="margin-bottom:8px; display:block;">Optional translated names for storefront language switcher:</small>
+          <div class="editor-row-3">
+            <div class="input-field-wrap">
+              <label for="editorCatAm" class="field-label-sub">Amharic (አማርኛ)</label>
+              <input type="text" id="editorCatAm" class="form-input form-input-sm" placeholder="ለምሳሌ፡ ማብሰያ">
+            </div>
+            <div class="input-field-wrap">
+              <label for="editorCatOm" class="field-label-sub">Afaan Oromoo</label>
+              <input type="text" id="editorCatOm" class="form-input form-input-sm" placeholder="fk., Kushiinaa">
+            </div>
+            <div class="input-field-wrap">
+              <label for="editorCatEn" class="field-label-sub">English</label>
+              <input type="text" id="editorCatEn" class="form-input form-input-sm" placeholder="e.g. Kitchen">
+            </div>
+          </div>
+        </div>
+
+        <div class="input-field-wrap">
+          <label for="editorProdDesc" class="field-label">Short Description / Specs *</label>
+          <textarea id="editorProdDesc" class="form-input editor-textarea" rows="3" placeholder="Briefly describe key features, warranty, and contents..." required></textarea>
+        </div>
+
+        <div class="editor-image-manager">
+          <div class="manager-header">
+            <div>
+              <label class="field-label">Product Photos (Upload from Device)</label>
+              <small class="field-helper">Select 1 or more photos. First photo is cover. Reorder with ◀ / ▶ or click "Set Cover":</small>
+            </div>
+            
+            <input type="file" id="editorFileInput" multiple accept="image/*" style="display:none;">
+            <button type="button" class="btn-device-upload" id="btnDeviceUpload">
+              <span>📁 Upload Photos from Device</span>
+            </button>
+          </div>
+
+          <div class="upload-progress-list" id="uploadProgressList" style="display:none;"></div>
+          <div class="upload-error-banner" id="uploadErrorBanner" style="display:none;"></div>
+
+          <div class="editor-thumbnails-grid" id="editorThumbnailsGrid"></div>
+
+          <div class="quick-img-presets">
+            <span class="preset-label">Or quick sample presets:</span>
+            <button type="button" class="btn-preset-img" data-preset="public/images/storage1.jpg">+ Storage</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/blender1.jpg">+ Blender 1</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/blender2.jpg">+ Blender 2</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/vest1.jpg">+ Vest</button>
+            <button type="button" class="btn-preset-img" data-preset="public/images/melanix.jpg">+ Melanix</button>
+          </div>
+        </div>
+
+        <div class="editor-switch-row">
+          <div>
+            <strong style="font-size: 0.85rem; color: var(--text-main);">Available In Stock</strong>
+            <p style="font-size: 0.72rem; color: var(--text-muted);">When turned off, item is completely hidden from the storefront</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="editorProdInStock" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="editor-actions-row">
+          <button type="button" class="btn-secondary" id="cancelEditorBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="saveProductBtn">
+            <span id="saveProductBtnText">Publish Product</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- App logic & Admin install script -->
+  <script src="app.js?v=2.2"></script>
+  <script>
+    // Dedicated Admin PWA Install Logic
+    (function() {
+      let adminDeferredPrompt = null;
+      const btnInstall = document.getElementById('btnAdminInstallPwa');
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+      if (!isStandalone && btnInstall) {
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          adminDeferredPrompt = e;
+          btnInstall.style.display = 'inline-flex';
+        });
+
+        // Also show on iOS Safari
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isSafari = isIOS && /Safari/i.test(navigator.userAgent);
+        if (isSafari) {
+          btnInstall.style.display = 'inline-flex';
+        }
+
+        btnInstall.addEventListener('click', async () => {
+          if (adminDeferredPrompt) {
+            adminDeferredPrompt.prompt();
+            const choice = await adminDeferredPrompt.userChoice;
+            if (choice.outcome === 'accepted') {
+              btnInstall.style.display = 'none';
+            }
+            adminDeferredPrompt = null;
+          } else if (isSafari) {
+            alert("To install Husen Admin on iPhone:\n1. Tap the Share button below\n2. Select 'Add to Home Screen'\n3. Tap 'Add'");
+          } else {
+            alert("To install Husen Admin, tap the browser menu (⋮) and select 'Install app' or 'Add to Home screen'.");
+          }
+        });
+
+        window.addEventListener('appinstalled', () => {
+          btnInstall.style.display = 'none';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

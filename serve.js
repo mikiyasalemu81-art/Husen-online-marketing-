@@ -1178,6 +1178,7 @@ const server = http.createServer(async (req, res) => {
   // --- STATIC FILE SERVING ---
   let reqPath = pathname;
   if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
+  if (reqPath === '/admin' || reqPath === '/admin/') reqPath = '/admin.html';
 
   const filePath = path.join(__dirname, reqPath);
 
@@ -1190,11 +1191,20 @@ const server = http.createServer(async (req, res) => {
 
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
-    res.writeHead(200, {
+    const headers = {
       'Content-Type': contentType,
       'Cache-Control': 'no-cache'
-    });
+    };
+
+    if (reqPath === '/sw.js') {
+      headers['Service-Worker-Allowed'] = '/';
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    } else if (ext === '.webmanifest') {
+      headers['Content-Type'] = 'application/manifest+json; charset=utf-8';
+      headers['Access-Control-Allow-Origin'] = '*';
+    }
+
+    res.writeHead(200, headers);
     fs.createReadStream(filePath).pipe(res);
   });
 });

@@ -97,7 +97,25 @@
       trustSecureDesc: "በ Chapa (ቴሌብር፣ ንግድ ባንክ)፣ ቀጥታ ማስተላለፍ ወይም በእጅ ሲደርስ ይክፈሉ።",
       trustContactTitle: "ጥያቄ ወይም እገዛ ይፈልጋሉ?",
       selectQty: "ብዛት ይምረጡ",
-      totalAmountLabel: "ጠቅላላ ክፍያ:"
+      totalAmountLabel: "ጠቅላላ ክፍያ:",
+
+      // PWA Install Prompt Strings
+      installBtn: "መተግበሪያውን ጫን",
+      installBannerTitle: "የሁሴን መተግበሪያን ይጫኑ",
+      installBannerSub: "ለፈጣን ግብይት ሁሴንን ወደ ስልክዎ መነሻ ገጽ ያክሉ",
+      installBannerBtn: "መተግበሪያውን ጫን",
+      iosInstallTitle: "በ iPhone ላይ ለመጫን",
+      iosInstallStep1: "በ Safari ታችኛው ክፍል ላይ ያለውን የማጋሪያ (Share) ምልክት ይጫኑ",
+      iosInstallStep2: "ወደ ታች ዝቅ ብለው 'Add to Home Screen' የሚለውን ይምረጡ",
+      iosInstallStep3: "ከላይ በቀኝ በኩል 'Add' የሚለውን ተጭነው ያጠናቁ",
+      iosToolbarHint: "ከታች ያለውን የ Safari ሜኑ ይመልከቱ",
+      inAppTitle: "የሁሴን መተግበሪያን ይጫኑ",
+      inAppMsg: "መተግበሪያውን ወደ ስልክዎ ለመጫን ይህንን ገጽ በ Chrome ወይም በ Safari ይክፈቱት።",
+      inAppStepTip: "ከላይ በስተቀኝ ያሉትን ሶስት ነጥቦች (•••) ነክተው 'Open in browser' ይምረጡ",
+      copyLinkBtn: "ሊንኩን ቅዳ",
+      copiedLinkToast: "ሊንኩ ተቀድቷል!",
+      openInBrowserBtn: "በብሮውዘር ክፈት",
+      gotItBtn: "ገባኝ"
     },
 
     om: {
@@ -172,7 +190,25 @@
       trustSecureDesc: "Chapa (Telebirr, CBE), Dabarsa Kallattii ykn yeroo si dhaqqabu harkatti kaffalaa.",
       trustContactTitle: "Gargaarsa Barbaadduu?",
       selectQty: "Baay'ina Filadhaa",
-      totalAmountLabel: "Kaffaltii Waliigalaa:"
+      totalAmountLabel: "Kaffaltii Waliigalaa:",
+
+      // PWA Install Prompt Strings
+      installBtn: "Appii Fe'adhaa",
+      installBannerTitle: "Appii Husen Fe'adhaa",
+      installBannerSub: "Bittaa saffisaaf Husen gara iskiriinii jalqabaatti dabalaa",
+      installBannerBtn: "Appii Fe'adhaa",
+      iosInstallTitle: "iPhone irratti fe'achuuf",
+      iosInstallStep1: "Safari keessatti mallattoo Qoodaa (Share) sarara gadii irraa tuqaa",
+      iosInstallStep2: "Gadi siqaatii 'Add to Home Screen' kan jedhu filadhaa",
+      iosInstallStep3: "Xumuruuf gubbaa mirgaatti 'Add' kan jedhu tuqaa",
+      iosToolbarHint: "Gara gadii sarara Safari ilaalaa",
+      inAppTitle: "Appii Husen Fe'adhaa",
+      inAppMsg: "Appii kana fe'achuuf fuula kana Chrome ykn Safari keessatti banaa.",
+      inAppStepTip: "Gubbaa mirgaatti tuqaalee sadii (•••) tuquun 'Open in browser' filadhaa",
+      copyLinkBtn: "Liinkii Waraabi",
+      copiedLinkToast: "Liinkiin waraabameera!",
+      openInBrowserBtn: "Biroowzariin Bani",
+      gotItBtn: "Hubadheera"
     },
 
     en: {
@@ -247,7 +283,25 @@
       trustSecureDesc: "Chapa Gateway (Telebirr & CBE), Direct Transfer, or Cash on Delivery.",
       trustContactTitle: "Need Help? Contact Husen",
       selectQty: "Select Quantity",
-      totalAmountLabel: "Total Amount:"
+      totalAmountLabel: "Total Amount:",
+
+      // PWA Install Prompt Strings
+      installBtn: "Install app",
+      installBannerTitle: "Install Husen App",
+      installBannerSub: "Add Husen to your home screen for faster shopping",
+      installBannerBtn: "Install app",
+      iosInstallTitle: "Install on iPhone",
+      iosInstallStep1: "Tap the Share button in Safari toolbar below",
+      iosInstallStep2: "Scroll down and select 'Add to Home Screen'",
+      iosInstallStep3: "Tap 'Add' in the top right corner to finish",
+      iosToolbarHint: "Look at the Safari toolbar below",
+      inAppTitle: "Install Husen App",
+      inAppMsg: "Open this page in Chrome or Safari to install the app.",
+      inAppStepTip: "Tap the menu button (•••) at top right, then select 'Open in browser'",
+      copyLinkBtn: "Copy link",
+      copiedLinkToast: "Link copied to clipboard!",
+      openInBrowserBtn: "Open in browser",
+      gotItBtn: "Got it"
     }
   };
 
@@ -751,6 +805,38 @@
     // Admin Controls
     btnTestSms: document.getElementById('btnTestSms'),
     adminProdSearchInput: document.getElementById('adminProdSearchInput'),
+    linkToAdminApp: document.getElementById('linkToAdminApp'),
+
+    // PWA Install UI Elements
+    headerInstallBtn: document.getElementById('headerInstallBtn'),
+    headerInstallBadge: document.getElementById('headerInstallBadge'),
+    installBanner: document.getElementById('installBanner'),
+    closeInstallBannerBtn: document.getElementById('closeInstallBannerBtn'),
+    bannerInstallBtn: document.getElementById('bannerInstallBtn'),
+    installBannerTitle: document.getElementById('installBannerTitle'),
+    installBannerSub: document.getElementById('installBannerSub'),
+    installBannerBtnText: document.getElementById('installBannerBtnText'),
+
+    // iOS Safari Add to Home Screen Sheet
+    iosInstallSheet: document.getElementById('iosInstallSheet'),
+    closeIosSheetBtn: document.getElementById('closeIosSheetBtn'),
+    iosGotItBtn: document.getElementById('iosGotItBtn'),
+    iosSheetTitle: document.getElementById('iosSheetTitle'),
+    iosStep1Text: document.getElementById('iosStep1Text'),
+    iosStep2Text: document.getElementById('iosStep2Text'),
+    iosStep3Text: document.getElementById('iosStep3Text'),
+    iosToolbarHintText: document.getElementById('iosToolbarHintText'),
+
+    // In-App Browser (TikTok / Telegram / IG) Modal
+    inAppBrowserModal: document.getElementById('inAppBrowserModal'),
+    closeInAppModalBtn: document.getElementById('closeInAppModalBtn'),
+    inAppModalTitle: document.getElementById('inAppModalTitle'),
+    inAppMessageText: document.getElementById('inAppMessageText'),
+    inAppTipText: document.getElementById('inAppTipText'),
+    btnCopyStoreLink: document.getElementById('btnCopyStoreLink'),
+    btnCopyStoreLinkText: document.getElementById('btnCopyStoreLinkText'),
+    btnOpenInBrowser: document.getElementById('btnOpenInBrowser'),
+    btnOpenInBrowserText: document.getElementById('btnOpenInBrowserText'),
 
     toastContainer: document.getElementById('toastContainer')
   };
@@ -993,6 +1079,28 @@
     if (dom.tgTotalLabel) dom.tgTotalLabel.textContent = strings.totalAmountLabel;
     if (dom.tgBtnCartText) dom.tgBtnCartText.textContent = strings.addToCart;
     if (dom.tgBtnBuyText) dom.tgBtnBuyText.textContent = strings.buyNow;
+
+    // PWA Install UI Language Updates
+    if (dom.headerInstallBadge) dom.headerInstallBadge.textContent = strings.installBtn;
+    if (dom.headerInstallBtn) dom.headerInstallBtn.setAttribute('title', strings.installBtn);
+    if (dom.installBannerTitle) dom.installBannerTitle.textContent = strings.installBannerTitle;
+    if (dom.installBannerSub) dom.installBannerSub.textContent = strings.installBannerSub;
+    if (dom.installBannerBtnText) dom.installBannerBtnText.textContent = strings.installBannerBtn;
+
+    // iOS Safari Sheet
+    if (dom.iosSheetTitle) dom.iosSheetTitle.textContent = strings.iosInstallTitle;
+    if (dom.iosStep1Text) dom.iosStep1Text.innerHTML = `${strings.iosInstallStep1}`;
+    if (dom.iosStep2Text) dom.iosStep2Text.innerHTML = `${strings.iosInstallStep2}`;
+    if (dom.iosStep3Text) dom.iosStep3Text.innerHTML = `${strings.iosInstallStep3}`;
+    if (dom.iosToolbarHintText) dom.iosToolbarHintText.textContent = strings.iosToolbarHint;
+    if (dom.iosGotItBtn) dom.iosGotItBtn.textContent = strings.gotItBtn;
+
+    // In-App Browser Modal
+    if (dom.inAppModalTitle) dom.inAppModalTitle.textContent = strings.inAppTitle;
+    if (dom.inAppMessageText) dom.inAppMessageText.textContent = strings.inAppMsg;
+    if (dom.inAppTipText) dom.inAppTipText.textContent = strings.inAppStepTip;
+    if (dom.btnCopyStoreLinkText) dom.btnCopyStoreLinkText.textContent = strings.copyLinkBtn;
+    if (dom.btnOpenInBrowserText) dom.btnOpenInBrowserText.textContent = strings.openInBrowserBtn;
 
     updateFinalizeButtonText();
     renderCategories();
@@ -1341,6 +1449,11 @@
     updateTgTotals();
 
     openElement(dom.tgProductView);
+
+    // Trigger PWA Install Banner when visitor views a product
+    if (typeof window.triggerInstallBanner === 'function') {
+      window.triggerInstallBanner();
+    }
   }
 
   function closeTelegramProductView() {
@@ -2438,6 +2551,7 @@
   function initAdminPortal() {
     if (dom.openAdminBtn) {
       dom.openAdminBtn.addEventListener('click', () => {
+        if (dom.installBanner) dom.installBanner.style.display = 'none';
         openElement(dom.adminBackdrop);
       });
     }
@@ -2455,6 +2569,7 @@
     }
 
     // Check Persistent Admin Login State (Stay Logged In)
+    // Default owner admin password reference: husenonlinemarketing1234
     const isAuthed = (localStorage.getItem('hom_admin_logged_in') === 'true' || localStorage.getItem('husen_admin_auth') === 'true');
     const savedUserStr = localStorage.getItem('hom_admin_user');
     if (isAuthed) {
@@ -2468,6 +2583,7 @@
       if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'block';
       if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'inline-flex';
       if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'inline-flex';
+      if (dom.linkToAdminApp) dom.linkToAdminApp.style.display = 'inline-flex';
       if (dom.adminCurrentUsername) dom.adminCurrentUsername.textContent = state.currentUser.username;
       if (dom.adminCurrentRole) dom.adminCurrentRole.textContent = state.currentUser.role === 'owner' ? 'Owner (ሁሴን)' : 'Staff Member';
       if (dom.ownerStaffResetSection) {
@@ -2506,6 +2622,7 @@
           if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'block';
           if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'inline-flex';
           if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'inline-flex';
+          if (dom.linkToAdminApp) dom.linkToAdminApp.style.display = 'inline-flex';
           if (dom.adminPinInput) dom.adminPinInput.value = '';
 
           if (dom.adminCurrentUsername) dom.adminCurrentUsername.textContent = data.user.username;
@@ -2569,6 +2686,7 @@
       if (dom.adminDashboardView) dom.adminDashboardView.style.display = 'none';
       if (dom.adminLogoutBtn) dom.adminLogoutBtn.style.display = 'none';
       if (dom.adminRefreshBtn) dom.adminRefreshBtn.style.display = 'none';
+      if (dom.linkToAdminApp) dom.linkToAdminApp.style.display = 'none';
       if (dom.adminPinInput) dom.adminPinInput.value = '';
       showToast(msg);
     }
@@ -3438,6 +3556,265 @@
   }
 
   // ==========================================================================
+  // 14B. PWA INSTALL SYSTEM & BROWSER DETECTION
+  // ==========================================================================
+  function initPWAInstallSystem() {
+    // 1. Service Worker Registration on Load
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then((reg) => {
+            console.log('[PWA] Service Worker registered with scope:', reg.scope);
+          })
+          .catch((err) => {
+            console.warn('[PWA] Service Worker registration failed:', err);
+          });
+      });
+    }
+
+    // 2. Standalone & Platform Detection
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true ||
+                         document.referrer.includes('android-app://');
+
+    function isDismissedRecently() {
+      try {
+        const ts = localStorage.getItem('hom_install_dismissed_time');
+        if (!ts) return false;
+        const diff = Date.now() - parseInt(ts, 10);
+        return diff < (7 * 24 * 60 * 60 * 1000); // 7 days in ms
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function setDismissed() {
+      state.installBannerDismissed = true;
+      try {
+        localStorage.setItem('hom_install_dismissed_time', Date.now().toString());
+      } catch (e) {}
+    }
+
+    function isAppInstalled() {
+      if (isStandalone) return true;
+      try {
+        return localStorage.getItem('hom_app_installed') === 'true';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function detectInAppBrowser() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+      const isTelegram = /Telegram/i.test(ua) || (window.TelegramWebviewProxy !== undefined) || (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData);
+      const isTikTok = /musical_ly|ByteLocale|ByteFullLocale|TikTok|musical\.ly/i.test(ua);
+      const isFB = /FBAN|FBAV|FB_IAB|FB4A|FBIOS/i.test(ua);
+      const isInstagram = /Instagram/i.test(ua);
+      const isOtherInApp = /Line|Twitter|MicroMessenger/i.test(ua);
+      return Boolean(isTelegram || isTikTok || isFB || isInstagram || isOtherInApp);
+    }
+
+    function detectIOSSafari() {
+      const ua = navigator.userAgent || '';
+      const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      if (!isIOS) return false;
+      if (detectInAppBrowser()) return false;
+      const isWebkit = /WebKit/i.test(ua);
+      const isOtherIOSBrowser = /CriOS|FxiOS|EdgiOS|OPiOS|OPT/i.test(ua);
+      return isWebkit && !isOtherIOSBrowser;
+    }
+
+    function hideAllInstallUI() {
+      if (dom.headerInstallBtn) dom.headerInstallBtn.style.display = 'none';
+      if (dom.installBanner) dom.installBanner.style.display = 'none';
+      if (dom.iosInstallSheet) closeElement(dom.iosInstallSheet);
+      if (dom.inAppBrowserModal) closeElement(dom.inAppBrowserModal);
+    }
+
+    // Never show install UI if running as standalone installed app or if permanently installed
+    if (isStandalone || isAppInstalled()) {
+      console.log('[PWA] Running standalone or already installed. Install UI hidden.');
+      return;
+    }
+
+    // Show header button if iOS Safari or In-App Browser (Chrome will show when beforeinstallprompt fires)
+    const isInApp = detectInAppBrowser();
+    const isIOS = detectIOSSafari();
+
+    if (isInApp || isIOS) {
+      if (dom.headerInstallBtn && !isDismissedRecently()) {
+        dom.headerInstallBtn.style.display = 'inline-flex';
+      }
+    }
+
+    // 3. Android / Chrome / Edge / Samsung Internet beforeinstallprompt Event
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      state.deferredInstallPrompt = e;
+      console.log('[PWA] beforeinstallprompt event captured and stored.');
+
+      if (!isAppInstalled() && !isDismissedRecently() && dom.headerInstallBtn) {
+        dom.headerInstallBtn.style.display = 'inline-flex';
+      }
+    });
+
+    // 4. appinstalled Event (Hide permanently)
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] App successfully installed on device!');
+      try {
+        localStorage.setItem('hom_app_installed', 'true');
+      } catch (e) {}
+      hideAllInstallUI();
+      showToast(t().orderSuccessTitle || 'App Installed!', '🎉');
+    });
+
+    // 5. Trigger Bottom Install Banner after 10s or product view
+    window.triggerInstallBanner = function() {
+      if (isStandalone || isAppInstalled() || isDismissedRecently() || state.installBannerDismissed) {
+        return;
+      }
+      // Never show banner in admin area or when admin modal is open
+      if (window.location.pathname.startsWith('/admin')) return;
+      if (dom.adminBackdrop && (dom.adminBackdrop.classList.contains('open') || dom.adminBackdrop.style.display === 'flex')) return;
+
+      if (dom.installBanner) {
+        dom.installBanner.style.display = 'block';
+      }
+    };
+
+    // Auto-trigger banner after 10 seconds of browsing
+    setTimeout(() => {
+      if (typeof window.triggerInstallBanner === 'function') {
+        window.triggerInstallBanner();
+      }
+    }, 10000);
+
+    // 6. Handle Install Tap
+    async function handleInstallAction() {
+      // Case 1: Android Chrome / Edge beforeinstallprompt
+      if (state.deferredInstallPrompt) {
+        try {
+          state.deferredInstallPrompt.prompt();
+          const choice = await state.deferredInstallPrompt.userChoice;
+          console.log('[PWA] User response to install prompt:', choice.outcome);
+          if (choice.outcome === 'accepted') {
+            try { localStorage.setItem('hom_app_installed', 'true'); } catch (e) {}
+          } else {
+            setDismissed();
+          }
+        } catch (err) {
+          console.warn('[PWA] Error launching install prompt:', err);
+        } finally {
+          state.deferredInstallPrompt = null;
+          hideAllInstallUI();
+        }
+        return;
+      }
+
+      // Case 2: In-App Browser (TikTok, Telegram, Facebook, Instagram)
+      if (detectInAppBrowser()) {
+        if (dom.installBanner) dom.installBanner.style.display = 'none';
+        if (dom.inAppBrowserModal) openElement(dom.inAppBrowserModal);
+        return;
+      }
+
+      // Case 3: iOS Safari
+      if (detectIOSSafari()) {
+        if (dom.installBanner) dom.installBanner.style.display = 'none';
+        if (dom.iosInstallSheet) openElement(dom.iosInstallSheet);
+        return;
+      }
+
+      // Fallback: Other browser / Desktop Chrome
+      showToast(t().installBannerSub || 'Add Husen to your home screen from your browser menu', '📱');
+    }
+
+    if (dom.headerInstallBtn) {
+      dom.headerInstallBtn.addEventListener('click', handleInstallAction);
+    }
+    if (dom.bannerInstallBtn) {
+      dom.bannerInstallBtn.addEventListener('click', handleInstallAction);
+    }
+
+    // Close banner button
+    if (dom.closeInstallBannerBtn) {
+      dom.closeInstallBannerBtn.addEventListener('click', () => {
+        if (dom.installBanner) dom.installBanner.style.display = 'none';
+        setDismissed();
+      });
+    }
+
+    // Close iOS sheet buttons
+    if (dom.closeIosSheetBtn) {
+      dom.closeIosSheetBtn.addEventListener('click', () => closeElement(dom.iosInstallSheet));
+    }
+    if (dom.iosGotItBtn) {
+      dom.iosGotItBtn.addEventListener('click', () => closeElement(dom.iosInstallSheet));
+    }
+    if (dom.iosInstallSheet) {
+      dom.iosInstallSheet.addEventListener('click', (e) => {
+        if (e.target === dom.iosInstallSheet) closeElement(dom.iosInstallSheet);
+      });
+    }
+
+    // In-App Browser modal controls
+    if (dom.closeInAppModalBtn) {
+      dom.closeInAppModalBtn.addEventListener('click', () => closeElement(dom.inAppBrowserModal));
+    }
+    if (dom.inAppBrowserModal) {
+      dom.inAppBrowserModal.addEventListener('click', (e) => {
+        if (e.target === dom.inAppBrowserModal) closeElement(dom.inAppBrowserModal);
+      });
+    }
+
+    // Copy store link in in-app modal
+    if (dom.btnCopyStoreLink) {
+      dom.btnCopyStoreLink.addEventListener('click', async () => {
+        const storeUrl = window.location.origin || window.location.href;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(storeUrl);
+          } else {
+            const tempInput = document.createElement('input');
+            tempInput.value = storeUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+          }
+          if (dom.btnCopyStoreLinkText) {
+            dom.btnCopyStoreLinkText.textContent = t().copiedLinkToast || 'Link copied!';
+            setTimeout(() => {
+              if (dom.btnCopyStoreLinkText) dom.btnCopyStoreLinkText.textContent = t().copyLinkBtn || 'Copy link';
+            }, 3000);
+          }
+          showToast(t().copiedLinkToast || 'Link copied to clipboard!', '✓');
+        } catch (err) {
+          console.warn('[PWA] Failed to copy URL:', err);
+          showToast(storeUrl, '🔗');
+        }
+      });
+    }
+
+    // Open in browser button
+    if (dom.btnOpenInBrowser) {
+      dom.btnOpenInBrowser.href = window.location.href;
+      dom.btnOpenInBrowser.addEventListener('click', (e) => {
+        const isAndroid = /Android/i.test(navigator.userAgent || '');
+        if (isAndroid) {
+          e.preventDefault();
+          const cleanUrl = window.location.href.replace(/^https?:\/\//, '');
+          const intentUrl = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end`;
+          window.location.href = intentUrl;
+          setTimeout(() => {
+            window.location.href = window.location.href;
+          }, 1500);
+        }
+      });
+    }
+  }
+
+  // ==========================================================================
   // 15. INITIALIZATION
   // ==========================================================================
   function init() {
@@ -3446,6 +3823,7 @@
     initCheckoutForm();
     initAdminPortal();
     initChapaModal();
+    initPWAInstallSystem();
 
     // Clear cart button
     if (dom.clearCartBtn) {

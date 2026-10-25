@@ -6,7 +6,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;"
+          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://*.supabase.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;"
         }
       ]
     },

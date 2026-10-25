@@ -441,13 +441,23 @@
     el.setAttribute('aria-hidden', 'true');
   }
 
+  // Neutral Husen Logo SVG Placeholder (zero-network permanent fallback)
+  const HUSEN_FALLBACK_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23faf7f5'/%3E%3Ccircle cx='200' cy='125' r='48' fill='%23d92a2a' opacity='0.12'/%3E%3Cpath d='M184 105 h32 v42 h-32 z M190 105 a10 10 0 0 1 20 0' fill='none' stroke='%23d92a2a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ctext x='200' y='205' text-anchor='middle' fill='%23d92a2a' font-family='system-ui, -apple-system, sans-serif' font-weight='700' font-size='16'%3EHUSEN ONLINE%3C/text%3E%3Ctext x='200' y='225' text-anchor='middle' fill='%23888888' font-family='system-ui, -apple-system, sans-serif' font-size='12'%3EProduct Photo%3C/text%3E%3C/svg%3E";
+
   // Helper to safely extract image URL from either object { secure_url, public_id } or string
   function getImgSrc(img) {
-    if (!img) return 'public/images/storage1.jpg';
+    if (!img) return HUSEN_FALLBACK_SVG;
     if (typeof img === 'object' && img) {
-      return img.secure_url || img.url || 'public/images/storage1.jpg';
+      return img.secure_url || img.url || HUSEN_FALLBACK_SVG;
     }
-    return img;
+    if (typeof img === 'string') {
+      const trimmed = img.trim();
+      if (!trimmed || trimmed === '[object Object]' || trimmed.startsWith('blob:') || trimmed.startsWith('data:image/svg+xml')) {
+        return trimmed.startsWith('data:image/svg+xml') ? trimmed : HUSEN_FALLBACK_SVG;
+      }
+      return trimmed;
+    }
+    return HUSEN_FALLBACK_SVG;
   }
 
   // ==========================================================================
@@ -712,13 +722,19 @@
     adminProductsBadge: document.getElementById('adminProductsBadge'),
     adminTabProducts: document.getElementById('adminTabProducts'),
     adminTabOrders: document.getElementById('adminTabOrders'),
+    adminTabActivity: document.getElementById('adminTabActivity'),
     adminTabSettings: document.getElementById('adminTabSettings'),
     adminTabPassword: document.getElementById('adminTabPassword'),
     adminOrdersBadge: document.getElementById('adminOrdersBadge'),
     adminPaneProducts: document.getElementById('adminPaneProducts'),
     adminPaneOrders: document.getElementById('adminPaneOrders'),
+    adminPaneActivity: document.getElementById('adminPaneActivity'),
     adminPaneSettings: document.getElementById('adminPaneSettings'),
     adminPanePassword: document.getElementById('adminPanePassword'),
+    adminActivityList: document.getElementById('adminActivityList'),
+    btnRefreshActivityLog: document.getElementById('btnRefreshActivityLog'),
+    btnExportProductsCsv: document.getElementById('btnExportProductsCsv'),
+    btnExportProductsJson: document.getElementById('btnExportProductsJson'),
     adminProductList: document.getElementById('adminProductList'),
     adminOrdersList: document.getElementById('adminOrdersList'),
     openAddProductModalBtn: document.getElementById('openAddProductModalBtn'),
@@ -1276,7 +1292,7 @@
             ` : ''}
             <div class="product-crossfade-wrap" id="crossfade-${p.id}">
               ${images.map((img, i) => `
-                <img src="${getImgSrc(img)}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy">
+                <img src="${getImgSrc(img)}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
               `).join('')}
             </div>
           </div>
@@ -1414,7 +1430,7 @@
       dom.tgHeroImageWrap.innerHTML = `
         <div class="tg-crossfade-container" id="tgHeroCrossfade">
           ${images.map((img, i) => `
-            <img src="${getImgSrc(img)}" alt="${name}" class="tg-hero-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}">
+            <img src="${getImgSrc(img)}" alt="${name}" class="tg-hero-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
           `).join('')}
         </div>
         ${images.length > 1 ? `
@@ -1530,7 +1546,7 @@
       const lineTotal = item.price * item.qty;
       return `
         <div class="cart-item-row" data-id="${item.id}">
-          <img src="${getImgSrc(item.image)}" alt="${getLocString(item.name, state.lang)}" class="cart-item-img">
+          <img src="${getImgSrc(item.image)}" alt="${getLocString(item.name, state.lang)}" class="cart-item-img" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
           
           <div class="cart-item-info">
             <h4 class="cart-item-name">${getLocString(item.name, state.lang)}</h4>
@@ -2695,15 +2711,16 @@
       dom.adminLogoutBtn.addEventListener('click', () => logoutAdmin());
     }
 
-    // Admin Tabs (Products, Orders, Payment Accounts, Change Password)
+    // Admin Tabs (Products, Orders, Activity Log, Payment Accounts, Change Password)
     const tabs = [
       { btn: dom.adminTabProducts, pane: dom.adminPaneProducts },
       { btn: dom.adminTabOrders, pane: dom.adminPaneOrders },
+      { btn: dom.adminTabActivity, pane: dom.adminPaneActivity, onShow: () => fetchAndRenderActivityLogs() },
       { btn: dom.adminTabSettings, pane: dom.adminPaneSettings },
       { btn: dom.adminTabPassword, pane: dom.adminPanePassword }
     ];
 
-    tabs.forEach(({ btn, pane }) => {
+    tabs.forEach(({ btn, pane, onShow }) => {
       if (btn && pane) {
         btn.addEventListener('click', () => {
           tabs.forEach(t => {
@@ -2712,9 +2729,22 @@
           });
           btn.classList.add('active');
           pane.style.display = 'block';
+          if (typeof onShow === 'function') onShow();
         });
       }
     });
+
+    if (dom.btnRefreshActivityLog) {
+      dom.btnRefreshActivityLog.addEventListener('click', () => fetchAndRenderActivityLogs());
+    }
+
+    if (dom.btnExportProductsCsv) {
+      dom.btnExportProductsCsv.addEventListener('click', () => triggerExport('csv'));
+    }
+
+    if (dom.btnExportProductsJson) {
+      dom.btnExportProductsJson.addEventListener('click', () => triggerExport('json'));
+    }
 
     // Password Show/Hide Toggles
     document.querySelectorAll('.btn-toggle-password').forEach(btn => {
@@ -3161,7 +3191,7 @@
 
       return `
         <div class="admin-prod-card" data-id="${p.id}" role="button" tabindex="0" title="Click to edit ${name}">
-          <img src="${img}" alt="${name}" class="admin-prod-thumb">
+          <img src="${img}" alt="${name}" class="admin-prod-thumb" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
           
           <div class="admin-prod-details">
             <div class="admin-prod-header">
@@ -3382,19 +3412,25 @@
       om: catOm || categoryRaw
     } : null;
 
-    // Preserve all secure_url values in order
-    const photos = state.editorPhotos.length > 0 ? state.editorPhotos.map(p => {
-      if (typeof p === 'object' && p) {
-        return {
-          secure_url: p.secure_url || p.url,
-          public_id: p.public_id || ''
-        };
-      }
-      return {
-        secure_url: p,
-        public_id: ''
-      };
-    }) : [{ secure_url: 'public/images/storage1.jpg', public_id: '' }];
+    // Reject temporary blob: or data: URLs before saving
+    const hasUnfinished = state.editorPhotos.some(p => {
+      const u = typeof p === 'object' ? (p.secure_url || p.url || '') : (p || '');
+      return u.startsWith('blob:') || u.startsWith('data:');
+    });
+
+    if (hasUnfinished) {
+      showToast('Photos are still uploading to Cloudinary. Please wait...', '⏳');
+      return;
+    }
+
+    // Preserve pure secure_url string values in exact order
+    const cleanPhotos = state.editorPhotos.map(p => {
+      if (typeof p === 'object' && p) return p.secure_url || p.url;
+      return typeof p === 'string' ? p : '';
+    }).filter(u => u && !u.startsWith('blob:') && !u.startsWith('data:'));
+
+    const photos = cleanPhotos.length > 0 ? cleanPhotos : ['public/images/storage1.jpg'];
+    const photoIds = state.editorPhotos.map(p => (typeof p === 'object' && p) ? (p.public_id || '') : '').filter(Boolean);
 
     state.isSavingProduct = true;
     if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
@@ -3412,6 +3448,7 @@
         existing.price = price;
         existing.inStock = inStock;
         existing.images = photos;
+        existing.imagePublicIds = photoIds;
         const prevName = (typeof existing.name === 'object' && existing.name) ? existing.name : {};
         const prevSpec = (typeof existing.spec === 'object' && existing.spec) ? existing.spec : {};
         const prevFull = (typeof existing.fullDesc === 'object' && existing.fullDesc) ? existing.fullDesc : {};
@@ -3444,6 +3481,7 @@
         price: price,
         inStock: inStock,
         images: photos,
+        imagePublicIds: photoIds,
         name: { en: name, am: name, om: name },
         spec: { en: desc, am: desc, om: desc },
         fullDesc: { en: desc, am: desc, om: desc },
@@ -3553,6 +3591,105 @@
         </div>
       </div>
     `).join('');
+  }
+
+  // Activity Logs Audit Trail
+  async function fetchAndRenderActivityLogs() {
+    if (!dom.adminActivityList) return;
+    dom.adminActivityList.innerHTML = `
+      <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+        Loading activity audit trail...
+      </div>
+    `;
+
+    try {
+      const res = await fetch('/api/admin/activity-logs');
+      if (res.ok) {
+        const data = await res.json();
+        const logs = data.logs || [];
+        if (logs.length === 0) {
+          dom.adminActivityList.innerHTML = `
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+              No activity logs recorded yet.
+            </div>
+          `;
+          return;
+        }
+
+        dom.adminActivityList.innerHTML = logs.map(l => {
+          const dateStr = l.created_at ? new Date(l.created_at).toLocaleString() : 'Just now';
+          const actorBadge = l.actor === 'owner' ? '👑 Owner' : (l.actor === 'staff' ? '👤 Staff' : '⚙️ System');
+          let actionLabel = l.action;
+          let actionColor = '#10b981';
+          if (l.action === 'STOCK_OUT') { actionLabel = 'Marked Out of Stock'; actionColor = '#ef4444'; }
+          else if (l.action === 'STOCK_IN') { actionLabel = 'Marked In Stock'; actionColor = '#10b981'; }
+          else if (l.action === 'CREATE_PRODUCT') { actionLabel = 'Created Product'; actionColor = '#3b82f6'; }
+          else if (l.action === 'UPDATE_PRODUCT') { actionLabel = 'Updated Product'; actionColor = '#f59e0b'; }
+          else if (l.action === 'DELETE_PRODUCT') { actionLabel = 'Deleted Product'; actionColor = '#dc2626'; }
+          else if (l.action === 'CHANGE_PASSWORD') { actionLabel = 'Changed Password'; actionColor = '#8b5cf6'; }
+
+          return `
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 700; color: ${actionColor};">${actionLabel}</span>
+                <span style="color: var(--text-muted); font-size: 0.72rem;">${dateStr}</span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; color: var(--text-secondary);">
+                <span>${actorBadge}</span>
+                <span>• Target: <strong>${l.target || 'Catalog'}</strong></span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        dom.adminActivityList.innerHTML = `
+          <div style="padding: 24px; text-align: center; color: var(--danger); font-size: 0.85rem;">
+            Failed to load activity logs.
+          </div>
+        `;
+      }
+    } catch (e) {
+      dom.adminActivityList.innerHTML = `
+        <div style="padding: 24px; text-align: center; color: var(--danger); font-size: 0.85rem;">
+          Error connecting to activity service: ${e.message}
+        </div>
+      `;
+    }
+  }
+
+  // Export Product Catalog Backup (CSV or JSON)
+  function triggerExport(format) {
+    if (format === 'json') {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.products, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `husen_products_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Exported product catalog backup (JSON) ✓');
+    } else {
+      const headers = ['ID', 'Category', 'Price (ETB)', 'In Stock', 'Name (EN)', 'Name (AM)', 'Name (OM)', 'Images'];
+      const rows = state.products.map(p => {
+        const id = p.id || '';
+        const cat = (p.category || '').replace(/"/g, '""');
+        const price = p.price || 0;
+        const stock = p.inStock ? 'Yes' : 'No';
+        const nameEn = (typeof p.name === 'object' ? p.name.en || '' : p.name || '').replace(/"/g, '""');
+        const nameAm = (typeof p.name === 'object' ? p.name.am || '' : p.name || '').replace(/"/g, '""');
+        const nameOm = (typeof p.name === 'object' ? p.name.om || '' : p.name || '').replace(/"/g, '""');
+        const imgs = (Array.isArray(p.images) ? p.images.map(getImgSrc).join(' | ') : '').replace(/"/g, '""');
+        return `"${id}","${cat}",${price},"${stock}","${nameEn}","${nameAm}","${nameOm}","${imgs}"`;
+      });
+      const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent([headers.join(','), ...rows].join('\r\n'));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", csvContent);
+      downloadAnchor.setAttribute("download", `husen_products_${Date.now()}.csv`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Exported product catalog (CSV) ✓');
+    }
   }
 
   // ==========================================================================
@@ -3911,14 +4048,21 @@
     syncProductsFromBackend();
     syncSettingsFromBackend();
 
-    // Real-Time Global Cloud Sync: Polling every 8 seconds
+    // Real-Time Global Cloud Sync: Polling every 15 seconds
     setInterval(() => {
       syncProductsFromBackend();
-    }, 8000);
+    }, 15000);
 
     // Refresh instantly when user tabs back or focuses app
     window.addEventListener('focus', () => {
       syncProductsFromBackend(true);
+    });
+
+    // Refresh when app becomes visible again on mobile/desktop
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        syncProductsFromBackend(true);
+      }
     });
   }
 

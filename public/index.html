@@ -134,8 +134,8 @@
             </div>
           </div>
 
-          <!-- Telegram Direct Link to Owner: https://t.me/+251923245529 -->
-          <a href="https://t.me/+251923245529" target="_blank" rel="noopener" class="header-icon-btn telegram-btn" aria-label="Chat with Owner on Telegram" title="Chat on Telegram: +251923245529">
+          <!-- Telegram Direct Link to Channel: https://t.me/husenonlinemarket -->
+          <a href="https://t.me/husenonlinemarket" target="_blank" rel="noopener" class="header-icon-btn telegram-btn" aria-label="Husen Online Market Telegram Channel" title="Telegram Channel: t.me/husenonlinemarket">
             <svg viewBox="0 0 24 24" class="header-svg" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/>
             </svg>
@@ -285,7 +285,7 @@
         </div>
         <div>
           <h3 id="trustContactTitle">Need Help? Contact Husen</h3>
-          <p>Direct Call: <a href="tel:0923245529" class="phone-highlight">0923245529</a> | Telegram: <a href="https://t.me/+251923245529" target="_blank" rel="noopener">@Husen</a> | TikTok: <a href="https://www.tiktok.com/@husen_online_market" target="_blank" rel="noopener">@husen_online_market</a></p>
+          <p>Direct Call: <a href="tel:0923245529" class="phone-highlight">0923245529</a> | Telegram: <a href="https://t.me/husenonlinemarket" target="_blank" rel="noopener">@husenonlinemarket</a> | TikTok: <a href="https://www.tiktok.com/@husen_online_market" target="_blank" rel="noopener">@husen_online_market</a></p>
         </div>
       </div>
     </section>
@@ -906,6 +906,7 @@
         <div class="admin-tabs">
           <button type="button" class="admin-tab active" data-tab="products" id="adminTabProducts">Products (<span id="adminProductsBadge">4</span>)</button>
           <button type="button" class="admin-tab" data-tab="orders" id="adminTabOrders">Orders (<span id="adminOrdersBadge">0</span>)</button>
+          <button type="button" class="admin-tab" data-tab="activity" id="adminTabActivity">📋 Activity Log</button>
           <button type="button" class="admin-tab" data-tab="settings" id="adminTabSettings">Payment Accounts</button>
           <button type="button" class="admin-tab" data-tab="password" id="adminTabPassword">🔐 Change Password</button>
         </div>
@@ -917,10 +918,17 @@
               <span class="admin-pane-title">Store Products</span>
               <p class="admin-tab-desc">Add, edit, upload device photos, toggle stock, or delete items:</p>
             </div>
-            <!-- + Add New Product Button -->
-            <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
-              <span>+ Add New Product</span>
-            </button>
+            <div class="admin-pane-actions" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <button type="button" class="btn-secondary" id="btnExportProductsCsv" title="Export catalog as CSV" style="padding: 7px 11px; font-size: 0.8rem; border-radius: 8px; background: #f0ece9; border: 1px solid #ddd; cursor: pointer; font-weight: 600;">
+                📥 CSV
+              </button>
+              <button type="button" class="btn-secondary" id="btnExportProductsJson" title="Export catalog as JSON backup" style="padding: 7px 11px; font-size: 0.8rem; border-radius: 8px; background: #f0ece9; border: 1px solid #ddd; cursor: pointer; font-weight: 600;">
+                📥 JSON
+              </button>
+              <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
+                <span>+ Add New Product</span>
+              </button>
+            </div>
           </div>
 
           <!-- Admin Product Quick Search & Stock Filters -->
@@ -942,6 +950,22 @@
         <div class="admin-tab-pane" id="adminPaneOrders" style="display:none;">
           <div class="admin-orders-list" id="adminOrdersList">
             <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Tab: Activity Log Audit Trail -->
+        <div class="admin-tab-pane" id="adminPaneActivity" style="display:none;">
+          <div class="admin-pane-header">
+            <div>
+              <span class="admin-pane-title">Store Activity Log</span>
+              <p class="admin-tab-desc">Permanent audit trail proving every product update, stock change, and price edit:</p>
+            </div>
+            <button type="button" class="btn-refresh-data" id="btnRefreshActivityLog" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer;">↻ Refresh</button>
+          </div>
+          <div id="adminActivityList" class="admin-activity-list" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+              Loading activity audit trail...
+            </div>
           </div>
         </div>
 

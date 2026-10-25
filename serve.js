@@ -46,6 +46,7 @@ console.log('[CONFIG] OWNER_CHAT_PHONE (Telegram / Direct Call):', OWNER_CHAT_PH
 
 const { getStoreData, saveStoreData } = require('./api/cloudStorage.js');
 const { hashPassword, verifyPassword, getDefaultUsers, sanitizeUser } = require('./api/authHelper.js');
+const db = require('./api/db.js');
 
 // ==========================================================================
 // 2. PERSISTENT STORAGE: PRODUCTS & SETTINGS
@@ -406,7 +407,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;");
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://*.supabase.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;");
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -424,11 +425,14 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Expires', '0');
 
     if (req.method === 'GET') {
-      const forceRefresh = parsedUrl.searchParams.has('t');
-      const store = await getStoreData(forceRefresh);
-      productsCache = store.products;
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, products: store.products, updatedAt: store.updatedAt }));
+      try {
+        const products = await db.getProducts({ includeOutOfStock: true });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, products, updatedAt: Date.now() }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
       return;
     }
 
@@ -441,56 +445,10 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
-        const id = newProd.id || ('prod-' + Date.now());
-        const trimmedCat = (newProd.category || 'home').trim();
-        const product = {
-          id: id,
-          category: trimmedCat,
-          secondaryCategory: newProd.secondaryCategory || '',
-          categoryTranslations: newProd.categoryTranslations || null,
-          price: Number(newProd.price),
-          inStock: newProd.inStock !== false,
-          images: Array.isArray(newProd.images) && newProd.images.length > 0 ? newProd.images : ['public/images/storage1.jpg'],
-          name: typeof newProd.name === 'object' ? newProd.name : {
-            en: newProd.name,
-            am: newProd.name,
-            om: newProd.name
-          },
-          spec: typeof newProd.spec === 'object' ? newProd.spec : {
-            en: newProd.spec || newProd.description || '',
-            am: newProd.spec || newProd.description || '',
-            om: newProd.spec || newProd.description || ''
-          },
-          fullDesc: typeof newProd.fullDesc === 'object' ? newProd.fullDesc : {
-            en: newProd.fullDesc || newProd.description || '',
-            am: newProd.fullDesc || newProd.description || '',
-            om: newProd.fullDesc || newProd.description || ''
-          },
-          badge: newProd.badge || { en: 'New', am: 'አዲስ', om: 'Haaraa' }
-        };
-
-        const store = await getStoreData(false);
-        const existingIdx = store.products.findIndex(p => String(p.id) === String(id));
-        let updatedList;
-        if (existingIdx !== -1) {
-          updatedList = [...store.products];
-          updatedList[existingIdx] = product;
-        } else {
-          updatedList = [product, ...store.products];
-        }
-
-        // Auto-register category translations if provided
-        let updatedCategories = { ...(store.categories || {}) };
-        if (newProd.categoryTranslations) {
-          updatedCategories[trimmedCat.toLowerCase()] = newProd.categoryTranslations;
-        }
-
-        productsCache = updatedList;
-        saveProducts(productsCache);
-        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
-
+        const created = await db.createProduct(newProd, 'owner');
+        const products = await db.getProducts({ includeOutOfStock: true });
         res.writeHead(201, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, product, products: saved.products, updatedAt: saved.updatedAt }));
+        res.end(JSON.stringify({ success: true, product: created, products, updatedAt: Date.now() }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
@@ -506,73 +464,13 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
-    if (req.method === 'PUT') {
+    if (req.method === 'PUT' || req.method === 'PATCH') {
       try {
         const updateData = await readRequestBody(req);
-        const store = await getStoreData(false);
-        const idx = store.products.findIndex(p => String(p.id) === String(prodId));
-        if (idx === -1) {
-          res.writeHead(404, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: 'Product not found' }));
-          return;
-        }
-
-        const existing = store.products[idx];
-        const trimmedCat = updateData.category !== undefined ? String(updateData.category).trim() : existing.category;
-        const updated = {
-          ...existing,
-          ...updateData,
-          id: existing.id || prodId,
-          category: trimmedCat,
-          categoryTranslations: updateData.categoryTranslations !== undefined ? updateData.categoryTranslations : existing.categoryTranslations,
-          price: updateData.price !== undefined ? Number(updateData.price) : existing.price,
-          inStock: updateData.inStock !== undefined ? Boolean(updateData.inStock) : existing.inStock,
-          images: Array.isArray(updateData.images) && updateData.images.length > 0 ? updateData.images : existing.images
-        };
-
-        // Format localized strings if passed as string or object
-        if (typeof updateData.name === 'object' && updateData.name) {
-          updated.name = { ...existing.name, ...updateData.name };
-        } else if (typeof updateData.name === 'string') {
-          updated.name = {
-            en: updateData.name,
-            am: (existing.name && existing.name.am && existing.name.am !== existing.name.en) ? existing.name.am : updateData.name,
-            om: (existing.name && existing.name.om && existing.name.om !== existing.name.en) ? existing.name.om : updateData.name
-          };
-        }
-        if (typeof updateData.spec === 'object' && updateData.spec) {
-          updated.spec = { ...existing.spec, ...updateData.spec };
-        } else if (typeof updateData.spec === 'string') {
-          updated.spec = {
-            en: updateData.spec,
-            am: (existing.spec && existing.spec.am && existing.spec.am !== existing.spec.en) ? existing.spec.am : updateData.spec,
-            om: (existing.spec && existing.spec.om && existing.spec.om !== existing.spec.en) ? existing.spec.om : updateData.spec
-          };
-        }
-        if (typeof updateData.fullDesc === 'object' && updateData.fullDesc) {
-          updated.fullDesc = { ...existing.fullDesc, ...updateData.fullDesc };
-        } else if (typeof updateData.fullDesc === 'string') {
-          updated.fullDesc = {
-            en: updateData.fullDesc,
-            am: (existing.fullDesc && existing.fullDesc.am && existing.fullDesc.am !== existing.fullDesc.en) ? existing.fullDesc.am : updateData.fullDesc,
-            om: (existing.fullDesc && existing.fullDesc.om && existing.fullDesc.om !== existing.fullDesc.en) ? existing.fullDesc.om : updateData.fullDesc
-          };
-        }
-
-        const updatedList = [...store.products];
-        updatedList[idx] = updated;
-
-        let updatedCategories = { ...(store.categories || {}) };
-        if (updateData.categoryTranslations) {
-          updatedCategories[trimmedCat.toLowerCase()] = updateData.categoryTranslations;
-        }
-
-        productsCache = updatedList;
-        saveProducts(productsCache);
-        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
-
+        const updated = await db.updateProduct(prodId, updateData, 'admin');
+        const products = await db.getProducts({ includeOutOfStock: true });
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, product: updated, products: saved.products, updatedAt: saved.updatedAt }));
+        res.end(JSON.stringify({ success: true, product: updated, products, updatedAt: Date.now() }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
@@ -582,21 +480,10 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'DELETE') {
       try {
-        const store = await getStoreData(false);
-        const idx = store.products.findIndex(p => String(p.id) === String(prodId));
-        if (idx === -1) {
-          res.writeHead(404, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: 'Product not found' }));
-          return;
-        }
-
-        const updatedList = store.products.filter(p => String(p.id) !== String(prodId));
-        productsCache = updatedList;
-        saveProducts(productsCache);
-        const saved = await saveStoreData({ products: updatedList });
-
+        await db.deleteProduct(prodId, 'owner');
+        const products = await db.getProducts({ includeOutOfStock: true });
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, message: 'Product deleted', products: saved.products, updatedAt: saved.updatedAt }));
+        res.end(JSON.stringify({ success: true, message: 'Product deleted', products, updatedAt: Date.now() }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
@@ -608,31 +495,19 @@ const server = http.createServer(async (req, res) => {
   // --- API ROUTE: Payment Settings (CBE & Telebirr Accounts) ---
   if (pathname === '/api/settings') {
     if (req.method === 'GET') {
-      const store = await getStoreData();
-      settingsCache = store.settings;
+      const settings = await db.getStoreSettings();
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, settings: store.settings }));
+      res.end(JSON.stringify({ success: true, settings }));
       return;
     }
 
     if (req.method === 'POST') {
       try {
         const newSettings = await readRequestBody(req);
-        const store = await getStoreData(false);
-        const mergedSettings = {
-          ...store.settings,
-          cbeAccount: newSettings.cbeAccount || store.settings.cbeAccount,
-          cbeAccountName: newSettings.cbeAccountName || store.settings.cbeAccountName,
-          telebirrPhone: newSettings.telebirrPhone || store.settings.telebirrPhone,
-          telebirrAccountName: newSettings.telebirrAccountName || store.settings.telebirrAccountName,
-          chapaSecretKey: newSettings.chapaSecretKey !== undefined ? newSettings.chapaSecretKey : store.settings.chapaSecretKey
-        };
-        settingsCache = mergedSettings;
-        saveSettings(settingsCache);
-        const saved = await saveStoreData({ settings: mergedSettings });
-
+        await db.saveStoreSettings(newSettings, 'owner');
+        const settings = await db.getStoreSettings();
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, settings: saved.settings }));
+        res.end(JSON.stringify({ success: true, settings }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: false, error: err.message }));
@@ -655,25 +530,53 @@ const server = http.createServer(async (req, res) => {
   // --- API ROUTE: Categories Store ---
   if (pathname === '/api/categories') {
     if (req.method === 'GET') {
-      const store = await getStoreData();
+      const categories = await db.getCategories();
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, categories: store.categories || {} }));
+      res.end(JSON.stringify({ success: true, categories }));
       return;
     }
-    if (req.method === 'POST') {
-      try {
-        const newCats = await readRequestBody(req);
-        const store = await getStoreData(false);
-        const merged = { ...(store.categories || {}), ...newCats };
-        await saveStoreData({ categories: merged });
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, categories: merged }));
-      } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: err.message }));
-      }
-      return;
+  }
+
+  // --- API ROUTE: Activity Logs ---
+  if (pathname === '/api/admin/activity-logs' && req.method === 'GET') {
+    const logs = await db.getActivityLogs(100);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ success: true, logs }));
+    return;
+  }
+
+  // --- API ROUTE: Export Products (CSV or JSON) ---
+  if (pathname === '/api/admin/export-products' && req.method === 'GET') {
+    const format = (parsedUrl.searchParams.get('format') || 'csv').toLowerCase();
+    const products = await db.getProducts({ includeOutOfStock: true });
+    if (format === 'json') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="husen_products_backup.json"'
+      });
+      res.end(JSON.stringify(products, null, 2));
+    } else {
+      const csv = db.exportProductsToCsv(products);
+      res.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="husen_products_catalog.csv"'
+      });
+      res.end(csv);
     }
+    return;
+  }
+
+  // --- API ROUTE: Run DB Migration ---
+  if (pathname === '/api/admin/migrate-db' && req.method === 'POST') {
+    try {
+      const result = await db.migrateExistingProductsToSupabase();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, ...result }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
   }
 
   // --- API ROUTE: Cloudinary Server Signing (Secrets stay on server) ---
@@ -1017,6 +920,7 @@ const server = http.createServer(async (req, res) => {
         smsSent: true
       };
 
+      await db.createOrder(newOrder);
       orders.unshift(newOrder);
 
       // Dispatch automated SMS to recipient test number (0907173634)
@@ -1053,6 +957,7 @@ const server = http.createServer(async (req, res) => {
         smsSent: true
       };
 
+      await db.createOrder(newOrder);
       orders.unshift(newOrder);
 
       // Dispatch automated SMS to recipient test number (0907173634)
@@ -1156,8 +1061,10 @@ const server = http.createServer(async (req, res) => {
 
   // --- API ROUTE: List Orders (for Admin Portal) ---
   if (req.method === 'GET' && pathname === '/api/orders') {
+    const dbOrders = await db.getOrders();
+    const combinedOrders = (Array.isArray(dbOrders) && dbOrders.length > 0) ? dbOrders : orders;
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ orders }));
+    res.end(JSON.stringify({ orders: combinedOrders }));
     return;
   }
 

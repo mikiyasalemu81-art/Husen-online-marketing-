@@ -11,6 +11,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'husenonlinemarketing1234';
 
 const { getStoreData, saveStoreData } = require('./cloudStorage.js');
 const { hashPassword, verifyPassword, getDefaultUsers, sanitizeUser } = require('./authHelper.js');
+const db = require('./db.js');
 
 // Default initial products
 const DEFAULT_PRODUCTS = [
@@ -371,7 +372,7 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;");
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; connect-src 'self' https://api.cloudinary.com https://api.afromessage.com https://api.chapa.co https://*.supabase.co https://keyvalue.immanuel.co; img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://telegram.org https://fonts.gstatic.com;");
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
@@ -388,9 +389,12 @@ module.exports = async function handler(req, res) {
     res.setHeader('Expires', '0');
 
     if (req.method === 'GET') {
-      const forceRefresh = url.searchParams.has('t');
-      const store = await getStoreData(forceRefresh);
-      return res.status(200).json({ success: true, products: store.products, updatedAt: store.updatedAt });
+      try {
+        const products = await db.getProducts({ includeOutOfStock: true });
+        return res.status(200).json({ success: true, products, updatedAt: Date.now() });
+      } catch (err) {
+        return res.status(500).json({ success: false, error: err.message });
+      }
     }
 
     if (req.method === 'POST') {
@@ -399,39 +403,9 @@ module.exports = async function handler(req, res) {
         if (!newProd.name || !newProd.price) {
           return res.status(400).json({ success: false, error: 'Product name and price are required' });
         }
-        const id = newProd.id || ('prod-' + Date.now());
-        const trimmedCat = (newProd.category || 'home').trim();
-        const product = {
-          id: id,
-          category: trimmedCat,
-          secondaryCategory: newProd.secondaryCategory || '',
-          categoryTranslations: newProd.categoryTranslations || null,
-          price: Number(newProd.price),
-          inStock: newProd.inStock !== false,
-          images: Array.isArray(newProd.images) && newProd.images.length > 0 ? newProd.images : ['public/images/storage1.jpg'],
-          name: typeof newProd.name === 'object' ? newProd.name : { en: newProd.name, am: newProd.name, om: newProd.name },
-          spec: typeof newProd.spec === 'object' ? newProd.spec : { en: newProd.spec || newProd.description || '', am: newProd.spec || newProd.description || '', om: newProd.spec || newProd.description || '' },
-          fullDesc: typeof newProd.fullDesc === 'object' ? newProd.fullDesc : { en: newProd.fullDesc || newProd.description || '', am: newProd.fullDesc || newProd.description || '', om: newProd.fullDesc || newProd.description || '' },
-          badge: newProd.badge || { en: 'New', am: 'አዲስ', om: 'Haaraa' }
-        };
-
-        const store = await getStoreData(false);
-        const existingIdx = store.products.findIndex(p => String(p.id) === String(id));
-        let updatedList;
-        if (existingIdx !== -1) {
-          updatedList = [...store.products];
-          updatedList[existingIdx] = product;
-        } else {
-          updatedList = [product, ...store.products];
-        }
-
-        let updatedCategories = { ...(store.categories || {}) };
-        if (newProd.categoryTranslations) {
-          updatedCategories[trimmedCat.toLowerCase()] = newProd.categoryTranslations;
-        }
-
-        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
-        return res.status(201).json({ success: true, product, products: saved.products, updatedAt: saved.updatedAt });
+        const created = await db.createProduct(newProd, 'owner');
+        const products = await db.getProducts({ includeOutOfStock: true });
+        return res.status(201).json({ success: true, product: created, products, updatedAt: Date.now() });
       } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
       }
@@ -444,66 +418,12 @@ module.exports = async function handler(req, res) {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
-    if (req.method === 'PUT') {
+    if (req.method === 'PUT' || req.method === 'PATCH') {
       try {
         const updateData = await getRequestBody(req);
-        const store = await getStoreData(false);
-        const idx = store.products.findIndex(p => String(p.id) === String(prodId));
-        if (idx === -1) {
-          return res.status(404).json({ success: false, error: 'Product not found' });
-        }
-
-        const existing = store.products[idx];
-        const trimmedCat = updateData.category !== undefined ? String(updateData.category).trim() : existing.category;
-        const updated = {
-          ...existing,
-          ...updateData,
-          id: existing.id || prodId,
-          category: trimmedCat,
-          categoryTranslations: updateData.categoryTranslations !== undefined ? updateData.categoryTranslations : existing.categoryTranslations,
-          price: updateData.price !== undefined ? Number(updateData.price) : existing.price,
-          inStock: updateData.inStock !== undefined ? Boolean(updateData.inStock) : existing.inStock,
-          images: Array.isArray(updateData.images) && updateData.images.length > 0 ? updateData.images : existing.images
-        };
-
-        if (typeof updateData.name === 'object' && updateData.name) {
-          updated.name = { ...existing.name, ...updateData.name };
-        } else if (typeof updateData.name === 'string') {
-          updated.name = {
-            en: updateData.name,
-            am: (existing.name && existing.name.am && existing.name.am !== existing.name.en) ? existing.name.am : updateData.name,
-            om: (existing.name && existing.name.om && existing.name.om !== existing.name.en) ? existing.name.om : updateData.name
-          };
-        }
-        if (typeof updateData.spec === 'object' && updateData.spec) {
-          updated.spec = { ...existing.spec, ...updateData.spec };
-        } else if (typeof updateData.spec === 'string') {
-          updated.spec = {
-            en: updateData.spec,
-            am: (existing.spec && existing.spec.am && existing.spec.am !== existing.spec.en) ? existing.spec.am : updateData.spec,
-            om: (existing.spec && existing.spec.om && existing.spec.om !== existing.spec.en) ? existing.spec.om : updateData.spec
-          };
-        }
-        if (typeof updateData.fullDesc === 'object' && updateData.fullDesc) {
-          updated.fullDesc = { ...existing.fullDesc, ...updateData.fullDesc };
-        } else if (typeof updateData.fullDesc === 'string') {
-          updated.fullDesc = {
-            en: updateData.fullDesc,
-            am: (existing.fullDesc && existing.fullDesc.am && existing.fullDesc.am !== existing.fullDesc.en) ? existing.fullDesc.am : updateData.fullDesc,
-            om: (existing.fullDesc && existing.fullDesc.om && existing.fullDesc.om !== existing.fullDesc.en) ? existing.fullDesc.om : updateData.fullDesc
-          };
-        }
-
-        const updatedList = [...store.products];
-        updatedList[idx] = updated;
-
-        let updatedCategories = { ...(store.categories || {}) };
-        if (updateData.categoryTranslations) {
-          updatedCategories[trimmedCat.toLowerCase()] = updateData.categoryTranslations;
-        }
-
-        const saved = await saveStoreData({ products: updatedList, categories: updatedCategories });
-        return res.status(200).json({ success: true, product: updated, products: saved.products, updatedAt: saved.updatedAt });
+        const updated = await db.updateProduct(prodId, updateData, 'admin');
+        const products = await db.getProducts({ includeOutOfStock: true });
+        return res.status(200).json({ success: true, product: updated, products, updatedAt: Date.now() });
       } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
       }
@@ -511,14 +431,9 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'DELETE') {
       try {
-        const store = await getStoreData(false);
-        const idx = store.products.findIndex(p => String(p.id) === String(prodId));
-        if (idx === -1) {
-          return res.status(404).json({ success: false, error: 'Product not found' });
-        }
-        const updatedList = store.products.filter(p => String(p.id) !== String(prodId));
-        const saved = await saveStoreData({ products: updatedList });
-        return res.status(200).json({ success: true, message: 'Product deleted', products: saved.products, updatedAt: saved.updatedAt });
+        await db.deleteProduct(prodId, 'owner');
+        const products = await db.getProducts({ includeOutOfStock: true });
+        return res.status(200).json({ success: true, message: 'Product deleted', products, updatedAt: Date.now() });
       } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
       }
@@ -528,23 +443,15 @@ module.exports = async function handler(req, res) {
   // --- API ROUTE: Settings ---
   if (pathname === '/api/settings') {
     if (req.method === 'GET') {
-      const store = await getStoreData();
-      return res.status(200).json({ success: true, settings: store.settings });
+      const settings = await db.getStoreSettings();
+      return res.status(200).json({ success: true, settings });
     }
     if (req.method === 'POST') {
       try {
         const newSettings = await getRequestBody(req);
-        const store = await getStoreData(false);
-        const mergedSettings = {
-          ...store.settings,
-          cbeAccount: newSettings.cbeAccount || store.settings.cbeAccount,
-          cbeAccountName: newSettings.cbeAccountName || store.settings.cbeAccountName,
-          telebirrPhone: newSettings.telebirrPhone || store.settings.telebirrPhone,
-          telebirrAccountName: newSettings.telebirrAccountName || store.settings.telebirrAccountName,
-          chapaSecretKey: newSettings.chapaSecretKey !== undefined ? newSettings.chapaSecretKey : store.settings.chapaSecretKey
-        };
-        const saved = await saveStoreData({ settings: mergedSettings });
-        return res.status(200).json({ success: true, settings: saved.settings });
+        await db.saveStoreSettings(newSettings, 'owner');
+        const settings = await db.getStoreSettings();
+        return res.status(200).json({ success: true, settings });
       } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
       }
@@ -563,19 +470,40 @@ module.exports = async function handler(req, res) {
   // --- API ROUTE: Categories ---
   if (pathname === '/api/categories') {
     if (req.method === 'GET') {
-      const store = await getStoreData();
-      return res.status(200).json({ success: true, categories: store.categories || {} });
+      const categories = await db.getCategories();
+      return res.status(200).json({ success: true, categories });
     }
-    if (req.method === 'POST') {
-      try {
-        const newCats = await getRequestBody(req);
-        const store = await getStoreData(false);
-        const merged = { ...(store.categories || {}), ...newCats };
-        await saveStoreData({ categories: merged });
-        return res.status(200).json({ success: true, categories: merged });
-      } catch (err) {
-        return res.status(500).json({ success: false, error: err.message });
-      }
+  }
+
+  // --- API ROUTE: Activity Logs ---
+  if (pathname === '/api/admin/activity-logs' && req.method === 'GET') {
+    const logs = await db.getActivityLogs(100);
+    return res.status(200).json({ success: true, logs });
+  }
+
+  // --- API ROUTE: Export Products (CSV or JSON) ---
+  if (pathname === '/api/admin/export-products' && req.method === 'GET') {
+    const format = (url.searchParams.get('format') || 'csv').toLowerCase();
+    const products = await db.getProducts({ includeOutOfStock: true });
+    if (format === 'json') {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="husen_products_backup.json"');
+      return res.status(200).send(JSON.stringify(products, null, 2));
+    } else {
+      const csv = db.exportProductsToCsv(products);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="husen_products_catalog.csv"');
+      return res.status(200).send(csv);
+    }
+  }
+
+  // --- API ROUTE: Run DB Migration (Import Catalog into Supabase) ---
+  if (pathname === '/api/admin/migrate-db' && req.method === 'POST') {
+    try {
+      const result = await db.migrateExistingProductsToSupabase();
+      return res.status(200).json({ success: true, ...result });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
     }
   }
 
@@ -861,6 +789,7 @@ module.exports = async function handler(req, res) {
         smsSent: true
       };
 
+      await db.createOrder(newOrder);
       orders.unshift(newOrder);
       await sendOrderSms(newOrder);
 
@@ -892,6 +821,7 @@ module.exports = async function handler(req, res) {
         smsSent: true
       };
 
+      await db.createOrder(newOrder);
       orders.unshift(newOrder);
       await sendOrderSms(newOrder);
 
@@ -978,7 +908,9 @@ module.exports = async function handler(req, res) {
 
   // --- API ROUTE: List Orders ---
   if (req.method === 'GET' && pathname === '/api/orders') {
-    return res.status(200).json({ orders });
+    const dbOrders = await db.getOrders();
+    const combinedOrders = (Array.isArray(dbOrders) && dbOrders.length > 0) ? dbOrders : orders;
+    return res.status(200).json({ orders: combinedOrders });
   }
 
   // --- PAYMENT SUCCESS REDIRECT ---

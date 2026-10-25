@@ -10,9 +10,9 @@
  * - Navigation Fallback: Cached shell or friendly /offline.html
  */
 
-const CACHE_NAME = 'husen-app-shell-v1';
-const DATA_CACHE_NAME = 'husen-data-v1';
-const STATIC_CACHE_NAME = 'husen-static-v1';
+const CACHE_NAME = 'husen-app-shell-v2';
+const DATA_CACHE_NAME = 'husen-data-v2';
+const STATIC_CACHE_NAME = 'husen-static-v2';
 
 const APP_SHELL_FILES = [
   '/',

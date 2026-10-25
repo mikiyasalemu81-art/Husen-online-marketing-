@@ -218,6 +218,7 @@
           <div class="admin-tabs">
             <button type="button" class="admin-tab active" data-tab="products" id="adminTabProducts">Products (<span id="adminProductsBadge">0</span>)</button>
             <button type="button" class="admin-tab" data-tab="orders" id="adminTabOrders">Orders (<span id="adminOrdersBadge">0</span>)</button>
+            <button type="button" class="admin-tab" data-tab="activity" id="adminTabActivity">📋 Activity Log</button>
             <button type="button" class="admin-tab" data-tab="settings" id="adminTabSettings">Payment Accounts</button>
             <button type="button" class="admin-tab" data-tab="password" id="adminTabPassword">🔐 Change Password</button>
           </div>
@@ -229,9 +230,17 @@
                 <span class="admin-pane-title">Store Products</span>
                 <p class="admin-tab-desc">Add, edit, upload device photos, toggle stock, or delete items:</p>
               </div>
-              <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
-                <span>+ Add New Product</span>
-              </button>
+              <div class="admin-pane-actions" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <button type="button" class="btn-secondary" id="btnExportProductsCsv" title="Export catalog as CSV" style="padding: 7px 11px; font-size: 0.8rem; border-radius: 8px; background: #f0ece9; border: 1px solid #ddd; cursor: pointer; font-weight: 600;">
+                  📥 CSV
+                </button>
+                <button type="button" class="btn-secondary" id="btnExportProductsJson" title="Export catalog as JSON backup" style="padding: 7px 11px; font-size: 0.8rem; border-radius: 8px; background: #f0ece9; border: 1px solid #ddd; cursor: pointer; font-weight: 600;">
+                  📥 JSON
+                </button>
+                <button type="button" class="btn-primary btn-add-prod" id="openAddProductModalBtn">
+                  <span>+ Add New Product</span>
+                </button>
+              </div>
             </div>
 
             <!-- Admin Product Quick Search & Stock Filters -->
@@ -253,6 +262,22 @@
           <div class="admin-tab-pane" id="adminPaneOrders" style="display:none;">
             <div class="admin-orders-list" id="adminOrdersList">
               <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Tab: Activity Log Audit Trail -->
+          <div class="admin-tab-pane" id="adminPaneActivity" style="display:none;">
+            <div class="admin-pane-header">
+              <div>
+                <span class="admin-pane-title">Store Activity Log</span>
+                <p class="admin-tab-desc">Permanent audit trail proving every product update, stock change, and price edit:</p>
+              </div>
+              <button type="button" class="btn-refresh-data" id="btnRefreshActivityLog" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer;">↻ Refresh</button>
+            </div>
+            <div id="adminActivityList" class="admin-activity-list" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                Loading activity audit trail...
+              </div>
             </div>
           </div>
 

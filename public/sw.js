@@ -10,9 +10,10 @@
  * - Navigation Fallback: Cached shell or friendly /offline.html
  */
 
-const CACHE_NAME = 'husen-app-shell-v2';
-const DATA_CACHE_NAME = 'husen-data-v2';
-const STATIC_CACHE_NAME = 'husen-static-v2';
+// Service Worker Cache Version: Bumped from husen-app-shell-v2 to v3 for image fallback & fresh assets
+const CACHE_NAME = 'husen-app-shell-v3';
+const DATA_CACHE_NAME = 'husen-data-v3';
+const STATIC_CACHE_NAME = 'husen-static-v3';
 
 const APP_SHELL_FILES = [
   '/',
@@ -117,6 +118,16 @@ function isStaticOrImage(url) {
   return false;
 }
 
+function isImageRequest(request, url) {
+  if (request.destination === 'image') return true;
+  const href = url.href;
+  const pathname = url.pathname;
+  if (href.includes('cloudinary.com') || /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(pathname)) {
+    return true;
+  }
+  return false;
+}
+
 // 5. Service Worker Fetch Handling
 self.addEventListener('fetch', (event) => {
   const request = event.request;
@@ -185,10 +196,14 @@ self.addEventListener('fetch', (event) => {
           if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
             const clone = networkResponse.clone();
             caches.open(STATIC_CACHE_NAME).then((cache) => cache.put(request, clone));
+            return networkResponse;
+          }
+          if (isImageRequest(request, url)) {
+            return getFallbackImageResponse();
           }
           return networkResponse;
         }).catch((err) => {
-          console.warn('[SW] Fetch failed for static asset:', request.url, err);
+          console.warn('[SW] Fetch failed for static asset/image:', request.url, err);
           if (cachedResponse) return cachedResponse;
           return getFallbackImageResponse();
         });

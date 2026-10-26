@@ -100,7 +100,7 @@ async function runTests() {
   // Test 8: Service Worker Cache Version & Network-First
   console.log('\nTest 8: Service worker cache version & exclusions...');
   const swJs = fs.readFileSync('sw.js', 'utf8');
-  assert(swJs.includes('husen-app-shell-v2'), 'Service worker cache bumped to v2');
+  assert(swJs.includes('husen-app-shell-v2') || swJs.includes('husen-app-shell-v3'), 'Service worker cache bumped to v2 or v3');
   assert(swJs.includes("url.pathname === '/api/products'"), 'Product API uses network-first strategy in service worker');
 
   // Test 9: schema.sql & Supabase configuration

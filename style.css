@@ -3904,6 +3904,22 @@ input:checked + .slider:before {
   background: #991b1b;
 }
 
+.btn-dismiss-upload-error {
+  background: rgba(185, 28, 28, 0.12);
+  color: #b91c1c;
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-dismiss-upload-error:hover {
+  background: rgba(185, 28, 28, 0.22);
+}
+
 .thumb-preview-card {
   position: relative;
   display: flex;

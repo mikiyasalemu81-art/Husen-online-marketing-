@@ -441,8 +441,16 @@
     el.setAttribute('aria-hidden', 'true');
   }
 
-  // Neutral Husen Logo SVG Placeholder (zero-network permanent fallback)
-  const HUSEN_FALLBACK_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23faf7f5'/%3E%3Ccircle cx='200' cy='125' r='48' fill='%23d92a2a' opacity='0.12'/%3E%3Cpath d='M184 105 h32 v42 h-32 z M190 105 a10 10 0 0 1 20 0' fill='none' stroke='%23d92a2a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ctext x='200' y='205' text-anchor='middle' fill='%23d92a2a' font-family='system-ui, -apple-system, sans-serif' font-weight='700' font-size='16'%3EHUSEN ONLINE%3C/text%3E%3Ctext x='200' y='225' text-anchor='middle' fill='%23888888' font-family='system-ui, -apple-system, sans-serif' font-size='12'%3EProduct Photo%3C/text%3E%3C/svg%3E";
+  // Neutral Husen Logo SVG Placeholder (zero-network permanent fallback, quote-sanitized)
+  const HUSEN_FALLBACK_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23faf7f5%22/%3E%3Ccircle cx=%22200%22 cy=%22125%22 r=%2248%22 fill=%22%23d92a2a%22 opacity=%220.12%22/%3E%3Cpath d=%22M184 105 h32 v42 h-32 z M190 105 a10 10 0 0 1 20 0%22 fill=%22none%22 stroke=%22%23d92a2a%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3Ctext x=%22200%22 y=%22205%22 text-anchor=%22middle%22 fill=%22%23d92a2a%22 font-family=%22system-ui, -apple-system, sans-serif%22 font-weight=%22700%22 font-size=%2216%22%3EHUSEN ONLINE%3C/text%3E%3Ctext x=%22200%22 y=%22225%22 text-anchor=%22middle%22 fill=%22%23888888%22 font-family=%22system-ui, -apple-system, sans-serif%22 font-size=%2212%22%3EProduct Photo%3C/text%3E%3C/svg%3E";
+
+  // Global bulletproof image error handler (never throws syntax error, handles 404/offline seamlessly)
+  window.handleImgError = function(el) {
+    if (!el || el.dataset.homFallbackApplied) return;
+    el.dataset.homFallbackApplied = 'true';
+    el.onerror = null;
+    el.src = HUSEN_FALLBACK_SVG;
+  };
 
   // Helper to safely extract image URL from either object { secure_url, public_id } or string
   function getImgSrc(img) {
@@ -1368,7 +1376,7 @@
             ` : ''}
             <div class="product-crossfade-wrap" id="crossfade-${p.id}">
               ${images.map((img, i) => `
-                <img src="${getImgSrc(img)}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
+                <img src="${getImgSrc(img)}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy" onerror="window.handleImgError(this);">
               `).join('')}
             </div>
           </div>
@@ -1506,7 +1514,7 @@
       dom.tgHeroImageWrap.innerHTML = `
         <div class="tg-crossfade-container" id="tgHeroCrossfade">
           ${images.map((img, i) => `
-            <img src="${getImgSrc(img)}" alt="${name}" class="tg-hero-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
+            <img src="${getImgSrc(img)}" alt="${name}" class="tg-hero-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" onerror="window.handleImgError(this);">
           `).join('')}
         </div>
         ${images.length > 1 ? `
@@ -1622,7 +1630,7 @@
       const lineTotal = item.price * item.qty;
       return `
         <div class="cart-item-row" data-id="${item.id}">
-          <img src="${getImgSrc(item.image)}" alt="${getLocString(item.name, state.lang)}" class="cart-item-img" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
+          <img src="${getImgSrc(item.image)}" alt="${getLocString(item.name, state.lang)}" class="cart-item-img" onerror="window.handleImgError(this);">
           
           <div class="cart-item-info">
             <h4 class="cart-item-name">${getLocString(item.name, state.lang)}</h4>
@@ -2242,65 +2250,149 @@
   }
 
   // ==========================================================================
-  // 13C. CLOUDINARY DEVICE PHOTO UPLOADER HELPERS (Global Scope)
+  // 13C. CLOUDINARY DEVICE PHOTO UPLOADER & ERROR RESILIENCE HELPERS
   // ==========================================================================
-  // Client-side image compression for high-quality phone photos (~1600px long side, JPEG quality ~0.8)
-  function compressImageForUpload(file, maxDimension = 1600, quality = 0.8) {
-    return new Promise((resolve, reject) => {
-      if (!file || !file.type.startsWith('image/')) {
-        return reject(new Error(`"${file ? file.name : 'File'}" is not a valid image. Only JPG, PNG, WebP are supported.`));
+
+  // Safe save button state restorer (never leaves button stuck or disabled)
+  function restoreSaveProductButtonState() {
+    if (!dom.saveProductBtn) return;
+    if (state.isUploadingPhotos) {
+      dom.saveProductBtn.disabled = true;
+      if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Uploading photos...';
+    } else if (state.failedUploads && state.failedUploads.length > 0) {
+      if (state.editorPhotos && state.editorPhotos.length > 0) {
+        dom.saveProductBtn.disabled = false;
+        if (dom.saveProductBtnText) {
+          dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save (Skip Failed)' : 'Publish (Skip Failed)';
+        }
+      } else {
+        dom.saveProductBtn.disabled = true;
+        if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Add at least 1 photo';
       }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          let width = img.width;
-          let height = img.height;
-
-          // Scale long side to approx 1600px
-          if (width > maxDimension || height > maxDimension) {
-            if (width >= height) {
-              height = Math.round((height * maxDimension) / width);
-              width = maxDimension;
-            } else {
-              width = Math.round((width * maxDimension) / height);
-              height = maxDimension;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              return reject(new Error('Canvas to Blob conversion failed'));
-            }
-            resolve({
-              blob: blob,
-              name: file.name
-            });
-          }, 'image/jpeg', quality);
-        };
-        img.onerror = () => reject(new Error(`Failed to load "${file.name}" for compression`));
-        img.src = e.target.result;
-      };
-      reader.onerror = () => reject(new Error(`Failed to read "${file.name}"`));
-      reader.readAsDataURL(file);
-    });
+    } else {
+      dom.saveProductBtn.disabled = false;
+      if (dom.saveProductBtnText) {
+        dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
+      }
+    }
   }
 
-  // Upload single photo with XMLHttpRequest progress tracking and Cloudinary error reporting
+  // Memory-safe client image compressor (handles 12-50MP phone camera photos without heap overflow)
+  async function compressImageForUpload(file, maxDimension = 1600, quality = 0.8) {
+    if (!file) throw new Error('No file provided');
+    if (!file.type || !file.type.startsWith('image/')) {
+      throw new Error(`"${file.name || 'File'}" is not a valid image. Only JPG, PNG, WebP are supported.`);
+    }
+
+    // Skip compression if already under 800KB
+    if (file.size && file.size < 800 * 1024) {
+      return { blob: file, name: file.name, isOriginal: true };
+    }
+
+    // Attempt Method 1: Off-thread createImageBitmap (zero base64 allocation, fastest on modern mobile)
+    if (typeof window.createImageBitmap === 'function') {
+      try {
+        const bmp = await createImageBitmap(file);
+        let width = bmp.width;
+        let height = bmp.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width >= height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(bmp, 0, 0, width, height);
+          if (typeof bmp.close === 'function') bmp.close();
+          const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
+          if (blob && blob.size > 0) {
+            return { blob, name: file.name };
+          }
+        }
+      } catch (bmpErr) {
+        console.warn('[COMPRESS] createImageBitmap failed, trying ObjectURL fallback:', bmpErr);
+      }
+    }
+
+    // Attempt Method 2: URL.createObjectURL (direct blob pointer, avoids huge string in memory)
+    if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+      try {
+        const blobResult = await new Promise((resolve) => {
+          const blobUrl = URL.createObjectURL(file);
+          const img = new Image();
+          img.onload = () => {
+            try {
+              let width = img.naturalWidth || img.width;
+              let height = img.naturalHeight || img.height;
+              URL.revokeObjectURL(blobUrl);
+
+              if (width > maxDimension || height > maxDimension) {
+                if (width >= height) {
+                  height = Math.round((height * maxDimension) / width);
+                  width = maxDimension;
+                } else {
+                  width = Math.round((width * maxDimension) / height);
+                  height = maxDimension;
+                }
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) return resolve(null);
+              ctx.drawImage(img, 0, 0, width, height);
+              canvas.toBlob((b) => resolve(b), 'image/jpeg', quality);
+            } catch (canvasErr) {
+              resolve(null);
+            }
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            resolve(null);
+          };
+          img.src = blobUrl;
+        });
+
+        if (blobResult && blobResult.size > 0) {
+          return { blob: blobResult, name: file.name };
+        }
+      } catch (objErr) {
+        console.warn('[COMPRESS] ObjectURL compression failed:', objErr);
+      }
+    }
+
+    // Root safety fallback: return original file intact so Cloudinary upload never fails on reading
+    return { blob: file, name: file.name, isOriginal: true };
+  }
+
+  // Upload single photo with progress tracking and transparent fallback to raw file
   function uploadSinglePhoto(file, onProgress) {
     return new Promise(async (resolve, reject) => {
       try {
-        const compressed = await compressImageForUpload(file, 1600, 0.8);
+        let blobToUpload = file;
+        try {
+          const compResult = await compressImageForUpload(file, 1600, 0.8);
+          if (compResult && compResult.blob) {
+            blobToUpload = compResult.blob;
+          }
+        } catch (compErr) {
+          console.warn('[UPLOAD] Compression skipped, uploading raw file to Cloudinary:', compErr);
+          blobToUpload = file;
+        }
+
         const formData = new FormData();
         const sanitizedName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
-        formData.append('file', compressed.blob, sanitizedName);
+        formData.append('file', blobToUpload, sanitizedName);
         formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
 
         const endpoint = `https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`;
@@ -2343,10 +2435,10 @@
 
         xhr.ontimeout = () => {
           console.error('[CLOUDINARY TIMEOUT ERROR]');
-          reject(new Error('Upload timed out after 30 seconds.'));
+          reject(new Error('Upload timed out after 45 seconds.'));
         };
 
-        xhr.timeout = 30000;
+        xhr.timeout = 45000;
         xhr.send(formData);
       } catch (err) {
         reject(err);
@@ -2358,21 +2450,37 @@
     if (!dom.uploadErrorBanner) return;
     dom.uploadErrorBanner.style.display = 'flex';
     dom.uploadErrorBanner.innerHTML = `
-      <div style="display:flex; align-items:center; gap:6px;">
-        <span>⚠️</span>
-        <span><strong>Cloudinary Upload Error:</strong> ${msg}</span>
+      <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+        <span style="font-size:1.1rem; flex-shrink:0;">⚠️</span>
+        <span style="font-size:0.82rem; line-height:1.3; overflow:hidden; text-overflow:ellipsis;">
+          <strong>Cloudinary Upload:</strong> ${msg}
+        </span>
       </div>
-      ${fileToRetry ? `<button type="button" class="btn-retry-upload" id="btnRetryFailedPhoto">Retry Upload</button>` : ''}
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        ${fileToRetry ? `<button type="button" class="btn-retry-upload" id="btnRetryFailedPhoto">Retry</button>` : ''}
+        <button type="button" class="btn-dismiss-upload-error" id="btnDismissUploadError" title="Dismiss error" aria-label="Dismiss">✕</button>
+      </div>
     `;
 
-    if (fileToRetry) {
-      const btn = dom.uploadErrorBanner.querySelector('#btnRetryFailedPhoto');
-      if (btn) {
-        btn.addEventListener('click', async () => {
-          dom.uploadErrorBanner.style.display = 'none';
-          await retryFailedPhoto(fileToRetry);
-        });
-      }
+    const retryBtn = dom.uploadErrorBanner.querySelector('#btnRetryFailedPhoto');
+    if (retryBtn && fileToRetry) {
+      retryBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await retryFailedPhoto(fileToRetry);
+      });
+    }
+
+    const dismissBtn = dom.uploadErrorBanner.querySelector('#btnDismissUploadError');
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        state.failedUploads = [];
+        hideUploadErrorBanner();
+        restoreSaveProductButtonState();
+        showToast('Upload error dismissed', 'ℹ️');
+      });
     }
   }
 
@@ -2423,218 +2531,18 @@
       state.failedUploads = state.failedUploads.filter(f => f !== failedItem);
       renderEditorThumbnails();
       showToast(`"${failedItem.name}" uploaded successfully! ✓`);
+      hideUploadErrorBanner();
     } catch (err) {
       showUploadErrorBanner(err.message, failedItem);
       showToast(`Retry failed: ${err.message}`, '⚠️');
     } finally {
       updateProgressUI([]);
       state.isUploadingPhotos = false;
-      if (state.failedUploads.length === 0) {
-        if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
-        if (dom.saveProductBtnText) {
-          dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
-        }
-      }
+      restoreSaveProductButtonState();
     }
   }
 
-  // ==========================================================================
-  // 13C. CLOUDINARY DEVICE PHOTO UPLOADER HELPERS (Global Scope)
-  // ==========================================================================
-  // Client-side image compression for high-quality phone photos (~1600px long side, JPEG quality ~0.8)
-  function compressImageForUpload(file, maxDimension = 1600, quality = 0.8) {
-    return new Promise((resolve, reject) => {
-      if (!file || !file.type.startsWith('image/')) {
-        return reject(new Error(`"${file ? file.name : 'File'}" is not a valid image. Only JPG, PNG, WebP are supported.`));
-      }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          let width = img.width;
-          let height = img.height;
-
-          // Scale long side to approx 1600px
-          if (width > maxDimension || height > maxDimension) {
-            if (width >= height) {
-              height = Math.round((height * maxDimension) / width);
-              width = maxDimension;
-            } else {
-              width = Math.round((width * maxDimension) / height);
-              height = maxDimension;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              return reject(new Error('Canvas to Blob conversion failed'));
-            }
-            resolve({
-              blob: blob,
-              name: file.name
-            });
-          }, 'image/jpeg', quality);
-        };
-        img.onerror = () => reject(new Error(`Failed to load "${file.name}" for compression`));
-        img.src = e.target.result;
-      };
-      reader.onerror = () => reject(new Error(`Failed to read "${file.name}"`));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // Upload single photo with XMLHttpRequest progress tracking and Cloudinary error reporting
-  function uploadSinglePhoto(file, onProgress) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const compressed = await compressImageForUpload(file, 1600, 0.8);
-        const formData = new FormData();
-        const sanitizedName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
-        formData.append('file', compressed.blob, sanitizedName);
-        formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
-
-        const endpoint = `https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`;
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', endpoint);
-
-        xhr.upload.onprogress = (evt) => {
-          if (evt.lengthComputable && onProgress) {
-            const pct = Math.round((evt.loaded / evt.total) * 100);
-            onProgress(pct);
-          }
-        };
-
-        xhr.onload = () => {
-          let parsed = null;
-          try {
-            parsed = JSON.parse(xhr.responseText);
-          } catch (e) {
-            parsed = null;
-          }
-
-          if (xhr.status >= 200 && xhr.status < 300 && parsed && parsed.secure_url) {
-            resolve({
-              secure_url: parsed.secure_url,
-              public_id: parsed.public_id || ''
-            });
-          } else {
-            // Log full response & error body
-            console.error(`[CLOUDINARY UPLOAD ERROR] HTTP ${xhr.status}:`, xhr.responseText);
-            const errMsg = (parsed && parsed.error && parsed.error.message)
-              ? parsed.error.message
-              : `Upload rejected (Status ${xhr.status}): ${xhr.statusText || 'Unknown error'}`;
-            reject(new Error(errMsg));
-          }
-        };
-
-        xhr.onerror = () => {
-          console.error('[CLOUDINARY NETWORK ERROR]');
-          reject(new Error('Network error connecting to Cloudinary. Check internet connection.'));
-        };
-
-        xhr.ontimeout = () => {
-          console.error('[CLOUDINARY TIMEOUT ERROR]');
-          reject(new Error('Upload timed out after 30 seconds.'));
-        };
-
-        xhr.timeout = 30000;
-        xhr.send(formData);
-      } catch (err) {
-        reject(err);
-      }
-    });
-  }
-
-  function showUploadErrorBanner(msg, fileToRetry = null) {
-    if (!dom.uploadErrorBanner) return;
-    dom.uploadErrorBanner.style.display = 'flex';
-    dom.uploadErrorBanner.innerHTML = `
-      <div style="display:flex; align-items:center; gap:6px;">
-        <span>⚠️</span>
-        <span><strong>Cloudinary Upload Error:</strong> ${msg}</span>
-      </div>
-      ${fileToRetry ? `<button type="button" class="btn-retry-upload" id="btnRetryFailedPhoto">Retry Upload</button>` : ''}
-    `;
-
-    if (fileToRetry) {
-      const btn = dom.uploadErrorBanner.querySelector('#btnRetryFailedPhoto');
-      if (btn) {
-        btn.addEventListener('click', async () => {
-          dom.uploadErrorBanner.style.display = 'none';
-          await retryFailedPhoto(fileToRetry);
-        });
-      }
-    }
-  }
-
-  function hideUploadErrorBanner() {
-    if (dom.uploadErrorBanner) dom.uploadErrorBanner.style.display = 'none';
-  }
-
-  function updateProgressUI(activeUploads) {
-    if (!dom.uploadProgressList) return;
-    if (activeUploads.length === 0) {
-      dom.uploadProgressList.style.display = 'none';
-      dom.uploadProgressList.innerHTML = '';
-      return;
-    }
-    dom.uploadProgressList.style.display = 'flex';
-    dom.uploadProgressList.innerHTML = activeUploads.map(item => `
-      <div class="upload-progress-item">
-        <div style="display:flex; justify-content:space-between;">
-          <span>${item.name}</span>
-          <span>${item.pct}%</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" style="width: ${item.pct}%;"></div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  async function retryFailedPhoto(failedItem) {
-    state.isUploadingPhotos = true;
-    if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
-    if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = `Retrying upload for ${failedItem.name}...`;
-    hideUploadErrorBanner();
-
-    const activeUploads = [{ name: failedItem.name, pct: 10 }];
-    updateProgressUI(activeUploads);
-
-    try {
-      const result = await uploadSinglePhoto(failedItem.file, (pct) => {
-        activeUploads[0].pct = pct;
-        updateProgressUI(activeUploads);
-      });
-
-      state.editorPhotos.push({
-        secure_url: result.secure_url,
-        public_id: result.public_id
-      });
-      state.failedUploads = state.failedUploads.filter(f => f !== failedItem);
-      renderEditorThumbnails();
-      showToast(`"${failedItem.name}" uploaded successfully! ✓`);
-    } catch (err) {
-      showUploadErrorBanner(err.message, failedItem);
-      showToast(`Retry failed: ${err.message}`, '⚠️');
-    } finally {
-      updateProgressUI([]);
-      state.isUploadingPhotos = false;
-      if (state.failedUploads.length === 0) {
-        if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
-        if (dom.saveProductBtnText) {
-          dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
-        }
-      }
-    }
-  }
 
 
   // ==========================================================================
@@ -3057,16 +2965,11 @@
         updateProgressUI([]);
         state.isUploadingPhotos = false;
         dom.editorFileInput.value = '';
+        restoreSaveProductButtonState();
 
         if (state.failedUploads.length > 0) {
-          if (dom.saveProductBtn) dom.saveProductBtn.disabled = true;
-          if (dom.saveProductBtnText) dom.saveProductBtnText.textContent = 'Resolve failed uploads';
-          showToast(`Cloudinary upload failed for ${state.failedUploads.length} photo(s). Check the error and click Retry.`, '⚠️');
+          showToast(`Upload failed for ${state.failedUploads.length} photo(s). Click Retry or Dismiss (✕) to continue.`, '⚠️');
         } else {
-          if (dom.saveProductBtn) dom.saveProductBtn.disabled = false;
-          if (dom.saveProductBtnText) {
-            dom.saveProductBtnText.textContent = (dom.editProductId && dom.editProductId.value) ? 'Save Changes' : 'Publish Product';
-          }
           showToast('All photos uploaded successfully to Cloudinary! ✓');
         }
       });
@@ -3281,7 +3184,7 @@
 
       return `
         <div class="admin-prod-card" data-id="${p.id}" role="button" tabindex="0" title="Click to edit ${name}">
-          <img src="${img}" alt="${name}" class="admin-prod-thumb" onerror="this.onerror=null; this.src='${HUSEN_FALLBACK_SVG}';">
+          <img src="${img}" alt="${name}" class="admin-prod-thumb" onerror="window.handleImgError(this);">
           
           <div class="admin-prod-details">
             <div class="admin-prod-header">
@@ -3394,7 +3297,7 @@
       return `
         <div class="thumb-preview-card ${isCover ? 'is-cover' : ''}" data-idx="${i}">
           ${isCover ? '<span class="thumb-cover-badge">★ Cover</span>' : ''}
-          <img src="${url}" alt="Preview ${i + 1}" class="thumb-preview-img">
+          <img src="${url}" alt="Preview ${i + 1}" class="thumb-preview-img" onerror="window.handleImgError(this);">
           <div class="thumb-actions-bar">
             <div style="display:flex; gap:2px;">
               ${i > 0 ? `<button type="button" class="thumb-btn-mini btn-move-left" data-idx="${i}" title="Move Left">◀</button>` : ''}

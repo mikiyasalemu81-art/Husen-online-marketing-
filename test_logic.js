@@ -38,7 +38,7 @@ const hasPhoneRegex = appContent.includes('^[97]\\d{8}$');
 const hasSearchBar = htmlContent.includes('id="productSearchInput"') && appContent.includes('searchQuery');
 
 // 7. Check Device Multi-Photo Uploader
-const hasPhotoUpload = htmlContent.includes('Upload Photo from Device') && appContent.includes('editorFileInput');
+const hasPhotoUpload = (htmlContent.includes('Upload Photo from Device') || htmlContent.includes('Upload Photos from Device')) && appContent.includes('editorFileInput');
 
 // 8. Check Storefront strictly inStock filter
 const hasStrictStockFilter = appContent.includes('p.inStock === false');

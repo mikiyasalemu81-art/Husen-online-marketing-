@@ -10,19 +10,19 @@
  * - Navigation Fallback: Cached shell or friendly /offline.html
  */
 
-// Service Worker Cache Version: Bumped from husen-app-shell-v2 to v3 for image fallback & fresh assets
-const CACHE_NAME = 'husen-app-shell-v3';
-const DATA_CACHE_NAME = 'husen-data-v3';
-const STATIC_CACHE_NAME = 'husen-static-v3';
+// Service Worker Cache Version: Bumped from husen-app-shell-v2 to v4
+const CACHE_NAME = 'husen-app-shell-v4';
+const DATA_CACHE_NAME = 'husen-data-v4';
+const STATIC_CACHE_NAME = 'husen-static-v4';
 
 const APP_SHELL_FILES = [
   '/',
   '/index.html',
+  '/style.css?v=3.2',
   '/style.css?v=3.1',
-  '/style.css?v=2.2',
   '/style.css',
+  '/app.js?v=3.2',
   '/app.js?v=3.1',
-  '/app.js?v=2.2',
   '/app.js',
   '/manifest.webmanifest',
   '/site.webmanifest',
@@ -102,19 +102,16 @@ function getFallbackImageResponse() {
 }
 
 // 4. Helper to detect static assets & Cloudinary images
+// 4. Helper to detect local static assets and web fonts
 function isStaticOrImage(url) {
-  const href = url.href;
+  // Let cross-origin CDN media (Cloudinary, Telegram, etc.) stream directly via native browser HTTP/2
+  if (url.origin !== self.location.origin) {
+    if (url.hostname.includes('fonts.gstatic.com') || url.hostname.includes('fonts.googleapis.com')) {
+      return true;
+    }
+    return false;
+  }
   const pathname = url.pathname;
-  
-  if (url.hostname.includes('cloudinary.com') || href.includes('res.cloudinary.com')) {
-    return true;
-  }
-  if (url.hostname.includes('fonts.gstatic.com') || url.hostname.includes('fonts.googleapis.com')) {
-    return true;
-  }
-  if (url.hostname.includes('telegram.org')) {
-    return true;
-  }
   if (/\.(png|jpe?g|gif|webp|svg|ico|woff2?|ttf|css)$/i.test(pathname)) {
     return true;
   }
@@ -123,9 +120,8 @@ function isStaticOrImage(url) {
 
 function isImageRequest(request, url) {
   if (request.destination === 'image') return true;
-  const href = url.href;
   const pathname = url.pathname;
-  if (href.includes('cloudinary.com') || /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(pathname)) {
+  if (/\.(png|jpe?g|gif|webp|svg|ico)$/i.test(pathname)) {
     return true;
   }
   return false;
@@ -188,7 +184,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-First for Static Assets, Fonts & Cloudinary Images (with safe SVG fallback)
+  // Network-First for Cloudinary CDN Images (ensures real images load over live network; falls back to cache/SVG if offline)
+  if (url.hostname.includes('cloudinary.com') || url.href.includes('res.cloudinary.com')) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+            const clone = networkResponse.clone();
+            caches.open(STATIC_CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            if (cached) return cached;
+            return getFallbackImageResponse();
+          });
+        })
+    );
+    return;
+  }
+
+  // Cache-First for Static Assets, Fonts & Local Images
   if (isStaticOrImage(url)) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {

@@ -4,10 +4,10 @@ const path = require('path');
 
 const SMS_API_KEY = process.env.SMS_API_KEY || 'RLVE915IEZOJLRO847T4PL8OVCZIOT4RLUCALL63';
 const CHAPA_SECRET_KEY = process.env.CHAPA_SECRET_KEY || 'CHASECK_TEST-sample';
-const OWNER_PHONE = process.env.OWNER_PHONE || '0907173634';
-const CLOUD_NAME = process.env.CLOUD_NAME || 'trkihe9m';
-const UPLOAD_PRESET = process.env.UPLOAD_PRESET || 'Husenonlinemarketing';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'husenonlinemarketing1234';
+const OWNER_PHONE = String(process.env.OWNER_PHONE || '0907173634').trim();
+const CLOUD_NAME = String(process.env.CLOUD_NAME || 'trkihe9m').trim();
+const UPLOAD_PRESET = String(process.env.UPLOAD_PRESET || 'Husenonlinemarketing').trim();
+const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || 'husenonlinemarketing1234').trim();
 
 const { getStoreData, saveStoreData } = require('./cloudStorage.js');
 const { hashPassword, verifyPassword, getDefaultUsers, sanitizeUser } = require('./authHelper.js');

@@ -978,7 +978,8 @@
           const currentJson = JSON.stringify(state.products);
           const newJson = JSON.stringify(data.products);
           
-          if (force || newJson !== currentJson || (serverUpdated && serverUpdated > (state.lastUpdatedAt || 0))) {
+          const isServerNewer = serverUpdated && serverUpdated > (state.lastUpdatedAt || 0);
+          if (force || isServerNewer) {
             state.products = data.products;
             state.lastUpdatedAt = serverUpdated || Date.now();
             try {
@@ -1014,8 +1015,8 @@
       const configRes = await fetch('/api/config');
       if (configRes.ok) {
         const configData = await configRes.json();
-        if (configData.cloudName) state.cloudName = configData.cloudName;
-        if (configData.uploadPreset) state.uploadPreset = configData.uploadPreset;
+        if (configData.cloudName) state.cloudName = String(configData.cloudName).trim();
+        if (configData.uploadPreset) state.uploadPreset = String(configData.uploadPreset).trim();
       }
     } catch (e) {}
   }
@@ -2390,12 +2391,14 @@
           blobToUpload = file;
         }
 
+        const cloud = String(state.cloudName || 'trkihe9m').trim();
+        const preset = String(state.uploadPreset || 'Husenonlinemarketing').trim();
         const formData = new FormData();
         const sanitizedName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
         formData.append('file', blobToUpload, sanitizedName);
-        formData.append('upload_preset', state.uploadPreset || 'Husenonlinemarketing');
+        formData.append('upload_preset', preset);
 
-        const endpoint = `https://api.cloudinary.com/v1_1/${state.cloudName || 'trkihe9m'}/image/upload`;
+        const endpoint = `https://api.cloudinary.com/v1_1/${cloud}/image/upload`;
         const xhr = new XMLHttpRequest();
         xhr.open('POST', endpoint);
 
@@ -3100,35 +3103,44 @@
         }
       });
 
-      // Stock toggle switch change listener (INSTANT < 3s SYNC)
+      // Stock toggle switch change listener (INSTANT < 3s SYNC with optimistic lock)
       dom.adminProductList.addEventListener('change', async (e) => {
         const chk = e.target.closest('.stock-toggle');
         if (!chk) return;
         const id = chk.getAttribute('data-id');
         const prod = state.products.find(p => String(p.id) === String(id));
         if (prod) {
-          prod.inStock = chk.checked;
+          const targetInStock = Boolean(chk.checked);
+          prod.inStock = targetInStock;
           const now = Date.now();
           state.lastUpdatedAt = now;
+          state.isSavingProduct = true;
+          chk.disabled = true;
+
           try {
             localStorage.setItem('hom_products', JSON.stringify(state.products));
           } catch (err) {}
-          // Immediately broadcast to all other open tabs in < 50ms
+
           broadcastProductSync(state.products, now);
           renderCategories();
           renderProducts();
           renderAdminProducts();
-          showToast(`${getLocString(prod.name, state.lang)} is now ${chk.checked ? 'In Stock' : 'Out of Stock'}`);
+          showToast(`${getLocString(prod.name, state.lang)} is now ${targetInStock ? 'In Stock' : 'Out of Stock'}`);
+
           try {
             const res = await fetch(`/api/products/${id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ inStock: chk.checked })
+              body: JSON.stringify({ inStock: targetInStock })
             });
             const data = await res.json();
-            if (data.success && Array.isArray(data.products)) {
-              state.products = data.products;
+            if (data.success) {
               state.lastUpdatedAt = data.updatedAt || Date.now();
+              if (Array.isArray(data.products)) {
+                state.products = data.products;
+              } else {
+                prod.inStock = targetInStock;
+              }
               try {
                 localStorage.setItem('hom_products', JSON.stringify(state.products));
               } catch (err) {}
@@ -3136,9 +3148,18 @@
               renderCategories();
               renderProducts();
               renderAdminProducts();
+            } else {
+              throw new Error(data.error || 'Server error updating stock');
             }
           } catch (err) {
-            console.warn('[STOCK SYNC NOTICE] Queued locally:', err.message);
+            console.error('[STOCK SYNC ERROR]', err);
+            showToast('Stock update failed: ' + err.message, '⚠️');
+            // Revert state on failure
+            prod.inStock = !targetInStock;
+            renderAdminProducts();
+          } finally {
+            state.isSavingProduct = false;
+            chk.disabled = false;
           }
         }
       });

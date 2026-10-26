@@ -3699,16 +3699,37 @@
   // 14B. PWA INSTALL SYSTEM & BROWSER DETECTION
   // ==========================================================================
   function initPWAInstallSystem() {
-    // 1. Service Worker Registration on Load
+    // 1. Service Worker Registration & Live Auto-Update
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
           .then((reg) => {
             console.log('[PWA] Service Worker registered with scope:', reg.scope);
+            try { reg.update(); } catch (e) {}
+
+            reg.addEventListener('updatefound', () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.addEventListener('statechange', () => {
+                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[PWA] New update installed! Refreshing page to apply fixes...');
+                    window.location.reload();
+                  }
+                });
+              }
+            });
           })
           .catch((err) => {
             console.warn('[PWA] Service Worker registration failed:', err);
           });
+      });
+
+      let swRefreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!swRefreshing) {
+          swRefreshing = true;
+          window.location.reload();
+        }
       });
     }
 

@@ -18,8 +18,11 @@ const STATIC_CACHE_NAME = 'husen-static-v3';
 const APP_SHELL_FILES = [
   '/',
   '/index.html',
+  '/style.css?v=3.1',
   '/style.css?v=2.2',
   '/style.css',
+  '/app.js?v=3.1',
+  '/app.js?v=2.2',
   '/app.js',
   '/manifest.webmanifest',
   '/site.webmanifest',
@@ -212,7 +215,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Default: Stale-While-Revalidate for app shell scripts and styles
+  // Network-First for core code (app.js & style.css) so code updates take effect immediately
+  if (url.pathname.includes('app.js') || url.pathname.includes('style.css')) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Default: Stale-While-Revalidate for other static assets
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetchPromise = fetch(request).then((networkResponse) => {

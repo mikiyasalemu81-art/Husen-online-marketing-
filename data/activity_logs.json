@@ -1,5 +1,58 @@
 [
   {
+    "id": 1793210092595,
+    "actor": "owner",
+    "action": "TEST_ACTION",
+    "target": "unit-test",
+    "details": {
+      "note": "Verification test"
+    },
+    "created_at": "2026-10-28T17:54:51.729Z"
+  },
+  {
+    "id": 1793210090134,
+    "actor": "test-runner",
+    "action": "STOCK_IN",
+    "target": "prod-1792253734383",
+    "details": {
+      "inStock": true
+    },
+    "created_at": "2026-10-28T17:54:49.633Z"
+  },
+  {
+    "id": 1793210088039,
+    "actor": "test-runner",
+    "action": "STOCK_OUT",
+    "target": "prod-1792253734383",
+    "details": {
+      "inStock": false
+    },
+    "created_at": "2026-10-28T17:54:47.537Z"
+  },
+  {
+    "id": 1793208595431,
+    "actor": "system",
+    "action": "MIGRATION_INITIAL_PRODUCTS",
+    "target": "catalog",
+    "details": {
+      "imported": 15
+    },
+    "created_at": "2026-10-28T17:29:55.160Z"
+  },
+  {
+    "id": 1793207814541,
+    "actor": "admin",
+    "action": "UPDATE_PRODUCT",
+    "target": "prod-1792254126514",
+    "details": {
+      "updates": {
+        "updated_at": "2026-10-28T17:16:53.437Z",
+        "in_stock": false
+      }
+    },
+    "created_at": "2026-10-28T17:16:54.007Z"
+  },
+  {
     "id": 1793039449785,
     "actor": "owner",
     "action": "TEST_ACTION",

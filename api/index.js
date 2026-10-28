@@ -2,8 +2,8 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const SMS_API_KEY = process.env.SMS_API_KEY || 'RLVE915IEZOJLRO847T4PL8OVCZIOT4RLUCALL63';
-const CHAPA_SECRET_KEY = process.env.CHAPA_SECRET_KEY || 'CHASECK_TEST-sample';
+const SMS_API_KEY = String(process.env.SMS_API_KEY || 'RLVE915IEZOJLRO847T4PL8OVCZIOT4RLUCALL63').trim();
+const CHAPA_SECRET_KEY = String(process.env.CHAPA_SECRET_KEY || 'CHASECK_TEST-sample').trim();
 const OWNER_PHONE = String(process.env.OWNER_PHONE || '0907173634').trim();
 const CLOUD_NAME = String(process.env.CLOUD_NAME || 'trkihe9m').trim();
 const UPLOAD_PRESET = String(process.env.UPLOAD_PRESET || 'Husenonlinemarketing').trim();

@@ -444,9 +444,21 @@
   // Neutral Husen Logo SVG Placeholder (zero-network permanent fallback, quote-sanitized)
   const HUSEN_FALLBACK_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23faf7f5%22/%3E%3Ccircle cx=%22200%22 cy=%22125%22 r=%2248%22 fill=%22%23d92a2a%22 opacity=%220.12%22/%3E%3Cpath d=%22M184 105 h32 v42 h-32 z M190 105 a10 10 0 0 1 20 0%22 fill=%22none%22 stroke=%22%23d92a2a%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3Ctext x=%22200%22 y=%22205%22 text-anchor=%22middle%22 fill=%22%23d92a2a%22 font-family=%22system-ui, -apple-system, sans-serif%22 font-weight=%22700%22 font-size=%2216%22%3EHUSEN ONLINE%3C/text%3E%3Ctext x=%22200%22 y=%22225%22 text-anchor=%22middle%22 fill=%22%23888888%22 font-family=%22system-ui, -apple-system, sans-serif%22 font-size=%2212%22%3EProduct Photo%3C/text%3E%3C/svg%3E";
 
-  // Global bulletproof image error handler (never throws syntax error, handles 404/offline seamlessly)
+  // Global bulletproof image error handler (smart 2-attempt network retry before graceful SVG fallback)
   window.handleImgError = function(el) {
-    if (!el || el.dataset.homFallbackApplied) return;
+    if (!el) return;
+    const retryCount = Number(el.dataset.homRetryCount || 0);
+    const origSrc = el.dataset.homOriginalSrc || el.getAttribute('src');
+    if (retryCount < 2 && origSrc && !origSrc.startsWith('data:')) {
+      el.dataset.homRetryCount = String(retryCount + 1);
+      setTimeout(() => {
+        if (el && !el.dataset.homFallbackApplied) {
+          el.src = origSrc + (origSrc.includes('?') ? '&' : '?') + 'r=' + Date.now();
+        }
+      }, 1200);
+      return;
+    }
+    if (el.dataset.homFallbackApplied) return;
     el.dataset.homFallbackApplied = 'true';
     el.onerror = null;
     el.src = HUSEN_FALLBACK_SVG;
@@ -1377,7 +1389,7 @@
             ` : ''}
             <div class="product-crossfade-wrap" id="crossfade-${p.id}">
               ${images.map((img, i) => `
-                <img src="${getImgSrc(img)}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy" onerror="window.handleImgError(this);">
+                <img src="${getImgSrc(img)}" data-hom-original-src="${getImgSrc(img)}" alt="${name}" class="product-img ${i === 0 ? 'active' : 'inactive'}" data-index="${i}" loading="lazy" onerror="window.handleImgError(this);">
               `).join('')}
             </div>
           </div>
@@ -3205,7 +3217,7 @@
 
       return `
         <div class="admin-prod-card" data-id="${p.id}" role="button" tabindex="0" title="Click to edit ${name}">
-          <img src="${img}" alt="${name}" class="admin-prod-thumb" onerror="window.handleImgError(this);">
+          <img src="${img}" data-hom-original-src="${img}" alt="${name}" class="admin-prod-thumb" onerror="window.handleImgError(this);">
           
           <div class="admin-prod-details">
             <div class="admin-prod-header">

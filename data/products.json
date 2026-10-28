@@ -1,150 +1,9 @@
 [
   {
-    "id": "prod-1792254126514",
-    "name": {
-      "en": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes",
-      "am": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes",
-      "om": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 3000,
-    "category": "health",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254082/1000002613.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254096/1000002614.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1792254056084",
-    "name": {
-      "en": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces",
-      "am": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces",
-      "om": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 8000,
-    "category": "kitchen",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253985/1000002612.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253992/1000002611.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254000/1000002610.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1792253944033",
-    "name": {
-      "en": "Marvis Amarelli Licorice Toothpaste",
-      "am": "Marvis Amarelli Licorice Toothpaste",
-      "om": "Marvis Amarelli Licorice Toothpaste"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 2000,
-    "category": "health",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253933/1000002615.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253940/1000002617.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1792253833313",
-    "name": {
-      "en": "Aloe Vera Foaming Facial Cleanser with Silicone Brush",
-      "am": "Aloe Vera Foaming Facial Cleanser with Silicone Brush",
-      "om": "Aloe Vera Foaming Facial Cleanser with Silicone Brush"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 1000,
-    "category": "health",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253778/1000002619.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253786/1000002618.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": false,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
     "id": "prod-1792253734383",
     "name": {
-      "en": "Motions Versatile Foam Styling Lotion, 8.5 oz",
       "am": "Motions Versatile Foam Styling Lotion, 8.5 oz",
+      "en": "Motions Versatile Foam Styling Lotion, 8.5 oz",
       "om": "Motions Versatile Foam Styling Lotion, 8.5 oz"
     },
     "spec": {
@@ -165,22 +24,22 @@
       "https://res.cloudinary.com/trkihe9m/image/upload/v1792253710/1000002620.jpg"
     ],
     "imagePublicIds": [],
-    "inStock": false,
+    "inStock": true,
     "sortOrder": 0,
     "badge": {
-      "en": "New",
       "am": "አዲስ",
+      "en": "New",
       "om": "Haaraa"
     },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
   },
   {
-    "id": "prod-1792253645670",
+    "id": "prod-4",
     "name": {
-      "en": "Halora 7-in-1 Essential Scalp and Hair Growth Oil",
-      "am": "Halora 7-in-1 Essential Scalp and Hair Growth Oil",
-      "om": "Halora 7-in-1 Essential Scalp and Hair Growth Oil"
+      "am": "Melanix Anti-Gray Hair Lotion",
+      "en": "Melanix Anti-Gray Hair Lotion",
+      "om": "Melanix Anti-Gray Hair Lotion"
     },
     "spec": {
       "en": "",
@@ -192,310 +51,30 @@
       "am": "",
       "om": ""
     },
-    "price": 1500,
-    "category": "health",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253604/1000002625.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253617/1000002624.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253622/1000002623.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": false,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1792253563610",
-    "name": {
-      "en": "Kojie San Skin Lightening Soap",
-      "am": "Kojie San Skin Lightening Soap",
-      "om": "Kojie San Skin Lightening Soap"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 750,
+    "price": 950,
     "category": "beauty",
     "secondaryCategory": "",
     "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253513/1000002628.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253515/1000002626.jpg"
+      "public/images/melanix.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790240535/Melanix_Anti-Gray_Hair_Lotion.jpg"
     ],
     "imagePublicIds": [],
-    "inStock": true,
+    "inStock": false,
     "sortOrder": 0,
     "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
+      "am": "ተፈጥሯዊ",
+      "en": "Natural",
+      "om": "Uumamaa"
     },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1792253237073",
-    "name": {
-      "en": "40 oz Insulated Stainless Steel Tumbler with Straw",
-      "am": "40 oz Insulated Stainless Steel Tumbler with Straw",
-      "om": "40 oz Insulated Stainless Steel Tumbler with Straw"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 2500,
-    "category": "home",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253196/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1105.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253199/1000002630.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1792253145362",
-    "name": {
-      "en": "Rechargeable Handheld Electric Milk Frother",
-      "am": "Rechargeable Handheld Electric Milk Frother",
-      "om": "Rechargeable Handheld Electric Milk Frother"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 1500,
-    "category": "kitchen",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253112/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1106.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253120/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1107.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1792253052635",
-    "name": {
-      "en": "Sonic Electric Toothbrush",
-      "am": "Sonic Electric Toothbrush",
-      "om": "Sonic Electric Toothbrush"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 2000,
-    "category": "health",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1792252996/1000002634.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1790409606500",
-    "name": {
-      "en": "HOMETIME Portable Handheld Garment Steamer",
-      "am": "HOMETIME Portable Handheld Garment Steamer",
-      "om": "HOMETIME Portable Handheld Garment Steamer"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 6000,
-    "category": "home",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1790409493/1000001758.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1790409495/1000001757.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.600Z"
-  },
-  {
-    "id": "prod-1789852358338",
-    "name": {
-      "en": "Hair Dryer",
-      "am": "Hair Dryer",
-      "om": "Hair Dryer"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 4500,
-    "category": "health",
-    "secondaryCategory": "",
-    "images": [
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1789761980/1000001417.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1790239816/cacs.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "en": "New",
-      "am": "አዲስ",
-      "om": "Haaraa"
-    },
-    "createdAt": "2026-10-26T18:30:48.600Z",
-    "updatedAt": "2026-10-26T18:30:48.601Z"
-  },
-  {
-    "id": "prod-1",
-    "name": {
-      "am": "Glass Storage Container Set (4-piece)",
-      "om": "Glass Storage Container Set (4-piece)",
-      "en": "Glass Storage Container Set (4-piece)"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 4500,
-    "category": "kitchen",
-    "secondaryCategory": "",
-    "images": [
-      "public/images/storage1.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1790240028/food_launcher.avif"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "am": "ኦ���ጅናል",
-      "om": "Qulqullina",
-      "en": "Original"
-    },
-    "createdAt": "2026-10-26T18:30:48.601Z",
-    "updatedAt": "2026-10-26T18:30:48.601Z"
-  },
-  {
-    "id": "prod-2",
-    "name": {
-      "am": "Posture Corrector Compression Vest",
-      "om": "Posture Corrector Compression Vest",
-      "en": "Posture Corrector Compression Vest"
-    },
-    "spec": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "fullDesc": {
-      "en": "",
-      "am": "",
-      "om": ""
-    },
-    "price": 2500,
-    "category": "health",
-    "secondaryCategory": "",
-    "images": [
-      "public/images/vest1.jpg",
-      "public/images/vest2.jpg"
-    ],
-    "imagePublicIds": [],
-    "inStock": true,
-    "sortOrder": 0,
-    "badge": {
-      "am": "ተወዳጅ",
-      "om": "Filatamaa",
-      "en": "Best Seller"
-    },
-    "createdAt": "2026-10-26T18:30:48.601Z",
-    "updatedAt": "2026-10-26T18:30:48.601Z"
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
   },
   {
     "id": "prod-3",
     "name": {
       "am": "Saachhi 2-in-1 Blender",
-      "om": "Saachhi 2-in-1 Blender",
-      "en": "Saachhi 2-in-1 Blender"
+      "en": "Saachhi 2-in-1 Blender",
+      "om": "Saachhi 2-in-1 Blender"
     },
     "spec": {
       "en": "",
@@ -520,18 +99,18 @@
     "sortOrder": 0,
     "badge": {
       "am": "ኃይለኛ",
-      "om": "Cimaa",
-      "en": "350W Power"
+      "en": "350W Power",
+      "om": "Cimaa"
     },
-    "createdAt": "2026-10-26T18:30:48.601Z",
-    "updatedAt": "2026-10-26T18:30:48.601Z"
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
   },
   {
-    "id": "prod-4",
+    "id": "prod-2",
     "name": {
-      "am": "Melanix Anti-Gray Hair Lotion",
-      "om": "Melanix Anti-Gray Hair Lotion",
-      "en": "Melanix Anti-Gray Hair Lotion"
+      "am": "Posture Corrector Compression Vest",
+      "en": "Posture Corrector Compression Vest",
+      "om": "Posture Corrector Compression Vest"
     },
     "spec": {
       "en": "",
@@ -543,22 +122,443 @@
       "am": "",
       "om": ""
     },
-    "price": 950,
+    "price": 2500,
+    "category": "health",
+    "secondaryCategory": "",
+    "images": [
+      "public/images/vest1.jpg",
+      "public/images/vest2.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "ተወዳጅ",
+      "en": "Best Seller",
+      "om": "Filatamaa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1",
+    "name": {
+      "am": "Glass Storage Container Set (4-piece)",
+      "en": "Glass Storage Container Set (4-piece)",
+      "om": "Glass Storage Container Set (4-piece)"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 4500,
+    "category": "kitchen",
+    "secondaryCategory": "",
+    "images": [
+      "public/images/storage1.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790240028/food_launcher.avif"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "ኦ���ጅናል",
+      "en": "Original",
+      "om": "Qulqullina"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1789852358338",
+    "name": {
+      "am": "Hair Dryer",
+      "en": "Hair Dryer",
+      "om": "Hair Dryer"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 4500,
+    "category": "health",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1789761980/1000001417.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790239816/cacs.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1790409606500",
+    "name": {
+      "am": "HOMETIME Portable Handheld Garment Steamer",
+      "en": "HOMETIME Portable Handheld Garment Steamer",
+      "om": "HOMETIME Portable Handheld Garment Steamer"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 6000,
+    "category": "home",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790409493/1000001758.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1790409495/1000001757.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792253052635",
+    "name": {
+      "am": "Sonic Electric Toothbrush",
+      "en": "Sonic Electric Toothbrush",
+      "om": "Sonic Electric Toothbrush"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 2000,
+    "category": "health",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792252996/1000002634.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792253145362",
+    "name": {
+      "am": "Rechargeable Handheld Electric Milk Frother",
+      "en": "Rechargeable Handheld Electric Milk Frother",
+      "om": "Rechargeable Handheld Electric Milk Frother"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 1500,
+    "category": "kitchen",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253112/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1106.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253120/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1107.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792253237073",
+    "name": {
+      "am": "40 oz Insulated Stainless Steel Tumbler with Straw",
+      "en": "40 oz Insulated Stainless Steel Tumbler with Straw",
+      "om": "40 oz Insulated Stainless Steel Tumbler with Straw"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 2500,
+    "category": "home",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253196/cbb64b39-e7aa-4c5d-b250-7bf7049df8c1-1_all_1105.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253199/1000002630.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792253563610",
+    "name": {
+      "am": "Kojie San Skin Lightening Soap",
+      "en": "Kojie San Skin Lightening Soap",
+      "om": "Kojie San Skin Lightening Soap"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 750,
     "category": "beauty",
     "secondaryCategory": "",
     "images": [
-      "public/images/melanix.jpg",
-      "https://res.cloudinary.com/trkihe9m/image/upload/v1790240535/Melanix_Anti-Gray_Hair_Lotion.jpg"
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253513/1000002628.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253515/1000002626.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792253645670",
+    "name": {
+      "am": "Halora 7-in-1 Essential Scalp and Hair Growth Oil",
+      "en": "Halora 7-in-1 Essential Scalp and Hair Growth Oil",
+      "om": "Halora 7-in-1 Essential Scalp and Hair Growth Oil"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 1500,
+    "category": "health",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253604/1000002625.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253617/1000002624.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253622/1000002623.jpg"
     ],
     "imagePublicIds": [],
     "inStock": false,
     "sortOrder": 0,
     "badge": {
-      "am": "ተፈጥሯዊ",
-      "om": "Uumamaa",
-      "en": "Natural"
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
     },
-    "createdAt": "2026-10-26T18:30:48.601Z",
-    "updatedAt": "2026-10-26T18:30:48.601Z"
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792253833313",
+    "name": {
+      "am": "Aloe Vera Foaming Facial Cleanser with Silicone Brush",
+      "en": "Aloe Vera Foaming Facial Cleanser with Silicone Brush",
+      "om": "Aloe Vera Foaming Facial Cleanser with Silicone Brush"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 1000,
+    "category": "health",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253778/1000002619.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253786/1000002618.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": false,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792253944033",
+    "name": {
+      "am": "Marvis Amarelli Licorice Toothpaste",
+      "en": "Marvis Amarelli Licorice Toothpaste",
+      "om": "Marvis Amarelli Licorice Toothpaste"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 2000,
+    "category": "health",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253933/1000002615.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253940/1000002617.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792254056084",
+    "name": {
+      "am": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces",
+      "en": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces",
+      "om": "Bamboo Two-Tier Spice Rack Set with Glass Jars and Oil Dispensers, 10 Pieces"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 8000,
+    "category": "kitchen",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253985/1000002612.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792253992/1000002611.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254000/1000002610.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": true,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
+  },
+  {
+    "id": "prod-1792254126514",
+    "name": {
+      "am": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes",
+      "en": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes",
+      "om": "Rechargeable Heated Waist and Abdominal Massage Pad with 4 Modes"
+    },
+    "spec": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "fullDesc": {
+      "en": "",
+      "am": "",
+      "om": ""
+    },
+    "price": 3000,
+    "category": "health",
+    "secondaryCategory": "",
+    "images": [
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254082/1000002613.jpg",
+      "https://res.cloudinary.com/trkihe9m/image/upload/v1792254096/1000002614.jpg"
+    ],
+    "imagePublicIds": [],
+    "inStock": false,
+    "sortOrder": 0,
+    "badge": {
+      "am": "አዲስ",
+      "en": "New",
+      "om": "Haaraa"
+    },
+    "createdAt": "2026-10-28T17:54:49.630Z",
+    "updatedAt": "2026-10-28T17:54:49.630Z"
   }
 ]

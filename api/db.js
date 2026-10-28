@@ -7,10 +7,13 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-// 1. SUPABASE CREDENTIALS (from Environment Variables with fallbacks)
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hhkaotnpohmkklbobplh.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 
+// 1. SUPABASE CREDENTIALS (from Environment Variables with fallbacks & robust whitespace/format sanitization)
+const rawSupabaseUrl = process.env.SUPABASE_URL || 'https://hhkaotnpohmkklbobplh.supabase.co';
+const rawSupabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoa2FvdG5wb2hta2tsYm9icGxoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MjkxNjU5MCwiZXhwIjoyMTA4NDkyNTkwfQ.cU8TF5_eir7DEn6mBQhrxVueCZlW9VgQn6uE-LpdvWs';
+
+const SUPABASE_URL = String(rawSupabaseUrl).replace(/^SB URL=\s*/i, '').replace(/^['"]|['"]$/g, '').trim();
+const SUPABASE_SERVICE_ROLE_KEY = String(rawSupabaseKey).replace(/^Bearer\s+/i, '').replace(/^service role key=\s*/i, '').replace(/^['"]|['"]$/g, '').trim();
 
 const LOCAL_PRODUCTS_FILE = path.join(__dirname, '..', 'data', 'products.json');
 const LOCAL_SETTINGS_FILE = path.join(__dirname, '..', 'data', 'settings.json');
@@ -275,6 +278,15 @@ async function getProducts({ includeOutOfStock = true } = {}) {
     const res = await supabaseRequest(query);
     if (Array.isArray(res.data) && res.data.length > 0) {
       return res.data.map(formatProductRecord);
+    }
+    // Auto-seed Supabase if database table is currently empty
+    if (Array.isArray(res.data) && res.data.length === 0) {
+      console.log('[DB] Products table empty in Supabase. Running auto-migration from catalog...');
+      await migrateExistingProductsToSupabase();
+      const reFetch = await supabaseRequest(query);
+      if (Array.isArray(reFetch.data) && reFetch.data.length > 0) {
+        return reFetch.data.map(formatProductRecord);
+      }
     }
   } catch (err) {
     console.warn('[DB] Supabase getProducts fetch error (falling back to local cache):', err.message);

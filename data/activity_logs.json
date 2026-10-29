@@ -1,5 +1,35 @@
 [
   {
+    "id": 1793293414774,
+    "actor": "owner",
+    "action": "TEST_ACTION",
+    "target": "unit-test",
+    "details": {
+      "note": "Verification test"
+    },
+    "created_at": "2026-10-29T17:03:34.191Z"
+  },
+  {
+    "id": 1793293411682,
+    "actor": "test-runner",
+    "action": "STOCK_IN",
+    "target": "prod-1792253734383",
+    "details": {
+      "inStock": true
+    },
+    "created_at": "2026-10-29T17:03:31.237Z"
+  },
+  {
+    "id": 1793293411253,
+    "actor": "test-runner",
+    "action": "STOCK_OUT",
+    "target": "prod-1792253734383",
+    "details": {
+      "inStock": false
+    },
+    "created_at": "2026-10-29T17:03:30.372Z"
+  },
+  {
     "id": 1793210092595,
     "actor": "owner",
     "action": "TEST_ACTION",

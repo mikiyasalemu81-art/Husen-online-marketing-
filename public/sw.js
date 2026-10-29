@@ -10,21 +10,21 @@
  * - Navigation Fallback: Cached shell or friendly /offline.html
  */
 
-// Service Worker Cache Version: Bumped to v5
-const CACHE_NAME = 'husen-app-shell-v5';
-const DATA_CACHE_NAME = 'husen-data-v5';
-const STATIC_CACHE_NAME = 'husen-static-v5';
+// Service Worker Cache Version: Bumped to v6
+const CACHE_NAME = 'husen-app-shell-v6';
+const DATA_CACHE_NAME = 'husen-data-v6';
+const STATIC_CACHE_NAME = 'husen-static-v6';
 
 const APP_SHELL_FILES = [
   '/',
   '/index.html',
+  '/style.css?v=3.5',
   '/style.css?v=3.3',
   '/style.css?v=3.2',
-  '/style.css?v=3.1',
   '/style.css',
+  '/app.js?v=3.5',
   '/app.js?v=3.3',
   '/app.js?v=3.2',
-  '/app.js?v=3.1',
   '/app.js',
   '/manifest.webmanifest',
   '/site.webmanifest',
@@ -77,6 +77,7 @@ function isExcludedFromCache(url, method) {
 
   const pathname = url.pathname;
   if (
+    pathname.startsWith('/api/upload') ||
     pathname.startsWith('/api/admin') ||
     pathname.startsWith('/api/chapa') ||
     pathname.startsWith('/api/orders') ||

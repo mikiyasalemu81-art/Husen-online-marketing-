@@ -522,8 +522,18 @@
   }
 
   // ==========================================================================
-  // 3. APPLICATION STATE
+  // 3. APPLICATION STATE & STALE CACHE PURGE
   // ==========================================================================
+  const HOM_APP_VERSION = 'v3.5';
+  try {
+    if (localStorage.getItem('hom_app_version') !== HOM_APP_VERSION) {
+      console.log('[APP] New build detected (' + HOM_APP_VERSION + '). Evicting stale local cache...');
+      localStorage.removeItem('hom_products');
+      localStorage.removeItem('hom_categories');
+      localStorage.setItem('hom_app_version', HOM_APP_VERSION);
+    }
+  } catch (e) {}
+
   const state = {
     lang: getStorage('session', 'hom_lang') || 'en',
     activeCategory: 'all',
@@ -986,14 +996,12 @@
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.products)) {
-          const serverUpdated = data.updatedAt || 0;
           const currentJson = JSON.stringify(state.products);
           const newJson = JSON.stringify(data.products);
           
-          const isServerNewer = serverUpdated && serverUpdated > (state.lastUpdatedAt || 0);
-          if (force || isServerNewer) {
+          if (force || newJson !== currentJson) {
             state.products = data.products;
-            state.lastUpdatedAt = serverUpdated || Date.now();
+            state.lastUpdatedAt = data.updatedAt || Date.now();
             try {
               localStorage.setItem('hom_products', JSON.stringify(state.products));
             } catch (e) {}
@@ -2388,7 +2396,35 @@
     return { blob: file, name: file.name, isOriginal: true };
   }
 
-  // Upload single photo with progress tracking and transparent fallback to raw file
+  // Helper to convert Blob to Base64 for server proxy fallback
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Server proxy fallback: Uploads photo via backend /api/upload route
+  async function uploadViaServerProxy(blobOrFile) {
+    const base64Data = await blobToBase64(blobOrFile);
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: base64Data })
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.secure_url) {
+      return {
+        secure_url: data.secure_url,
+        public_id: data.public_id || ''
+      };
+    }
+    throw new Error(data.error || 'Server upload proxy rejected request');
+  }
+
+  // Upload single photo with progress tracking and transparent fallback to raw file & server proxy
   function uploadSinglePhoto(file, onProgress) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -2402,6 +2438,19 @@
           console.warn('[UPLOAD] Compression skipped, uploading raw file to Cloudinary:', compErr);
           blobToUpload = file;
         }
+
+        const fallbackToServer = async (originalErrMsg) => {
+          try {
+            console.warn('[UPLOAD] Direct Cloudinary failed (' + originalErrMsg + '). Falling back to server proxy /api/upload...');
+            if (onProgress) onProgress(65);
+            const proxyRes = await uploadViaServerProxy(blobToUpload);
+            if (onProgress) onProgress(100);
+            return resolve(proxyRes);
+          } catch (proxyErr) {
+            console.error('[UPLOAD] Server proxy fallback also failed:', proxyErr.message);
+            return reject(new Error(originalErrMsg || proxyErr.message));
+          }
+        };
 
         const cloud = String(state.cloudName || 'trkihe9m').trim();
         const preset = String(state.uploadPreset || 'Husenonlinemarketing').trim();
@@ -2435,25 +2484,25 @@
               public_id: parsed.public_id || ''
             });
           } else {
-            console.error(`[CLOUDINARY UPLOAD ERROR] HTTP ${xhr.status}:`, xhr.responseText);
+            console.warn(`[CLOUDINARY DIRECT FAILED] HTTP ${xhr.status}:`, xhr.responseText);
             const errMsg = (parsed && parsed.error && parsed.error.message)
               ? parsed.error.message
-              : `Upload rejected (Status ${xhr.status}): ${xhr.statusText || 'Unknown error'}`;
-            reject(new Error(errMsg));
+              : `Status ${xhr.status}`;
+            fallbackToServer(errMsg);
           }
         };
 
         xhr.onerror = () => {
-          console.error('[CLOUDINARY NETWORK ERROR]');
-          reject(new Error('Network error connecting to Cloudinary. Check internet connection.'));
+          console.warn('[CLOUDINARY NETWORK ERROR] Trying server fallback...');
+          fallbackToServer('Direct network error');
         };
 
         xhr.ontimeout = () => {
-          console.error('[CLOUDINARY TIMEOUT ERROR]');
-          reject(new Error('Upload timed out after 45 seconds.'));
+          console.warn('[CLOUDINARY TIMEOUT ERROR] Trying server fallback...');
+          fallbackToServer('Direct upload timed out');
         };
 
-        xhr.timeout = 45000;
+        xhr.timeout = 25000;
         xhr.send(formData);
       } catch (err) {
         reject(err);

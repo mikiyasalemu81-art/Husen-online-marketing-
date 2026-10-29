@@ -545,6 +545,77 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // --- API ROUTE: Cloudinary Upload Fallback (Server Proxy) ---
+  if (pathname === '/api/upload' && req.method === 'POST') {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    try {
+      const body = await getRequestBody(req);
+      const fileData = body.file || body.data;
+      if (!fileData) {
+        return res.status(400).json({ success: false, error: 'No image data provided' });
+      }
+
+      const boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
+      let payloadBuffer;
+      if (typeof fileData === 'string' && fileData.startsWith('data:')) {
+        const matches = fileData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches) {
+          const mime = matches[1];
+          const rawBuffer = Buffer.from(matches[2], 'base64');
+          const header = `--${boundary}\r\nContent-Disposition: form-data; name="upload_preset"\r\n\r\n${UPLOAD_PRESET}\r\n` +
+                         `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="upload.jpg"\r\nContent-Type: ${mime}\r\n\r\n`;
+          const footer = `\r\n--${boundary}--\r\n`;
+          payloadBuffer = Buffer.concat([Buffer.from(header, 'utf8'), rawBuffer, Buffer.from(footer, 'utf8')]);
+        }
+      }
+
+      if (!payloadBuffer) {
+        const header = `--${boundary}\r\nContent-Disposition: form-data; name="upload_preset"\r\n\r\n${UPLOAD_PRESET}\r\n` +
+                       `--${boundary}\r\nContent-Disposition: form-data; name="file"\r\n\r\n${fileData}\r\n` +
+                       `--${boundary}--\r\n`;
+        payloadBuffer = Buffer.from(header, 'utf8');
+      }
+
+      const cldRes = await new Promise((resolve, reject) => {
+        const cReq = https.request({
+          hostname: 'api.cloudinary.com',
+          path: `/v1_1/${CLOUD_NAME}/image/upload`,
+          method: 'POST',
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            'Content-Length': payloadBuffer.length
+          }
+        }, (cRes) => {
+          let cData = '';
+          cRes.on('data', chunk => cData += chunk);
+          cRes.on('end', () => {
+            try {
+              const parsed = JSON.parse(cData);
+              if (cRes.statusCode >= 200 && cRes.statusCode < 300 && parsed.secure_url) {
+                resolve({ secure_url: parsed.secure_url, public_id: parsed.public_id || '' });
+              } else {
+                reject(new Error(parsed.error && parsed.error.message ? parsed.error.message : `Cloudinary status ${cRes.statusCode}`));
+              }
+            } catch (err) {
+              reject(err);
+            }
+          });
+        });
+        cReq.on('error', reject);
+        cReq.setTimeout(30000, () => {
+          cReq.destroy(new Error('Cloudinary upload timed out'));
+        });
+        cReq.write(payloadBuffer);
+        cReq.end();
+      });
+
+      return res.status(200).json({ success: true, secure_url: cldRes.secure_url, public_id: cldRes.public_id });
+    } catch (err) {
+      console.error('[SERVER UPLOAD ERROR]:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
   // --- API ROUTE: Admin Login (Hashed Password on Server) ---
   if (pathname === '/api/admin/login' && req.method === 'POST') {
     try {

@@ -10,20 +10,20 @@
  * - Navigation Fallback: Cached shell or friendly /offline.html
  */
 
-// Service Worker Cache Version: Bumped to v6
-const CACHE_NAME = 'husen-app-shell-v6';
-const DATA_CACHE_NAME = 'husen-data-v6';
-const STATIC_CACHE_NAME = 'husen-static-v6';
+// Service Worker Cache Version: Bumped to v7 (nuclear cache bust)
+const CACHE_NAME = 'husen-app-shell-v7';
+const DATA_CACHE_NAME = 'husen-data-v7';
+const STATIC_CACHE_NAME = 'husen-static-v7';
 
 const APP_SHELL_FILES = [
   '/',
   '/index.html',
+  '/style.css?v=4.0',
   '/style.css?v=3.5',
-  '/style.css?v=3.3',
   '/style.css?v=3.2',
   '/style.css',
+  '/app.js?v=4.0',
   '/app.js?v=3.5',
-  '/app.js?v=3.3',
   '/app.js?v=3.2',
   '/app.js',
   '/manifest.webmanifest',
@@ -69,6 +69,13 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => self.clients.claim())
   );
+});
+
+// 2b. Message handler: allow page to force skipWaiting
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // 3. Helper to detect routes that must NEVER be cached

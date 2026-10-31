@@ -546,35 +546,79 @@ module.exports = async function handler(req, res) {
   }
 
   // --- API ROUTE: Cloudinary Upload Fallback (Server Proxy) ---
+  // Accepts both JSON { file: "data:..." } and multipart/form-data with a "file" field
   if (pathname === '/api/upload' && req.method === 'POST') {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     try {
-      const body = await getRequestBody(req);
-      const fileData = body.file || body.data;
-      if (!fileData) {
-        return res.status(400).json({ success: false, error: 'No image data provided' });
-      }
+      const contentType = (req.headers['content-type'] || '').toLowerCase();
+      let fileBuffer = null;
+      let fileMime = 'image/jpeg';
+      let fileName = 'upload.jpg';
 
-      const boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
-      let payloadBuffer;
-      if (typeof fileData === 'string' && fileData.startsWith('data:')) {
-        const matches = fileData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-        if (matches) {
-          const mime = matches[1];
-          const rawBuffer = Buffer.from(matches[2], 'base64');
-          const header = `--${boundary}\r\nContent-Disposition: form-data; name="upload_preset"\r\n\r\n${UPLOAD_PRESET}\r\n` +
-                         `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="upload.jpg"\r\nContent-Type: ${mime}\r\n\r\n`;
-          const footer = `\r\n--${boundary}--\r\n`;
-          payloadBuffer = Buffer.concat([Buffer.from(header, 'utf8'), rawBuffer, Buffer.from(footer, 'utf8')]);
+      // Path A: Client sent multipart/form-data (FormData with raw blob — no base64, fastest)
+      if (contentType.includes('multipart/form-data')) {
+        const rawBody = await new Promise((resolve, reject) => {
+          const chunks = [];
+          req.on('data', c => chunks.push(typeof c === 'string' ? Buffer.from(c) : c));
+          req.on('end', () => resolve(Buffer.concat(chunks)));
+          req.on('error', reject);
+        });
+        // Extract the file binary from the multipart body
+        const boundaryMatch = contentType.match(/boundary=(.+)/i);
+        if (boundaryMatch) {
+          const boundary = boundaryMatch[1].trim().replace(/^["']|["']$/g, '');
+          const boundaryBuf = Buffer.from('--' + boundary);
+          // Find file content between Content-Type header end and next boundary
+          const bodyStr = rawBody.toString('latin1');
+          const fileFieldIdx = bodyStr.indexOf('name="file"');
+          if (fileFieldIdx !== -1) {
+            // Find the blank line after headers (CRLFCRLF)
+            const headerEnd = bodyStr.indexOf('\r\n\r\n', fileFieldIdx);
+            if (headerEnd !== -1) {
+              const dataStart = headerEnd + 4;
+              // Extract Content-Type from file part headers
+              const partHeaders = bodyStr.substring(fileFieldIdx, headerEnd);
+              const ctMatch = partHeaders.match(/Content-Type:\s*([^\r\n]+)/i);
+              if (ctMatch) fileMime = ctMatch[1].trim();
+              const fnMatch = partHeaders.match(/filename="([^"]+)"/i);
+              if (fnMatch) fileName = fnMatch[1];
+              // Find the next boundary after data start
+              const nextBoundary = bodyStr.indexOf('\r\n--' + boundary, dataStart);
+              if (nextBoundary !== -1) {
+                fileBuffer = rawBody.subarray(dataStart, nextBoundary);
+              }
+            }
+          }
+        }
+        if (!fileBuffer || fileBuffer.length === 0) {
+          return res.status(400).json({ success: false, error: 'No file found in multipart upload' });
+        }
+      } else {
+        // Path B: Client sent JSON with base64 data (legacy path)
+        const body = await getRequestBody(req);
+        const fileData = body.file || body.data;
+        if (!fileData) {
+          return res.status(400).json({ success: false, error: 'No image data provided' });
+        }
+        if (typeof fileData === 'string' && fileData.startsWith('data:')) {
+          const matches = fileData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches) {
+            fileMime = matches[1];
+            fileBuffer = Buffer.from(matches[2], 'base64');
+          }
+        }
+        if (!fileBuffer) {
+          // Raw string data fallback
+          fileBuffer = Buffer.from(fileData, 'utf8');
         }
       }
 
-      if (!payloadBuffer) {
-        const header = `--${boundary}\r\nContent-Disposition: form-data; name="upload_preset"\r\n\r\n${UPLOAD_PRESET}\r\n` +
-                       `--${boundary}\r\nContent-Disposition: form-data; name="file"\r\n\r\n${fileData}\r\n` +
-                       `--${boundary}--\r\n`;
-        payloadBuffer = Buffer.from(header, 'utf8');
-      }
+      // Build multipart body for Cloudinary API
+      const boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
+      const header = `--${boundary}\r\nContent-Disposition: form-data; name="upload_preset"\r\n\r\n${UPLOAD_PRESET}\r\n` +
+                     `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\nContent-Type: ${fileMime}\r\n\r\n`;
+      const footer = `\r\n--${boundary}--\r\n`;
+      const payloadBuffer = Buffer.concat([Buffer.from(header, 'utf8'), fileBuffer, Buffer.from(footer, 'utf8')]);
 
       const cldRes = await new Promise((resolve, reject) => {
         const cReq = https.request({

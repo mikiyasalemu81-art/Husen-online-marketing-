@@ -524,7 +524,7 @@
   // ==========================================================================
   // 3. APPLICATION STATE & STALE CACHE PURGE
   // ==========================================================================
-  const HOM_APP_VERSION = 'v3.5';
+  const HOM_APP_VERSION = 'v4.0';
   try {
     if (localStorage.getItem('hom_app_version') !== HOM_APP_VERSION) {
       console.log('[APP] New build detected (' + HOM_APP_VERSION + '). Evicting stale local cache...');
@@ -2396,9 +2396,25 @@
     return { blob: file, name: file.name, isOriginal: true };
   }
 
-  // Helper to convert Blob to Base64 for server proxy fallback
+  // Helper to convert Blob to Base64 for server proxy fallback (chunked-safe for large Android photos)
   function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
+      // Use Response + arrayBuffer path to avoid FileReader heap crash on Android with large photos
+      if (typeof Response !== 'undefined') {
+        new Response(blob).arrayBuffer().then(function(buf) {
+          const bytes = new Uint8Array(buf);
+          let binary = '';
+          // Process in 32KB chunks to avoid stack overflow on call-stack-limited engines
+          const chunkSize = 32768;
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+          }
+          const mimeType = blob.type || 'image/jpeg';
+          resolve('data:' + mimeType + ';base64,' + btoa(binary));
+        }).catch(reject);
+        return;
+      }
+      // Last resort fallback: FileReader (only reached on very old browsers)
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
       reader.onerror = reject;
@@ -2406,8 +2422,34 @@
     });
   }
 
-  // Server proxy fallback: Uploads photo via backend /api/upload route
+  // Server proxy fallback: Uploads photo via backend /api/upload route using FormData (no base64 needed)
   async function uploadViaServerProxy(blobOrFile) {
+    // Try FormData upload first (avoids base64 encoding entirely — faster, uses less memory)
+    try {
+      const formData = new FormData();
+      const fileName = blobOrFile.name || 'photo.jpg';
+      formData.append('file', blobOrFile, fileName);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.secure_url) {
+        return {
+          secure_url: data.secure_url,
+          public_id: data.public_id || ''
+        };
+      }
+      // If server didn't accept FormData, fall through to base64
+      if (data.error && data.error.includes('No file')) {
+        throw new Error('FormData not accepted');
+      }
+      throw new Error(data.error || 'Server upload proxy rejected request');
+    } catch (formDataErr) {
+      console.warn('[UPLOAD] FormData proxy failed, trying base64 fallback:', formDataErr.message);
+    }
+
+    // Base64 fallback (for servers that only accept JSON body)
     const base64Data = await blobToBase64(blobOrFile);
     const res = await fetch('/api/upload', {
       method: 'POST',

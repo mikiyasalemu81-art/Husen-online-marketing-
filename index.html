@@ -34,7 +34,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="application-name" content="Husen Online Marketing">
 
-  <link rel="stylesheet" href="style.css?v=3.5">
+  <link rel="stylesheet" href="style.css?v=4.0">
 </head>
 <body>
 
@@ -1362,7 +1362,43 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
+  <!-- Nuclear Cache Buster: Forces stale Service Workers and caches to die -->
+  <script>
+  (function(){
+    var REQUIRED_VER = 'v4.0';
+    var storageOk = false;
+    try { storageOk = typeof localStorage !== 'undefined'; } catch(e){}
+    var currentVer = storageOk ? localStorage.getItem('hom_cache_nuke_ver') : null;
+    if (currentVer === REQUIRED_VER) return; // Already nuked for this version
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        var p = [];
+        regs.forEach(function(r) { p.push(r.unregister()); });
+        return Promise.all(p);
+      }).then(function() {
+        return caches.keys();
+      }).then(function(names) {
+        var p = [];
+        names.forEach(function(n) { p.push(caches.delete(n)); });
+        return Promise.all(p);
+      }).then(function() {
+        if (storageOk) {
+          localStorage.removeItem('hom_products');
+          localStorage.removeItem('hom_categories');
+          localStorage.removeItem('hom_app_version');
+          localStorage.setItem('hom_cache_nuke_ver', REQUIRED_VER);
+        }
+        window.location.replace(window.location.pathname + '?cache_bust=' + Date.now());
+      }).catch(function(){
+        if (storageOk) localStorage.setItem('hom_cache_nuke_ver', REQUIRED_VER);
+      });
+    } else {
+      if (storageOk) localStorage.setItem('hom_cache_nuke_ver', REQUIRED_VER);
+    }
+  })();
+  </script>
+
   <!-- Main Application Logic -->
-  <script src="app.js?v=3.5"></script>
+  <script src="app.js?v=4.0"></script>
 </body>
 </html>

@@ -444,18 +444,19 @@
   // Neutral Husen Logo SVG Placeholder (zero-network permanent fallback, quote-sanitized)
   const HUSEN_FALLBACK_SVG = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23faf7f5%22/%3E%3Ccircle cx=%22200%22 cy=%22125%22 r=%2248%22 fill=%22%23d92a2a%22 opacity=%220.12%22/%3E%3Cpath d=%22M184 105 h32 v42 h-32 z M190 105 a10 10 0 0 1 20 0%22 fill=%22none%22 stroke=%22%23d92a2a%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3Ctext x=%22200%22 y=%22205%22 text-anchor=%22middle%22 fill=%22%23d92a2a%22 font-family=%22system-ui, -apple-system, sans-serif%22 font-weight=%22700%22 font-size=%2216%22%3EHUSEN ONLINE%3C/text%3E%3Ctext x=%22200%22 y=%22225%22 text-anchor=%22middle%22 fill=%22%23888888%22 font-family=%22system-ui, -apple-system, sans-serif%22 font-size=%2212%22%3EProduct Photo%3C/text%3E%3C/svg%3E";
 
-  // Global bulletproof image error handler (smart 2-attempt network retry before graceful SVG fallback)
+  // Global bulletproof image error handler (smart 3-attempt network retry before graceful SVG fallback)
   window.handleImgError = function(el) {
     if (!el) return;
     const retryCount = Number(el.dataset.homRetryCount || 0);
     const origSrc = el.dataset.homOriginalSrc || el.getAttribute('src');
-    if (retryCount < 2 && origSrc && !origSrc.startsWith('data:')) {
+    if (retryCount < 3 && origSrc && !origSrc.startsWith('data:')) {
       el.dataset.homRetryCount = String(retryCount + 1);
+      const delay = (retryCount + 1) * 1000;
       setTimeout(() => {
         if (el && !el.dataset.homFallbackApplied) {
           el.src = origSrc + (origSrc.includes('?') ? '&' : '?') + 'r=' + Date.now();
         }
-      }, 1200);
+      }, delay);
       return;
     }
     if (el.dataset.homFallbackApplied) return;
@@ -524,7 +525,7 @@
   // ==========================================================================
   // 3. APPLICATION STATE & STALE CACHE PURGE
   // ==========================================================================
-  const HOM_APP_VERSION = 'v4.0';
+  const HOM_APP_VERSION = 'v4.1';
   try {
     if (localStorage.getItem('hom_app_version') !== HOM_APP_VERSION) {
       console.log('[APP] New build detected (' + HOM_APP_VERSION + '). Evicting stale local cache...');
